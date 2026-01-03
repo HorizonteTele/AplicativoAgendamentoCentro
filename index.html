@@ -866,6 +866,12 @@
     document.addEventListener('DOMContentLoaded', () => {
         // ==================== CONFIGURAÇÃO ====================
         const SCRIPT_URL = 'SUA_URL_DO_APPS_SCRIPT_AQUI';
+        
+        // Valida se a URL foi configurada
+        if (SCRIPT_URL === 'SUA_URL_DO_APPS_SCRIPT_AQUI') {
+            showToast('⚠️ ATENÇÃO: Configure a URL do Apps Script no código!', 'error');
+            console.error('❌ URL do Apps Script não configurada. Edite a linha: const SCRIPT_URL = ...');
+        }
 
         // ==================== VARIÁVEIS GLOBAIS ====================
         let recipients = [];

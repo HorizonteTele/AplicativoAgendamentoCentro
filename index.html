@@ -5,57 +5,168 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agendador PRO 2.0 - Unidade Centro</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .fade-in { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes slideOut { to { transform: translateX(500px); opacity: 0; } }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        
+        body { 
+            font-family: 'Inter', sans-serif;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .fade-in { animation: fadeIn 0.4s ease-out; }
         .slide-in { animation: slideIn 0.3s ease-out; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #4f46e5; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
-        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { padding: 16px 20px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s ease-out; min-width: 300px; }
+        
+        .loader {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 400px;
+        }
+        
+        .toast {
+            min-width: 300px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease-out;
+        }
+        
         .toast-success { background: linear-gradient(135deg, #10b981, #059669); color: white; }
         .toast-error { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
         .toast-info { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
         .toast-warning { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
-        .toast.removing { animation: slideOut 0.3s ease-out forwards; }
-        .badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; gap: 4px; }
+        
+        .toast.removing {
+            animation: slideOut 0.3s ease-out forwards;
+        }
+        
+        @keyframes slideOut {
+            to { transform: translateX(500px); opacity: 0; }
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 9999px;
+            transition: width 0.3s;
+        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-50 to-blue-100 min-h-screen">
+<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 min-h-screen">
+
     <div class="toast-container" id="toast-container"></div>
 
-    <div class="container mx-auto p-4 md:p-6 max-w-6xl">
+    <div class="container mx-auto p-4 md:p-6 max-w-7xl">
+        
         <!-- HEADER -->
         <header class="text-center mb-8 fade-in">
-            <h1 class="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-2">
-                📋 Agendador PRO 2.0
-            </h1>
-            <p class="text-slate-600 font-medium">Unidade Centro</p>
-            <div class="flex justify-center items-center gap-4 mt-4 text-sm">
-                <span class="flex items-center gap-2 px-3 py-1 bg-white rounded-full shadow">
+            <div class="inline-flex items-center gap-4 mb-4">
+                <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl">
+                    <i class="fas fa-calendar-check text-2xl text-white"></i>
+                </div>
+                <div class="text-left">
+                    <h1 class="text-3xl md:text-4xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                        Agendador PRO 2.0
+                    </h1>
+                    <p class="text-slate-600 font-medium flex items-center gap-2">
+                        <i class="fas fa-map-marker-alt text-indigo-500"></i>
+                        Unidade Centro
+                    </p>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap justify-center items-center gap-4 mt-6">
+                <div class="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-md">
                     <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                    Online
-                </span>
-                <span id="live-clock" class="px-3 py-1 bg-white rounded-full shadow font-mono">--:--:--</span>
+                    <span class="text-sm font-semibold text-slate-700">Online</span>
+                </div>
+                <div class="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-md">
+                    <i class="fas fa-clock text-indigo-500"></i>
+                    <span class="text-sm font-semibold text-slate-700" id="live-clock">--:--:--</span>
+                </div>
             </div>
         </header>
 
         <!-- TABS -->
-        <div class="mb-6 bg-white p-1 rounded-xl shadow-lg">
-            <nav class="flex gap-1">
-                <button class="tab-btn flex-1 py-3 px-4 font-bold text-sm rounded-lg transition-all flex items-center justify-center gap-2" data-tab="agendar">
+        <div class="mb-8 bg-white/80 backdrop-blur-lg p-2 rounded-2xl shadow-xl">
+            <nav class="flex flex-wrap gap-2">
+                <button class="tab-btn flex-1 min-w-[100px] py-3 px-4 font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2" data-tab="agendar">
                     <i class="fas fa-edit"></i> Agendar
                 </button>
-                <button class="tab-btn flex-1 py-3 px-4 font-bold text-sm rounded-lg transition-all flex items-center justify-center gap-2" data-tab="gerenciar">
+                <button class="tab-btn flex-1 min-w-[100px] py-3 px-4 font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2" data-tab="gerenciar">
                     <i class="fas fa-tasks"></i> Gerenciar
                 </button>
-                <button class="tab-btn flex-1 py-3 px-4 font-bold text-sm rounded-lg transition-all flex items-center justify-center gap-2" data-tab="dashboard">
+                <button class="tab-btn flex-1 min-w-[100px] py-3 px-4 font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2" data-tab="dashboard">
                     <i class="fas fa-chart-line"></i> Dashboard
                 </button>
             </nav>
@@ -68,14 +179,20 @@
             <section id="agendar-section" class="tab-content space-y-6 fade-in">
                 
                 <!-- CONFIG -->
-                <div class="bg-white p-6 rounded-2xl shadow-lg">
-                    <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                        <i class="fas fa-user-cog text-indigo-500"></i> Configuração
-                    </h2>
+                <div class="bg-white/90 backdrop-blur-lg p-6 rounded-2xl shadow-xl">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-user-tie text-white"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-slate-800">Configuração</h2>
+                    </div>
+                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Seu Nome</label>
-                            <select id="assistant-name" class="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-semibold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
+                            <label for="assistant-name" class="block text-sm font-bold text-slate-700 mb-2">
+                                <i class="fas fa-user text-indigo-500"></i> Seu Nome
+                            </label>
+                            <select id="assistant-name" class="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-semibold">
                                 <option value="">-- Escolha seu nome --</option>
                                 <option value="ALANA">Alana</option>
                                 <option value="GABRIELA">Gabriela</option>
@@ -88,8 +205,10 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Local</label>
-                            <select id="location-select" class="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-semibold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
+                            <label for="location-select" class="block text-sm font-bold text-slate-700 mb-2">
+                                <i class="fas fa-map-marker-alt text-purple-500"></i> Local
+                            </label>
+                            <select id="location-select" class="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-semibold">
                                 <option value="Centro" selected>Centro</option>
                                 <option value="Eldorado">Eldorado</option>
                             </select>
@@ -97,66 +216,105 @@
                     </div>
                 </div>
 
-                <!-- STATS -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="bg-white p-4 rounded-xl shadow text-center">
-                        <div class="text-3xl font-black text-indigo-600" id="stat-total">0</div>
-                        <div class="text-xs text-slate-500 font-semibold uppercase">Total</div>
+                <!-- ESTATÍSTICAS -->
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-clipboard-list text-white"></i>
+                            </div>
+                            <div class="text-2xl font-black text-indigo-600" id="stat-total">0</div>
+                        </div>
+                        <div class="text-xs font-semibold text-slate-600">Total</div>
                     </div>
-                    <div class="bg-white p-4 rounded-xl shadow text-center">
-                        <div class="text-3xl font-black text-green-600" id="stat-complete">0</div>
-                        <div class="text-xs text-slate-500 font-semibold uppercase">Completos</div>
+                    
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-check-circle text-white"></i>
+                            </div>
+                            <div class="text-2xl font-black text-green-600" id="stat-complete">0</div>
+                        </div>
+                        <div class="text-xs font-semibold text-slate-600">Completos</div>
                     </div>
-                    <div class="bg-white p-4 rounded-xl shadow text-center">
-                        <div class="text-3xl font-black text-amber-600" id="stat-puxadas">0</div>
-                        <div class="text-xs text-slate-500 font-semibold uppercase">Puxadas</div>
+                    
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-bolt text-white"></i>
+                            </div>
+                            <div class="text-2xl font-black text-amber-600" id="stat-puxadas">0</div>
+                        </div>
+                        <div class="text-xs font-semibold text-slate-600">Puxadas</div>
                     </div>
-                    <div class="bg-white p-4 rounded-xl shadow text-center">
-                        <div class="text-3xl font-black text-blue-600" id="stat-tomorrow">0</div>
-                        <div class="text-xs text-slate-500 font-semibold uppercase">Amanhã</div>
+                    
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-calendar-day text-white"></i>
+                            </div>
+                            <div class="text-2xl font-black text-blue-600" id="stat-tomorrow">0</div>
+                        </div>
+                        <div class="text-xs font-semibold text-slate-600">Amanhã</div>
+                    </div>
+                    
+                    <div class="stat-card cursor-pointer" id="next-day-card" title="Clique para atualizar">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-calendar-plus text-white"></i>
+                            </div>
+                            <div class="text-2xl font-black text-purple-600" id="stat-next-day">-</div>
+                        </div>
+                        <div class="text-xs font-semibold text-slate-600">Ag. Amanhã</div>
                     </div>
                 </div>
 
                 <!-- DESTINATÁRIOS -->
-                <div class="bg-white p-6 rounded-2xl shadow-lg">
+                <div class="bg-white/90 backdrop-blur-lg p-6 rounded-2xl shadow-xl">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
-                            <i class="fas fa-users text-purple-500"></i> Destinatários
-                        </h2>
-                        <div class="flex gap-2 w-full sm:w-auto">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-users text-white"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-800">Destinatários</h2>
+                                <p class="text-xs text-slate-500">Adicione jovens para gerar convocações</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 w-full sm:w-auto">
                             <button id="add-recipient-btn" class="flex-1 sm:flex-none py-3 px-5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
-                                <i class="fas fa-plus"></i> Amanhã
+                                <i class="fas fa-plus-circle"></i> Amanhã
                             </button>
-                            <button id="add-puxada-btn" class="flex-1 sm:flex-none py-3 px-5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
+                            <button id="add-puxada-btn" class="flex-1 sm:flex-none py-3 px-5 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
                                 <i class="fas fa-bolt"></i> Hoje
                             </button>
                         </div>
                     </div>
                     
                     <div id="recipients-list" class="space-y-4">
-                        <div id="empty-state" class="text-center py-12 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50">
-                            <i class="fas fa-inbox text-5xl text-slate-300 mb-3"></i>
+                        <div id="empty-state" class="text-center py-12 border-2 border-dashed border-slate-300 rounded-2xl bg-slate-50">
+                            <i class="fas fa-inbox text-5xl text-slate-300 mb-4"></i>
                             <p class="text-slate-500 font-semibold">Nenhum destinatário adicionado</p>
-                            <p class="text-slate-400 text-sm mt-1">Clique em "Amanhã" ou "Hoje" para começar</p>
+                            <p class="text-xs text-slate-400 mt-1">Clique em "Amanhã" ou "Hoje" para começar</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- BOTÕES DE AÇÃO - SEM DISABLED INICIAL -->
+                <!-- BOTÕES DE AÇÃO -->
                 <div class="flex flex-col sm:flex-row justify-end gap-3">
                     <button id="quick-message-btn" class="py-3 px-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
                         <i class="fas fa-comment-dots"></i> Mensagem Rápida
                     </button>
                     <button id="generate-messages-btn" class="py-3 px-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
-                        <i class="fas fa-building"></i> Empresa Crescer
+                        <i class="fas fa-building"></i> Projeto Conecta Jovem
                     </button>
                     <button id="generate-instituto-btn" class="py-3 px-6 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
-                        <i class="fas fa-university"></i> Instituto Crescer'Minas
+                        <i class="fas fa-university"></i> Instituto Conecta Jovem
                     </button>
                 </div>
 
                 <!-- MENSAGENS GERADAS -->
-                <div id="messages-section" class="bg-white p-6 rounded-2xl shadow-lg hidden">
+                <div id="messages-section" class="bg-white/90 backdrop-blur-lg p-6 rounded-2xl shadow-xl hidden">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
                             <i class="fas fa-comments text-green-500"></i> Mensagens Geradas
@@ -171,27 +329,31 @@
             
             <!-- SEÇÃO GERENCIAR -->
             <section id="gerenciar-section" class="tab-content hidden fade-in">
-                <div class="bg-white p-6 rounded-2xl shadow-lg">
+                <div class="bg-white/90 backdrop-blur-lg p-6 rounded-2xl shadow-xl">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-xl font-bold text-slate-800">📋 Agendamentos de Hoje</h2>
-                        <button id="refresh-btn" class="py-2 px-4 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition-all">
+                        <button id="refresh-btn" class="py-2 px-4 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition-all flex items-center gap-2">
                             <i class="fas fa-sync-alt"></i> Atualizar
                         </button>
                     </div>
+                    
                     <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <input type="text" id="filter-search" placeholder="🔍 Buscar..." class="p-3 border-2 border-slate-200 rounded-xl">
+                        <input type="text" id="filter-search" placeholder="🔍 Buscar por nome..." class="p-3 border-2 border-slate-200 rounded-xl">
                         <select id="filter-status" class="p-3 border-2 border-slate-200 rounded-xl">
                             <option value="">Todos os Status</option>
                             <option value="CONFIRMADA">CONFIRMADA</option>
                             <option value="CANCELADA">CANCELADA</option>
                             <option value="REAGENDAR">REAGENDAR</option>
                             <option value="PUXADA">PUXADA</option>
+                            <option value="JÁ VEIO">JÁ VEIO</option>
+                            <option value="MATRICULA">MATRICULA</option>
                         </select>
                     </div>
+                    
                     <div id="management-list" class="space-y-3">
                         <div id="loader" class="text-center py-12 hidden">
                             <div class="loader mx-auto"></div>
-                            <p class="mt-4 text-slate-500">Buscando...</p>
+                            <p class="mt-4 text-slate-500">Buscando dados...</p>
                         </div>
                         <div id="management-empty" class="text-center py-12 border-2 border-dashed border-slate-200 rounded-xl">
                             <p class="text-slate-500">Selecione seu nome para ver os agendamentos</p>
@@ -202,7 +364,7 @@
 
             <!-- SEÇÃO DASHBOARD -->
             <section id="dashboard-section" class="tab-content hidden fade-in">
-                <div class="bg-white p-6 rounded-2xl shadow-lg">
+                <div class="bg-white/90 backdrop-blur-lg p-6 rounded-2xl shadow-xl">
                     <h2 class="text-xl font-bold text-slate-800 mb-6">📈 Seu Desempenho Hoje</h2>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div class="bg-slate-50 p-4 rounded-xl">
@@ -275,12 +437,12 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Sistema iniciando...');
+    console.log('🚀 Iniciando sistema Centro...');
     
     // ==================== CONFIG ====================
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyjKPgtDS1mRK0aNsbGEjv1m93JCmcaHqqfHoE6b3aIJCJ4T52X0VUDa7ztuUnq_1pG/exec';
     
-    // ==================== NOMES ====================
+    // ==================== NOMES COMPLETOS (CENTRO) ====================
     const nomeCompleto = {
         'ALANA': 'Amanda Rodrigues',
         'GABRIELA': 'Sophia Martins',
@@ -296,6 +458,17 @@ document.addEventListener('DOMContentLoaded', function() {
     let recipients = [];
     let allAppointments = [];
     let chartInstance = null;
+    let localStorageOK = false;
+    let memoryStorage = {};
+    
+    // Testa localStorage
+    try {
+        localStorage.setItem('test', '1');
+        localStorage.removeItem('test');
+        localStorageOK = true;
+    } catch(e) {
+        localStorageOK = false;
+    }
     
     // ==================== ELEMENTOS ====================
     const assistantSelect = document.getElementById('assistant-name');
@@ -316,12 +489,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const clearMessagesBtn = document.getElementById('clear-messages-btn');
 
     // ==================== TOAST ====================
-    function showToast(message, type = 'info') {
+    function showToast(msg, type = 'info') {
         const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
         const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
-        toast.innerHTML = `<span class="text-xl">${icons[type]}</span><span class="font-medium">${message}</span>`;
+        toast.innerHTML = `<span class="text-xl">${icons[type]}</span><span class="font-medium">${msg}</span>`;
         container.appendChild(toast);
         setTimeout(() => {
             toast.classList.add('removing');
@@ -342,26 +515,24 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function switchTab(tabName) {
         tabBtns.forEach(btn => {
-            btn.classList.remove('bg-indigo-600', 'text-white');
+            btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-lg');
             btn.classList.add('text-slate-600');
         });
         tabContents.forEach(c => c.classList.add('hidden'));
         
         const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
         activeBtn.classList.remove('text-slate-600');
-        activeBtn.classList.add('bg-indigo-600', 'text-white');
+        activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-lg');
         document.getElementById(`${tabName}-section`).classList.remove('hidden');
         
         if (tabName === 'gerenciar') fetchAppointments();
         if (tabName === 'dashboard') fetchDashboard();
     }
     
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-    });
+    tabBtns.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
     switchTab('agendar');
 
-    // ==================== FUNÇÕES DE DATA ====================
+    // ==================== DATAS ====================
     function getTodayString() {
         const d = new Date();
         return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
@@ -370,8 +541,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function getTomorrowString() {
         const d = new Date();
         const day = d.getDay();
-        if (day === 6) d.setDate(d.getDate() + 2); // Sábado -> Segunda
-        else if (day === 0) d.setDate(d.getDate() + 1); // Domingo -> Segunda
+        if (day === 6) d.setDate(d.getDate() + 2);
         else d.setDate(d.getDate() + 1);
         return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
     }
@@ -391,8 +561,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const birth = new Date(y, m - 1, d);
         const today = new Date();
         let age = today.getFullYear() - birth.getFullYear();
-        const monthDiff = today.getMonth() - birth.getMonth();
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) age--;
+        if (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age--;
         return age;
     }
     
@@ -415,28 +584,34 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('stat-tomorrow').textContent = tomorrow;
     }
 
-    // ==================== LOCAL STORAGE ====================
+    // ==================== STORAGE ====================
     function saveLocal() {
-        try {
-            localStorage.setItem('agendadorCentro', JSON.stringify({ time: Date.now(), recipients }));
-        } catch(e) { console.warn('LocalStorage indisponível'); }
+        const data = { time: Date.now(), recipients };
+        if (localStorageOK) {
+            try { localStorage.setItem('agendadorCentro', JSON.stringify(data)); } catch(e) {}
+        } else {
+            memoryStorage['agendadorCentro'] = data;
+        }
         updateStats();
     }
     
     function loadLocal() {
-        try {
-            const saved = localStorage.getItem('agendadorCentro');
-            if (saved) {
-                const data = JSON.parse(saved);
-                if (Date.now() - data.time < 86400000) recipients = data.recipients || [];
-            }
-        } catch(e) { console.warn('Erro ao carregar localStorage'); }
+        let data = null;
+        if (localStorageOK) {
+            try {
+                const saved = localStorage.getItem('agendadorCentro');
+                if (saved) data = JSON.parse(saved);
+            } catch(e) {}
+        } else {
+            data = memoryStorage['agendadorCentro'];
+        }
+        if (data && Date.now() - data.time < 86400000) {
+            recipients = data.recipients || [];
+        }
     }
 
     // ==================== RENDERIZAR DESTINATÁRIOS ====================
     function renderRecipients() {
-        console.log('📋 Renderizando destinatários:', recipients.length);
-        
         recipientsList.querySelectorAll('[data-id]').forEach(el => el.remove());
         
         if (recipients.length === 0) {
@@ -448,19 +623,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 div.className = 'p-5 border-2 border-slate-200 rounded-xl bg-white fade-in space-y-4';
                 div.dataset.id = r.id;
                 
-                const isComplete = r.jovem && r.responsavel && r.data && r.horario && r.numero_responsavel;
                 const badge = r.isPuxada ? 
                     '<span class="badge bg-amber-100 text-amber-800"><i class="fas fa-bolt"></i> PUXADA</span>' : 
                     '<span class="badge bg-blue-100 text-blue-800"><i class="fas fa-calendar"></i> AMANHÃ</span>';
-                const statusBadge = isComplete ?
-                    '<span class="badge bg-green-100 text-green-800"><i class="fas fa-check"></i> Completo</span>' :
-                    '<span class="badge bg-gray-100 text-gray-600">Incompleto</span>';
                 
                 div.innerHTML = `
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="font-bold text-slate-800">Destinatário ${i+1}</span>
-                            ${badge} ${statusBadge}
+                            ${badge}
                         </div>
                         <button class="remove-btn p-2 text-red-500 hover:bg-red-100 rounded-lg" data-id="${r.id}">
                             <i class="fas fa-trash"></i>
@@ -518,27 +689,21 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!container) return;
         const id = container.dataset.id;
         
-        // Máscara de data
         if (input.classList.contains('date-mask')) {
             value = value.replace(/\D/g, '');
             if (value.length >= 2) value = value.slice(0,2) + '/' + value.slice(2);
             if (value.length >= 5) value = value.slice(0,5) + '/' + value.slice(5,9);
             input.value = value.slice(0, 10);
-        }
-        // Máscara de telefone
-        else if (input.classList.contains('phone-mask')) {
+        } else if (input.classList.contains('phone-mask')) {
             value = value.replace(/\D/g, '');
             if (value.length > 0 && !value.startsWith('55')) value = '55' + value;
             input.value = value.slice(0, 15);
-        }
-        // Máscara de hora
-        else if (input.classList.contains('time-mask')) {
+        } else if (input.classList.contains('time-mask')) {
             value = value.replace(/\D/g, '');
             if (value.length >= 2) value = value.slice(0,2) + ':' + value.slice(2,4);
             input.value = value.slice(0, 5);
         }
         
-        // Atualiza recipient
         const recipient = recipients.find(r => r.id === id);
         if (recipient) {
             recipient[field] = input.value;
@@ -546,7 +711,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ==================== REMOVER DESTINATÁRIO ====================
+    // ==================== REMOVER ====================
     recipientsList.addEventListener('click', function(e) {
         const removeBtn = e.target.closest('.remove-btn');
         if (removeBtn) {
@@ -560,7 +725,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ==================== ADICIONAR DESTINATÁRIO ====================
+    // ==================== ADICIONAR ====================
     addRecipientBtn.addEventListener('click', function() {
         console.log('➕ Botão Amanhã clicado');
         recipients.push({
@@ -571,7 +736,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         renderRecipients();
         saveLocal();
-        showToast('Destinatário adicionado (Amanhã)', 'success');
+        showToast('Destinatário adicionado', 'success');
     });
 
     addPuxadaBtn.addEventListener('click', function() {
@@ -584,25 +749,25 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         renderRecipients();
         saveLocal();
-        showToast('Puxada adicionada (Hoje)', 'warning');
+        showToast('Puxada adicionada', 'warning');
     });
 
     // ==================== GERAR MENSAGENS ====================
     function gerarMensagens(isInstituto) {
-        console.log('📝 Gerando mensagens...', isInstituto ? 'Instituto' : 'Empresa');
+        console.log('📝 Gerando mensagens...', isInstituto ? 'Instituto' : 'Projeto');
         
         const assistant = assistantSelect.value;
         const local = locationSelect.value;
         
         if (!assistant) {
-            showToast('Selecione seu nome primeiro!', 'warning');
+            showToast('Selecione seu nome!', 'warning');
             return;
         }
         
         const validos = recipients.filter(r => r.jovem && r.responsavel && r.data && r.horario && r.numero_responsavel);
         
         if (validos.length === 0) {
-            showToast('Preencha pelo menos: Jovem, Responsável, Data, Horário e Telefone!', 'warning');
+            showToast('Preencha os campos obrigatórios!', 'warning');
             return;
         }
         
@@ -614,7 +779,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const codigo = generateCode(r.jovem);
             const diaSemana = getDayOfWeek(r.data);
             const nomeAssistente = nomeCompleto[assistant] || assistant;
-            const org = isInstituto ? "Instituto Crescer'Minas" : "Coordenação | Empresa Crescer";
+            const org = isInstituto ? "Instituto Conecta Jovem" : "Coordenação | Projeto Conecta Jovem";
             
             const endereco = local === 'Centro' ? 
                 'Rua Curitiba, 656, 11° andar - Centro, Belo Horizonte.\n\n(Em frente a Casa&Video, próximo a Marisa)' :
@@ -667,17 +832,16 @@ ${org}`;
                         <p class="font-bold text-slate-800">${r.jovem}</p>
                         <p class="text-sm text-slate-500">📞 ${r.numero_responsavel}</p>
                     </div>
-                    <span class="text-xs text-slate-400">${msg.length} caracteres</span>
                 </div>
                 <pre class="whitespace-pre-wrap bg-slate-50 p-4 rounded-lg text-sm text-slate-700 mb-4 border max-h-60 overflow-y-auto">${msg}</pre>
                 <div class="flex flex-wrap gap-2">
-                    <a href="https://wa.me/${r.numero_responsavel}?text=${encoded}" target="_blank" class="flex-1 py-2 px-4 bg-green-500 text-white font-bold rounded-lg text-center hover:bg-green-600 transition-all">
+                    <a href="https://wa.me/${r.numero_responsavel}?text=${encoded}" target="_blank" class="flex-1 py-2 px-4 bg-green-500 text-white font-bold rounded-lg text-center hover:bg-green-600 transition-all flex items-center justify-center gap-2">
                         <i class="fab fa-whatsapp"></i> WhatsApp
                     </a>
-                    <button class="copy-btn py-2 px-4 bg-slate-600 text-white font-bold rounded-lg hover:bg-slate-700 transition-all">
+                    <button class="copy-btn py-2 px-4 bg-slate-600 text-white font-bold rounded-lg hover:bg-slate-700 transition-all flex items-center gap-2">
                         <i class="fas fa-copy"></i> Copiar
                     </button>
-                    <button class="save-btn py-2 px-4 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-all">
+                    <button class="save-btn py-2 px-4 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-all flex items-center gap-2">
                         <i class="fas fa-save"></i> Salvar
                     </button>
                 </div>
@@ -690,9 +854,8 @@ ${org}`;
         showToast(`${validos.length} mensagem(ns) gerada(s)!`, 'success');
     }
 
-    // ==================== EVENT LISTENERS DOS BOTÕES ====================
     generateMessagesBtn.addEventListener('click', function() {
-        console.log('🏢 Botão Empresa Crescer clicado');
+        console.log('🏢 Botão Projeto Conecta Jovem clicado');
         gerarMensagens(false);
     });
 
@@ -737,7 +900,7 @@ ${org}`;
                 
                 if (result.status === 'success') {
                     saveBtn.innerHTML = '<i class="fas fa-check"></i> Salvo!';
-                    saveBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                    saveBtn.classList.remove('bg-blue-600');
                     saveBtn.classList.add('bg-green-600');
                     showToast('Salvo na planilha!', 'success');
                 } else {
@@ -752,7 +915,6 @@ ${org}`;
         }
     });
 
-    // ==================== LIMPAR MENSAGENS ====================
     clearMessagesBtn.addEventListener('click', function() {
         if (confirm('Limpar todas as mensagens?')) {
             messagesSection.classList.add('hidden');
@@ -822,8 +984,8 @@ ${org}`;
                 <p class="font-bold text-green-800 mb-2">✅ Mensagem Gerada!</p>
                 <pre class="whitespace-pre-wrap text-sm bg-white p-3 rounded border mb-3">${msg}</pre>
                 <div class="flex gap-2">
-                    <a href="${whatsappUrl}" target="_blank" class="flex-1 py-2 px-4 bg-green-600 text-white font-bold rounded-lg text-center hover:bg-green-700">
-                        <i class="fab fa-whatsapp"></i> Enviar WhatsApp
+                    <a href="${whatsappUrl}" target="_blank" class="flex-1 py-2 px-4 bg-green-600 text-white font-bold rounded-lg text-center hover:bg-green-700 flex items-center justify-center gap-2">
+                        <i class="fab fa-whatsapp"></i> Enviar
                     </a>
                     <button onclick="navigator.clipboard.writeText(\`${msg.replace(/`/g, '\\`')}\`); this.innerHTML='✅ Copiado!';" class="py-2 px-4 bg-slate-600 text-white font-bold rounded-lg hover:bg-slate-700">
                         <i class="fas fa-copy"></i> Copiar
@@ -876,7 +1038,7 @@ ${org}`;
         
         if (appointments.length === 0) {
             empty.classList.remove('hidden');
-            empty.innerHTML = '<p class="text-slate-500">Nenhum agendamento encontrado para hoje</p>';
+            empty.innerHTML = '<p class="text-slate-500">Nenhum agendamento encontrado</p>';
             return;
         }
         
@@ -941,7 +1103,6 @@ ${org}`;
 
     refreshBtn.addEventListener('click', fetchAppointments);
 
-    // Filtros
     document.getElementById('filter-search').addEventListener('input', function(e) {
         const term = e.target.value.toLowerCase();
         const filtered = allAppointments.filter(a => 
@@ -1014,10 +1175,41 @@ ${org}`;
         });
     }
 
-    // ==================== INIT ====================
-    loadLocal();
-    renderRecipients();
-    
+    // ==================== AGENDAMENTOS DE AMANHÃ ====================
+    async function fetchTomorrowCount() {
+        const assistant = assistantSelect.value;
+        const statEl = document.getElementById('stat-next-day');
+        
+        if (!assistant) {
+            statEl.textContent = '-';
+            return;
+        }
+        
+        const tomorrow = new Date();
+        const day = tomorrow.getDay();
+        if (day === 6) tomorrow.setDate(tomorrow.getDate() + 2);
+        else tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const dateFilter = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth()+1).padStart(2,'0')}-${String(tomorrow.getDate()).padStart(2,'0')}`;
+        
+        try {
+            const resp = await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${assistant}&date=${dateFilter}`);
+            const result = await resp.json();
+            
+            if (result.status === 'success') {
+                statEl.textContent = result.data.length;
+            }
+        } catch(e) {
+            statEl.textContent = '?';
+        }
+    }
+
+    document.getElementById('next-day-card').addEventListener('click', function() {
+        fetchTomorrowCount();
+        showToast('Atualizando...', 'info');
+    });
+
+    // ==================== EVENTOS ====================
     assistantSelect.addEventListener('change', function() {
         if (document.getElementById('gerenciar-section').classList.contains('hidden') === false) {
             fetchAppointments();
@@ -1025,9 +1217,15 @@ ${org}`;
         if (document.getElementById('dashboard-section').classList.contains('hidden') === false) {
             fetchDashboard();
         }
+        fetchTomorrowCount();
     });
+
+    // ==================== INIT ====================
+    loadLocal();
+    renderRecipients();
+    fetchTomorrowCount();
     
-    console.log('✅ Sistema carregado com sucesso!');
+    console.log('✅ Sistema Centro carregado!');
     showToast('Sistema pronto!', 'success');
 });
 </script>

@@ -9,178 +9,47 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #8b5cf6;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --info: #3b82f6;
-            --dark: #1e293b;
-            --light: #f8fafc;
-        }
-        
-        [data-theme="dark"] {
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --text-primary: #f1f5f9;
-            --text-secondary: #cbd5e1;
-            --border: #334155;
-        }
-        
-        body { 
-            font-family: 'Inter', sans-serif;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        
-        /* Animações */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(400px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
-        @keyframes shimmer {
-            0% { background-position: -1000px 0; }
-            100% { background-position: 1000px 0; }
-        }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
+        body { font-family: 'Inter', sans-serif; }
         .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideOut { to { transform: translateX(500px); opacity: 0; } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .slide-in { animation: slideIn 0.3s ease-out; }
-        .pulse-animate { animation: pulse 2s infinite; }
-        
-        /* Loader */
-        .loader {
-            border: 4px solid #f3f4f6;
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-        }
-        
-        /* Toast Notifications Premium */
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            max-width: 400px;
-        }
-        
-        .toast {
-            min-width: 350px;
-            padding: 18px 24px;
-            border-radius: 16px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .toast-success { 
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-        }
-        .toast-error { 
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: white;
-        }
-        .toast-info { 
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            color: white;
-        }
-        .toast-warning { 
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
-        }
-        
-        .toast.removing {
-            animation: slideOut 0.3s ease-out forwards;
-        }
-        
-        @keyframes slideOut {
-            to { transform: translateX(500px); opacity: 0; }
-        }
-        
-        /* Stats Cards */
-        .stat-card {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            transition: all 0.3s;
-            border: 1px solid #f1f5f9;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.12);
-        }
-        
-        /* Badge Styles */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 14px;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        /* Progress Bar */
-        .progress-bar {
-            height: 8px;
-            background: #e5e7eb;
-            border-radius: 9999px;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            border-radius: 9999px;
-            transition: width 0.3s;
-        }
+        .loader { border: 4px solid #f3f4f6; border-top: 4px solid #6366f1; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; max-width: 400px; }
+        .toast { min-width: 300px; padding: 16px 20px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s ease-out; }
+        .toast-success { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .toast-error { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .toast-info { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+        .toast-warning { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+        .toast.removing { animation: slideOut 0.3s ease-out forwards; }
+        .stat-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); transition: all 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(0,0,0,0.12); }
+        .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+        .progress-bar { height: 6px; background: #e5e7eb; border-radius: 9999px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #6366f1, #8b5cf6); border-radius: 9999px; transition: width 0.3s; }
+        .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 12px 24px; border-radius: 12px; font-weight: 700; transition: all 0.3s; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .status-updated { background-color: #dcfce7 !important; transition: background-color 0.5s; }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 min-h-screen">
+
     <!-- Toast Container -->
     <div class="toast-container" id="toast-container"></div>
+
     <div class="container mx-auto p-4 md:p-6 max-w-7xl">
         
-        <!-- HEADER PREMIUM -->
+        <!-- HEADER -->
         <header class="text-center mb-8 fade-in">
             <div class="inline-flex items-center gap-4 mb-4">
-                <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl">
-                    <i class="fas fa-calendar-check text-3xl text-white"></i>
+                <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-calendar-check text-2xl text-white"></i>
                 </div>
                 <div class="text-left">
-                    <h1 class="text-4xl md:text-5xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    <h1 class="text-3xl md:text-4xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                         Agendador PRO 2.0
                     </h1>
                     <p class="text-slate-600 font-medium flex items-center gap-2">
@@ -190,8 +59,7 @@
                 </div>
             </div>
             
-            <!-- Status Bar -->
-            <div class="flex flex-wrap justify-center items-center gap-4 mt-6">
+            <div class="flex flex-wrap justify-center items-center gap-3 mt-4">
                 <div class="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-md">
                     <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                     <span class="text-sm font-semibold text-slate-700">Online</span>
@@ -200,58 +68,39 @@
                     <i class="fas fa-clock text-indigo-500"></i>
                     <span class="text-sm font-semibold text-slate-700" id="live-clock">--:--:--</span>
                 </div>
-                <div class="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-md">
-                    <i class="fas fa-hourglass-half text-purple-500"></i>
-                    <span class="text-sm font-semibold text-slate-700">Sessão: <span id="session-timer">00:00</span></span>
-                </div>
-                <button id="theme-toggle" class="px-4 py-2 bg-white rounded-full shadow-md hover:shadow-lg transition-all">
-                    <i class="fas fa-moon text-slate-700"></i>
-                </button>
             </div>
         </header>
-        <!-- TABS DE NAVEGAÇÃO PREMIUM -->
-        <div class="mb-8 bg-white/80 backdrop-blur-lg p-2 rounded-2xl shadow-xl border border-white/20">
-            <nav class="flex flex-wrap gap-2" aria-label="Tabs">
-                <button class="tab-btn flex-1 min-w-[120px] py-4 px-6 font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2" data-tab="agendar">
-                    <i class="fas fa-edit"></i>
-                    <span>Agendar</span>
+
+        <!-- TABS -->
+        <div class="mb-6 bg-white p-1.5 rounded-2xl shadow-lg">
+            <nav class="flex flex-wrap gap-1">
+                <button class="tab-btn flex-1 min-w-[100px] py-3 px-4 font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2" data-tab="agendar">
+                    <i class="fas fa-edit"></i> Agendar
                 </button>
-                <button class="tab-btn flex-1 min-w-[120px] py-4 px-6 font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2" data-tab="gerenciar">
-                    <i class="fas fa-tasks"></i>
-                    <span>Gerenciar</span>
+                <button class="tab-btn flex-1 min-w-[100px] py-3 px-4 font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2" data-tab="gerenciar">
+                    <i class="fas fa-tasks"></i> Gerenciar
                 </button>
-                <button class="tab-btn flex-1 min-w-[120px] py-4 px-6 font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2" data-tab="dashboard">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Dashboard</span>
-                </button>
-                <button class="tab-btn flex-1 min-w-[120px] py-4 px-6 font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2" data-tab="historico">
-                    <i class="fas fa-history"></i>
-                    <span>Histórico</span>
+                <button class="tab-btn flex-1 min-w-[100px] py-3 px-4 font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2" data-tab="dashboard">
+                    <i class="fas fa-chart-line"></i> Dashboard
                 </button>
             </nav>
         </div>
-        <!-- CONTEÚDO PRINCIPAL -->
+
+        <!-- CONTEÚDO -->
         <main id="content-area">
             
-            <!-- ==================== SEÇÃO AGENDAR ==================== -->
+            <!-- SEÇÃO AGENDAR -->
             <section id="agendar-section" class="tab-content space-y-6 fade-in">
                 
-                <!-- SELEÇÃO DE ASSISTENTE E LOCAL -->
-                <div class="bg-white/90 backdrop-blur-lg p-8 rounded-3xl shadow-2xl border border-white/50">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-user-tie text-white"></i>
-                        </div>
-                        <h2 class="text-2xl font-bold text-slate-800">Configuração Inicial</h2>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- CONFIG -->
+                <div class="bg-white p-6 rounded-2xl shadow-lg">
+                    <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fas fa-user-tie text-indigo-500"></i> Configuração
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label for="assistant-name" class="block text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
-                                <i class="fas fa-user text-indigo-500"></i>
-                                Seu Nome
-                            </label>
-                            <select id="assistant-name" class="w-full p-4 bg-slate-50 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-semibold">
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Seu Nome</label>
+                            <select id="assistant-name" class="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-semibold">
                                 <option value="">-- Escolha seu nome --</option>
                                 <option value="ALANA">Alana</option>
                                 <option value="GABRIELA">Gabriela</option>
@@ -264,318 +113,203 @@
                             </select>
                         </div>
                         <div>
-                            <label for="location-select" class="block text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
-                                <i class="fas fa-map-marker-alt text-purple-500"></i>
-                                Local de Atendimento
-                            </label>
-                            <select id="location-select" class="w-full p-4 bg-slate-50 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-semibold">
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Local</label>
+                            <select id="location-select" class="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-semibold">
                                 <option value="Centro" selected>Centro</option>
                                 <option value="Eldorado">Eldorado</option>
                             </select>
                         </div>
                     </div>
                 </div>
-                <!-- ESTATÍSTICAS RÁPIDAS PREMIUM -->
-                <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    <div class="stat-card group">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <i class="fas fa-clipboard-list text-white text-xl"></i>
+
+                <!-- STATS -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-clipboard-list text-white"></i>
                             </div>
-                            <div class="text-3xl font-black text-indigo-600" id="stat-total">0</div>
+                            <div class="text-2xl font-black text-indigo-600" id="stat-total">0</div>
                         </div>
-                        <div class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Total Rascunhos</div>
-                        <div class="progress-bar mt-2">
-                            <div class="progress-fill" id="progress-total" style="width: 0%"></div>
-                        </div>
+                        <div class="text-xs font-semibold text-slate-500 uppercase">Total</div>
                     </div>
-                    
-                    <div class="stat-card group">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <i class="fas fa-check-circle text-white text-xl"></i>
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-check-circle text-white"></i>
                             </div>
-                            <div class="text-3xl font-black text-green-600" id="stat-complete">0</div>
+                            <div class="text-2xl font-black text-green-600" id="stat-complete">0</div>
                         </div>
-                        <div class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Completos</div>
-                        <div class="progress-bar mt-2">
-                            <div class="progress-fill" id="progress-complete" style="width: 0%; background: linear-gradient(90deg, #10b981, #059669);"></div>
-                        </div>
+                        <div class="text-xs font-semibold text-slate-500 uppercase">Completos</div>
                     </div>
-                    
-                    <div class="stat-card group">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <i class="fas fa-bolt text-white text-xl"></i>
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-bolt text-white"></i>
                             </div>
-                            <div class="text-3xl font-black text-amber-600" id="stat-puxadas">0</div>
+                            <div class="text-2xl font-black text-amber-600" id="stat-puxadas">0</div>
                         </div>
-                        <div class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Puxadas</div>
-                        <div class="progress-bar mt-2">
-                            <div class="progress-fill" id="progress-puxadas" style="width: 0%; background: linear-gradient(90deg, #f59e0b, #d97706);"></div>
-                        </div>
+                        <div class="text-xs font-semibold text-slate-500 uppercase">Puxadas</div>
                     </div>
-                    
-                    <div class="stat-card group">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <i class="fas fa-calendar-day text-white text-xl"></i>
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-calendar-day text-white"></i>
                             </div>
-                            <div class="text-3xl font-black text-blue-600" id="stat-tomorrow">0</div>
+                            <div class="text-2xl font-black text-blue-600" id="stat-tomorrow">0</div>
                         </div>
-                        <div class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Amanhã</div>
-                        <div class="progress-bar mt-2">
-                            <div class="progress-fill" id="progress-tomorrow" style="width: 0%; background: linear-gradient(90deg, #3b82f6, #2563eb);"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="stat-card group cursor-pointer" id="next-day-card" title="Clique para atualizar">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <i class="fas fa-calendar-plus text-white text-xl"></i>
-                            </div>
-                            <div class="text-3xl font-black text-purple-600" id="stat-next-day">
-                                <i class="fas fa-spinner fa-spin text-2xl"></i>
-                            </div>
-                        </div>
-                        <div class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Agend. Amanhã</div>
-                        <div class="progress-bar mt-2">
-                            <div class="progress-fill" id="progress-next-day" style="width: 0%; background: linear-gradient(90deg, #a855f7, #9333ea);"></div>
-                        </div>
+                        <div class="text-xs font-semibold text-slate-500 uppercase">Amanhã</div>
                     </div>
                 </div>
-                <!-- LISTA DE DESTINATÁRIOS PREMIUM -->
-                <div class="bg-white/90 backdrop-blur-lg p-8 rounded-3xl shadow-2xl border border-white/50">
+
+                <!-- DESTINATÁRIOS -->
+                <div class="bg-white p-6 rounded-2xl shadow-lg">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
-                                <i class="fas fa-users text-white"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-2xl font-bold text-slate-800">Destinatários</h2>
-                                <p class="text-xs text-slate-500 mt-1">Adicione jovens para gerar convocações</p>
-                            </div>
-                        </div>
-                        <div class="flex flex-wrap gap-3 w-full sm:w-auto">
-                            <button id="add-recipient-btn" class="flex-1 sm:flex-none py-3 px-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
-                                <i class="fas fa-plus-circle"></i>
-                                <span>Amanhã</span>
+                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fas fa-users text-purple-500"></i> Destinatários
+                        </h2>
+                        <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                            <button id="add-recipient-btn" class="flex-1 sm:flex-none btn-primary flex items-center justify-center gap-2">
+                                <i class="fas fa-plus-circle"></i> Amanhã
                             </button>
-                            <button id="add-puxada-btn" class="flex-1 sm:flex-none py-3 px-6 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
-                                <i class="fas fa-bolt"></i>
-                                <span>Hoje (Puxada)</span>
-                            </button>
-                            <button id="backup-btn" class="px-4 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 transition-all" title="Backup">
-                                <i class="fas fa-download"></i>
+                            <button id="add-puxada-btn" class="flex-1 sm:flex-none py-3 px-6 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
+                                <i class="fas fa-bolt"></i> Hoje (Puxada)
                             </button>
                         </div>
                     </div>
                     
                     <div id="recipients-list" class="space-y-4">
-                        <div id="empty-state" class="text-center py-16 border-2 border-dashed border-slate-300 rounded-2xl bg-slate-50">
-                            <i class="fas fa-inbox text-6xl text-slate-300 mb-4"></i>
-                            <p class="text-slate-500 font-semibold text-lg">Nenhum destinatário adicionado</p>
-                            <p class="text-xs text-slate-400 mt-2">Clique em "Amanhã" ou "Hoje (Puxada)" para começar</p>
+                        <div id="empty-state" class="text-center py-12 border-2 border-dashed border-slate-300 rounded-2xl bg-slate-50">
+                            <i class="fas fa-inbox text-5xl text-slate-300 mb-3"></i>
+                            <p class="text-slate-500 font-semibold">Nenhum destinatário adicionado</p>
+                            <p class="text-xs text-slate-400 mt-1">Clique em "Amanhã" ou "Hoje (Puxada)" para começar</p>
                         </div>
                     </div>
                 </div>
-                <!-- BOTÕES DE AÇÃO PREMIUM -->
-                <div class="flex flex-col sm:flex-row justify-end gap-4">
-                    <button id="quick-message-btn" class="py-4 px-8 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-2xl transition-all flex items-center gap-3 justify-center">
-                        <i class="fas fa-comment-dots text-xl"></i>
-                        <span>Mensagem Rápida</span>
+
+                <!-- BOTÕES DE AÇÃO -->
+                <div class="flex flex-col sm:flex-row justify-end gap-3">
+                    <button id="quick-message-btn" class="py-3 px-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-comment-dots"></i> Mensagem Rápida
                     </button>
-                    <button id="generate-messages-btn" class="py-4 px-8 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold rounded-xl shadow-lg hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 justify-center" disabled>
-                        <i class="fas fa-building text-xl"></i>
-                        <span>Empresa Crescer</span>
+                    <button id="generate-messages-btn" class="py-3 px-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2" disabled>
+                        <i class="fas fa-building"></i> Empresa Crescer
                     </button>
-                    <button id="generate-instituto-btn" class="py-4 px-8 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 justify-center" disabled>
-                        <i class="fas fa-university text-xl"></i>
-                        <span>Instituto Crescer'Minas</span>
+                    <button id="generate-instituto-btn" class="py-3 px-6 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2" disabled>
+                        <i class="fas fa-university"></i> Instituto Crescer'Minas
                     </button>
                 </div>
-                <!-- MENSAGENS GERADAS PREMIUM -->
-                <div id="messages-section" class="bg-white/90 backdrop-blur-lg p-8 rounded-3xl shadow-2xl border border-white/50 hidden">
-                    <div class="flex justify-between items-center mb-6">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center">
-                                <i class="fas fa-comments text-white"></i>
-                            </div>
-                            <h2 class="text-2xl font-bold text-slate-800">Mensagens Geradas</h2>
-                        </div>
-                        <button id="clear-messages-btn" class="px-4 py-2 bg-red-100 text-red-600 font-bold rounded-xl hover:bg-red-200 transition-all flex items-center gap-2">
-                            <i class="fas fa-trash-alt"></i>
-                            <span>Limpar Tudo</span>
+
+                <!-- MENSAGENS GERADAS -->
+                <div id="messages-section" class="bg-white p-6 rounded-2xl shadow-lg hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fas fa-comments text-green-500"></i> Mensagens Geradas
+                        </h2>
+                        <button id="clear-messages-btn" class="px-4 py-2 bg-red-100 text-red-600 font-bold rounded-xl hover:bg-red-200 transition-all">
+                            <i class="fas fa-trash-alt"></i> Limpar
                         </button>
                     </div>
                     <div id="messages-list" class="space-y-4"></div>
                 </div>
             </section>
             
-            <!-- ==================== SEÇÃO GERENCIAR ==================== -->
+            <!-- SEÇÃO GERENCIAR -->
             <section id="gerenciar-section" class="tab-content hidden fade-in">
-                <div class="bg-white/90 backdrop-blur-lg p-8 rounded-3xl shadow-2xl border border-white/50">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center">
-                                <i class="fas fa-clipboard-check text-white"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-2xl font-bold text-slate-800">Agendamentos de Hoje</h2>
-                                <p class="text-sm text-slate-600">Gerencie e atualize status em tempo real</p>
-                            </div>
-                        </div>
-                        <button id="refresh-appointments-btn" class="py-3 px-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2">
-                            <i class="fas fa-sync-alt"></i>
-                            <span>Atualizar</span>
+                <div class="bg-white p-6 rounded-2xl shadow-lg">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fas fa-clipboard-check text-blue-500"></i> Agendamentos de Hoje
+                        </h2>
+                        <button id="refresh-appointments-btn" class="btn-primary flex items-center gap-2">
+                            <i class="fas fa-sync-alt"></i> Atualizar
                         </button>
                     </div>
                     
-                    <!-- FILTROS AVANÇADOS -->
-                    <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="relative">
-                            <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
-                            <input type="text" id="filter-search" placeholder="Buscar por nome..." class="w-full pl-12 p-4 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 font-medium">
-                        </div>
-                        <select id="filter-status" class="p-4 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 font-medium">
+                    <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <input type="text" id="filter-search" placeholder="🔍 Buscar por nome..." class="p-3 border-2 border-slate-200 rounded-xl">
+                        <select id="filter-status" class="p-3 border-2 border-slate-200 rounded-xl">
                             <option value="">Todos os Status</option>
-                            <option value="PUXADA">PUXADA</option>
-                            <option value="SI SEM INTERESSE">SI SEM INTERESSE</option>
                             <option value="CONFIRMADA">CONFIRMADA</option>
                             <option value="CANCELADA">CANCELADA</option>
                             <option value="REAGENDAR">REAGENDAR</option>
                             <option value="JÁ VEIO">JÁ VEIO</option>
                             <option value="MATRICULA">MATRICULA</option>
-                            <option value="CONFIRMOU E NÃO VEIO">CONFIRMOU E NÃO VEIO</option>
-                            <option value="">PENDENTE</option>
                         </select>
-                        <div class="flex items-center gap-3 bg-slate-50 px-4 rounded-xl border-2 border-slate-200">
-                            <input type="checkbox" id="auto-refresh-toggle" class="w-5 h-5 text-indigo-600 rounded">
-                            <label for="auto-refresh-toggle" class="text-sm font-semibold text-slate-700 cursor-pointer flex-1">
-                                <i class="fas fa-sync-alt text-indigo-500"></i> Auto-refresh (30s)
-                            </label>
-                        </div>
                     </div>
                     
-                    <div id="management-list" class="space-y-4">
-                        <div id="loader" class="text-center py-16 hidden">
+                    <div id="management-list" class="space-y-3">
+                        <div id="loader" class="text-center py-12 hidden">
                             <div class="loader mx-auto"></div>
-                            <p class="mt-6 text-slate-500 font-semibold">Carregando dados...</p>
+                            <p class="mt-4 text-slate-500">Buscando dados...</p>
                         </div>
-                        <div id="management-empty-state" class="text-center py-16 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 hidden">
-                            <i class="fas fa-calendar-times text-6xl text-slate-300 mb-4"></i>
-                            <p class="text-slate-500 font-bold text-lg">Nenhum agendamento encontrado</p>
-                            <p class="text-sm text-slate-400 mt-2">Tente ajustar os filtros ou adicionar novos agendamentos</p>
+                        <div id="management-empty-state" class="text-center py-12 border-2 border-dashed border-slate-200 rounded-2xl hidden">
+                            <i class="fas fa-calendar-times text-5xl text-slate-300 mb-3"></i>
+                            <p class="text-slate-500 font-bold">Nenhum agendamento encontrado</p>
                         </div>
                     </div>
                 </div>
             </section>
-            <!-- ==================== SEÇÃO DASHBOARD ==================== -->
+
+            <!-- SEÇÃO DASHBOARD -->
             <section id="dashboard-section" class="tab-content hidden fade-in">
-                <div class="bg-white/90 backdrop-blur-lg p-8 rounded-3xl shadow-2xl border border-white/50">
-                    <div class="flex items-center gap-3 mb-8">
-                        <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-chart-pie text-white"></i>
-                        </div>
-                        <h2 class="text-2xl font-bold text-slate-800">Seu Desempenho Hoje</h2>
-                    </div>
+                <div class="bg-white p-6 rounded-2xl shadow-lg">
+                    <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                        <i class="fas fa-chart-pie text-orange-500"></i> Seu Desempenho Hoje
+                    </h2>
                     
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div class="bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-2xl border-2 border-indigo-100">
-                            <h3 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
-                                <i class="fas fa-doughnut-bite text-indigo-500"></i>
-                                Status dos Agendamentos
-                            </h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-slate-50 p-4 rounded-xl">
+                            <h3 class="font-bold text-slate-700 mb-4">Status dos Agendamentos</h3>
                             <canvas id="statusChart" width="400" height="300"></canvas>
                         </div>
-                        <div class="bg-gradient-to-br from-blue-50 to-cyan-50 p-6 rounded-2xl border-2 border-blue-100">
-                            <h3 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
-                                <i class="fas fa-list-ol text-blue-500"></i>
-                                Resumo Numérico
-                            </h3>
+                        <div class="bg-slate-50 p-4 rounded-xl">
+                            <h3 class="font-bold text-slate-700 mb-4">Resumo Numérico</h3>
                             <div id="dashboard-stats" class="space-y-3">
-                                <div class="flex justify-between items-center p-4 bg-white rounded-xl shadow-sm">
-                                    <span class="font-semibold text-slate-700">Total de Agendamentos:</span>
-                                    <span class="font-black text-2xl text-indigo-600">0</span>
+                                <div class="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm">
+                                    <span class="font-semibold text-slate-700">Total:</span>
+                                    <span class="font-black text-xl text-indigo-600">0</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
-            <!-- ==================== NOVA SEÇÃO: HISTÓRICO ==================== -->
-            <section id="historico-section" class="tab-content hidden fade-in">
-                <div class="bg-white/90 backdrop-blur-lg p-8 rounded-3xl shadow-2xl border border-white/50">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-10 h-10 bg-gradient-to-br from-teal-500 to-green-600 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-history text-white"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-2xl font-bold text-slate-800">Histórico de Ações</h2>
-                            <p class="text-sm text-slate-600">Últimas 20 operações realizadas</p>
-                        </div>
-                    </div>
-                    
-                    <div id="history-list" class="space-y-3 max-h-[600px] overflow-y-auto">
-                        <div class="text-center py-12 text-slate-400">
-                            <i class="fas fa-clock text-5xl mb-4"></i>
-                            <p class="font-semibold">Nenhuma ação registrada ainda</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
         </main>
     </div>
-    <!-- ==================== MODAL MENSAGEM RÁPIDA PREMIUM ==================== -->
-    <div id="quick-message-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm" style="display: none;">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-8 transform transition-all slide-in">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-paper-plane text-white text-xl"></i>
-                </div>
-                <h3 class="text-2xl font-black text-slate-900">Mensagem Rápida de Agendamento</h3>
-            </div>
+
+    <!-- MODAL MENSAGEM RÁPIDA -->
+    <div id="quick-message-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 slide-in">
+            <h3 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <i class="fas fa-paper-plane text-green-500"></i> Mensagem Rápida
+            </h3>
             
-            <div class="space-y-5">
+            <div class="space-y-4">
                 <div>
-                    <label for="quick-jovem" class="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
-                        <i class="fas fa-user text-indigo-500"></i>
-                        Nome do Jovem
-                    </label>
-                    <input type="text" id="quick-jovem" class="w-full p-4 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 font-medium" placeholder="Ex: Amanda Silva">
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Nome do Jovem</label>
+                    <input type="text" id="quick-jovem" class="w-full p-3 border-2 border-slate-200 rounded-xl" placeholder="Ex: Amanda Silva">
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label for="quick-data" class="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
-                            <i class="fas fa-calendar text-blue-500"></i>
-                            Data
-                        </label>
-                        <input type="text" id="quick-data" placeholder="DD/MM/AAAA" maxlength="10" class="w-full p-4 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 font-medium">
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Data</label>
+                        <input type="text" id="quick-data" placeholder="DD/MM/AAAA" maxlength="10" class="w-full p-3 border-2 border-slate-200 rounded-xl">
                     </div>
                     <div>
-                        <label for="quick-horario" class="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
-                            <i class="fas fa-clock text-purple-500"></i>
-                            Horário
-                        </label>
-                        <input type="text" id="quick-horario" placeholder="HH:MM" maxlength="5" class="w-full p-4 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 font-medium">
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Horário</label>
+                        <input type="text" id="quick-horario" placeholder="HH:MM" maxlength="5" class="w-full p-3 border-2 border-slate-200 rounded-xl">
                     </div>
                 </div>
                 <div>
-                    <label for="quick-local" class="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
-                        <i class="fas fa-map-marker-alt text-red-500"></i>
-                        Local
-                    </label>
-                    <select id="quick-local" class="w-full p-4 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 font-medium">
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Local</label>
+                    <select id="quick-local" class="w-full p-3 border-2 border-slate-200 rounded-xl">
                         <option value="Centro" selected>Centro</option>
                         <option value="Eldorado">Eldorado</option>
                     </select>
                 </div>
                 <div>
-                    <label for="quick-assistente" class="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
-                        <i class="fas fa-user-tie text-green-500"></i>
-                        Assistente que vai atender
-                    </label>
-                    <select id="quick-assistente" class="w-full p-4 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 font-medium">
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Assistente</label>
+                    <select id="quick-assistente" class="w-full p-3 border-2 border-slate-200 rounded-xl">
                         <option value="">-- Escolha --</option>
                         <option value="ALANA">Alana</option>
                         <option value="GABRIELA">Gabriela</option>
@@ -584,29 +318,22 @@
                         <option value="RAIANE">Raiane</option>
                         <option value="SHEILA">Sheila</option>
                         <option value="THAIS">Thais</option>
-                        <option value="TREINAMENTO">Treinamento</option>
                     </select>
                 </div>
                 <div>
-                    <label for="quick-numero" class="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
-                        <i class="fas fa-phone text-teal-500"></i>
-                        Número (com DDD)
-                    </label>
-                    <input type="tel" id="quick-numero" placeholder="55319..." maxlength="15" class="w-full p-4 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 font-medium">
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Telefone (com DDD)</label>
+                    <input type="tel" id="quick-numero" placeholder="5531..." maxlength="15" class="w-full p-3 border-2 border-slate-200 rounded-xl">
                 </div>
             </div>
             
-            <div class="flex justify-end gap-4 mt-8">
-                <button id="quick-modal-cancel" class="px-6 py-3 text-slate-600 hover:bg-slate-100 font-bold rounded-xl transition-all">
-                    Cancelar
-                </button>
-                <button id="quick-generate-btn" class="py-3 px-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2">
-                    <i class="fas fa-paper-plane"></i>
-                    <span>Gerar Mensagem</span>
+            <div class="flex justify-end gap-3 mt-6">
+                <button id="quick-modal-cancel" class="px-5 py-2 text-slate-600 hover:bg-slate-100 font-bold rounded-xl transition-all">Cancelar</button>
+                <button id="quick-generate-btn" class="btn-primary flex items-center gap-2">
+                    <i class="fas fa-paper-plane"></i> Gerar Mensagem
                 </button>
             </div>
             
-            <div id="quick-message-result" class="mt-6 hidden"></div>
+            <div id="quick-message-result" class="mt-4 hidden"></div>
         </div>
     </div>
     
@@ -614,20 +341,17 @@
     document.addEventListener('DOMContentLoaded', () => {
         // ==================== CONFIGURAÇÃO ====================
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyjKPgtDS1mRK0aNsbGEjv1m93JCmcaHqqfHoE6b3aIJCJ4T52X0VUDa7ztuUnq_1pG/exec';
+
         // ==================== VARIÁVEIS GLOBAIS ====================
         let recipients = [];
         let allAppointments = [];
-        let autoRefreshInterval = null;
         let statusChartInstance = null;
         let localStorageAvailable = false;
         let memoryStorage = {};
-        let sessionStartTime = Date.now();
-        let history = [];
         
         const LOCAL_STORAGE_KEY = 'agendadorProCentroRascunhos';
-        const HISTORY_KEY = 'agendadorProCentroHistory';
         
-        // ==================== MAPEAMENTO DE NOMES ====================
+        // Mapeamento de nomes
         const assistantFullNameMap = {
             'ALANA': 'Amanda Rodrigues',
             'GABRIELA': 'Sophia Martins',
@@ -638,7 +362,8 @@
             'THAIS': 'Thais Carvalho',
             'TREINAMENTO': 'Coordenação'
         };
-        // ==================== SELETORES ====================
+
+        // ==================== ELEMENTOS ====================
         const assistantSelect = document.getElementById('assistant-name');
         const locationSelect = document.getElementById('location-select');
         const addRecipientBtn = document.getElementById('add-recipient-btn');
@@ -655,189 +380,78 @@
         const refreshAppointmentsBtn = document.getElementById('refresh-appointments-btn');
         const filterSearch = document.getElementById('filter-search');
         const filterStatus = document.getElementById('filter-status');
-        const autoRefreshToggle = document.getElementById('auto-refresh-toggle');
         const clearMessagesBtn = document.getElementById('clear-messages-btn');
-        const themeToggle = document.getElementById('theme-toggle');
         
-        // Modal Mensagem Rápida
+        // Modal
         const quickMessageBtn = document.getElementById('quick-message-btn');
         const quickMessageModal = document.getElementById('quick-message-modal');
         const quickModalCancel = document.getElementById('quick-modal-cancel');
         const quickGenerateBtn = document.getElementById('quick-generate-btn');
-        const quickJovemInput = document.getElementById('quick-jovem');
-        const quickDataInput = document.getElementById('quick-data');
-        const quickHorarioInput = document.getElementById('quick-horario');
-        const quickLocalSelect = document.getElementById('quick-local');
-        const quickAssistenteSelect = document.getElementById('quick-assistente');
-        const quickNumeroInput = document.getElementById('quick-numero');
         const quickMessageResult = document.getElementById('quick-message-result');
-        // ==================== DETECTA LOCALSTORAGE ====================
+
+        // Detecta localStorage
         try {
             localStorage.setItem('test', 'test');
             localStorage.removeItem('test');
             localStorageAvailable = true;
         } catch(e) {
             localStorageAvailable = false;
-            console.warn('⚠️ localStorage não disponível');
-            showToast('⚠️ Modo sessão ativa - dados salvos temporariamente', 'warning');
+            showToast('Modo sessão: dados temporários', 'warning');
         }
-        // ==================== SISTEMA DE TOAST PREMIUM ====================
-        const showToast = (message, type = 'info') => {
+
+        // ==================== TOAST ====================
+        function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
-            
-            const icons = {
-                success: '<i class="fas fa-check-circle text-2xl"></i>',
-                error: '<i class="fas fa-exclamation-circle text-2xl"></i>',
-                info: '<i class="fas fa-info-circle text-2xl"></i>',
-                warning: '<i class="fas fa-exclamation-triangle text-2xl"></i>'
-            };
-            
-            toast.innerHTML = `
-                ${icons[type] || icons.info}
-                <div class="flex-1">
-                    <div class="font-bold text-sm uppercase tracking-wide mb-1">${type}</div>
-                    <div class="text-sm">${message}</div>
-                </div>
-                <button class="ml-2 hover:scale-110 transition-transform" onclick="this.parentElement.remove()">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
-            
+            const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
+            toast.innerHTML = `<span class="text-xl">${icons[type] || icons.info}</span><span class="font-semibold">${message}</span>`;
             container.appendChild(toast);
-            
             setTimeout(() => {
                 toast.classList.add('removing');
                 setTimeout(() => toast.remove(), 300);
-            }, 5000);
-            
-            addToHistory(`Toast: ${message}`, type);
-        };
-        // ==================== RELÓGIO E TIMER DE SESSÃO ====================
-        const updateClock = () => {
+            }, 4000);
+        }
+
+        // ==================== RELÓGIO ====================
+        function updateClock() {
             const now = new Date();
             document.getElementById('live-clock').textContent = now.toLocaleTimeString('pt-BR');
-        };
-        
-        const updateSessionTimer = () => {
-            const elapsed = Date.now() - sessionStartTime;
-            const minutes = Math.floor(elapsed / 60000);
-            const seconds = Math.floor((elapsed % 60000) / 1000);
-            document.getElementById('session-timer').textContent = 
-                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        };
-        
+        }
         updateClock();
         setInterval(updateClock, 1000);
-        setInterval(updateSessionTimer, 1000);
-        // ==================== TEMA ESCURO/CLARO ====================
-        themeToggle.addEventListener('click', () => {
-            const html = document.documentElement;
-            const isDark = html.getAttribute('data-theme') === 'dark';
-            
-            if (isDark) {
-                html.removeAttribute('data-theme');
-                themeToggle.innerHTML = '<i class="fas fa-moon text-slate-700"></i>';
-                showToast('Tema claro ativado', 'info');
-            } else {
-                html.setAttribute('data-theme', 'dark');
-                themeToggle.innerHTML = '<i class="fas fa-sun text-yellow-400"></i>';
-                showToast('Tema escuro ativado', 'info');
-            }
-            
-            addToHistory('Tema alternado', 'info');
-        });
-        // ==================== HISTÓRICO DE AÇÕES ====================
-        const addToHistory = (action, type = 'info') => {
-            const timestamp = new Date().toLocaleString('pt-BR');
-            history.unshift({ action, type, timestamp });
-            
-            if (history.length > 20) history.pop();
-            
-            if (localStorageAvailable) {
-                try {
-                    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-                } catch(e) {
-                    console.error('Erro ao salvar histórico');
-                }
-            }
-            
-            renderHistory();
-        };
-        
-        const loadHistory = () => {
-            if (localStorageAvailable) {
-                try {
-                    const saved = localStorage.getItem(HISTORY_KEY);
-                    if (saved) history = JSON.parse(saved);
-                } catch(e) {
-                    console.error('Erro ao carregar histórico');
-                }
-            }
-            renderHistory();
-        };
-        
-        const renderHistory = () => {
-            const historyList = document.getElementById('history-list');
-            
-            if (history.length === 0) {
-                historyList.innerHTML = `
-                    <div class="text-center py-12 text-slate-400">
-                        <i class="fas fa-clock text-5xl mb-4"></i>
-                        <p class="font-semibold">Nenhuma ação registrada ainda</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            historyList.innerHTML = history.map(item => {
-                const icons = {
-                    success: 'fa-check-circle text-green-500',
-                    error: 'fa-times-circle text-red-500',
-                    info: 'fa-info-circle text-blue-500',
-                    warning: 'fa-exclamation-triangle text-amber-500'
-                };
-                
-                return `
-                    <div class="flex items-start gap-4 p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-all">
-                        <i class="fas ${icons[item.type]} text-xl mt-1"></i>
-                        <div class="flex-1">
-                            <p class="font-semibold text-slate-800">${item.action}</p>
-                            <p class="text-xs text-slate-500 mt-1">${item.timestamp}</p>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        };
-        // ==================== TABS PREMIUM ====================
+
+        // ==================== TABS ====================
         const tabBtns = document.querySelectorAll('.tab-btn');
         const tabContents = document.querySelectorAll('.tab-content');
         
-        const switchTab = (tabName) => {
+        function switchTab(tabName) {
             tabBtns.forEach(btn => {
-                btn.classList.remove('bg-gradient-to-r', 'from-indigo-600', 'to-purple-600', 'text-white', 'shadow-lg');
+                btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-lg');
                 btn.classList.add('text-slate-600', 'hover:bg-slate-100');
             });
             tabContents.forEach(content => content.classList.add('hidden'));
+
             const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
             activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-100');
-            activeBtn.classList.add('bg-gradient-to-r', 'from-indigo-600', 'to-purple-600', 'text-white', 'shadow-lg');
+            activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-lg');
             
             document.getElementById(`${tabName}-section`).classList.remove('hidden');
+
             if (tabName === 'gerenciar') fetchAppointments();
             if (tabName === 'dashboard') fetchDashboardData();
-            
-            addToHistory(`Navegou para aba: ${tabName}`, 'info');
-        };
+        }
+
         tabBtns.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
         switchTab('agendar');
+
         // ==================== FUNÇÕES DE DATA ====================
-        const getTodayDateString = () => {
+        function getTodayDateString() {
             const today = new Date();
             return `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
-        };
-        const getTomorrowDateString = () => {
+        }
+
+        function getTomorrowDateString() {
             const today = new Date();
             const dayOfWeek = today.getDay();
             const tomorrow = new Date(today);
@@ -851,117 +465,68 @@
             }
             
             return `${String(tomorrow.getDate()).padStart(2, '0')}/${String(tomorrow.getMonth() + 1).padStart(2, '0')}/${tomorrow.getFullYear()}`;
-        };
-        const getDayOfWeek = (dateString) => {
+        }
+
+        function getDayOfWeek(dateString) {
             if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) return '';
             const parts = dateString.split('/');
             const date = new Date(parts[2], parts[1] - 1, parts[0], 12);
-            
             if (isNaN(date.getTime())) return '';
             const options = { weekday: 'long' };
             let dayName = new Intl.DateTimeFormat('pt-BR', options).format(date);
             return dayName.charAt(0).toUpperCase() + dayName.slice(1);
-        };
-        const calculateAge = (birthDateString) => {
+        }
+
+        function calculateAge(birthDateString) {
             if (!birthDateString || !/^\d{2}\/\d{2}\/\d{4}$/.test(birthDateString)) return null;
             const parts = birthDateString.split('/');
             const birthDate = new Date(parts[2], parts[1] - 1, parts[0]);
             if (isNaN(birthDate.getTime())) return null;
-            
             const today = new Date();
             let age = today.getFullYear() - birthDate.getFullYear();
             const m = today.getMonth() - birthDate.getMonth();
             if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
             return age;
-        };
-        const generateCode = (jovem) => {
+        }
+
+        function generateCode(jovem) {
             const words = jovem.split(' ').filter(w => w);
             let initials = words.slice(0, 3).map(w => w[0].toUpperCase()).join('');
             return initials + Math.floor(100 + Math.random() * 900);
-        };
-        // ==================== VALIDAÇÕES ====================
-        const validatePhone = (phone) => {
-            const cleaned = phone.replace(/\D/g, '');
-            return cleaned.length >= 12 && cleaned.startsWith('55');
-        };
-        const validateTime = (time) => {
-            return /^([0-1][0-9]|2[0-3]):([0-5][0-9])$/.test(time);
-        };
-        const validateDate = (date) => {
-            if (!/^\d{2}\/\d{2}\/\d{4}$/.test(date)) return false;
-            const parts = date.split('/');
-            const day = parseInt(parts[0]);
-            const month = parseInt(parts[1]);
-            return month >= 1 && month <= 12 && day >= 1 && day <= 31;
-        };
-        // ==================== ESTATÍSTICAS COM ANIMAÇÃO ====================
-        const updateStats = () => {
+        }
+
+        // ==================== ESTATÍSTICAS ====================
+        function updateStats() {
             const total = recipients.length;
-            const complete = recipients.filter(r => 
-                r.jovem && r.responsavel && r.data && r.horario && r.numero_responsavel
-            ).length;
+            const complete = recipients.filter(r => r.jovem && r.responsavel && r.data && r.horario && r.numero_responsavel).length;
             const puxadas = recipients.filter(r => r.isPuxada).length;
             const tomorrow = recipients.filter(r => !r.isPuxada).length;
             
-            animateNumber('stat-total', total);
-            animateNumber('stat-complete', complete);
-            animateNumber('stat-puxadas', puxadas);
-            animateNumber('stat-tomorrow', tomorrow);
-            
-            // Progress bars
-            document.getElementById('progress-total').style.width = `${total > 0 ? 100 : 0}%`;
-            document.getElementById('progress-complete').style.width = `${total > 0 ? (complete/total)*100 : 0}%`;
-            document.getElementById('progress-puxadas').style.width = `${total > 0 ? (puxadas/total)*100 : 0}%`;
-            document.getElementById('progress-tomorrow').style.width = `${total > 0 ? (tomorrow/total)*100 : 0}%`;
-        };
-        
-        const animateNumber = (id, target) => {
-            const element = document.getElementById(id);
-            const current = parseInt(element.textContent) || 0;
-            
-            if (current === target) return;
-            
-            const increment = target > current ? 1 : -1;
-            const duration = 500;
-            const steps = Math.abs(target - current);
-            const stepDuration = duration / steps;
-            
-            let value = current;
-            const interval = setInterval(() => {
-                value += increment;
-                element.textContent = value;
-                
-                if (value === target) clearInterval(interval);
-            }, stepDuration);
-        };
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-complete').textContent = complete;
+            document.getElementById('stat-puxadas').textContent = puxadas;
+            document.getElementById('stat-tomorrow').textContent = tomorrow;
+        }
+
         // ==================== LOCAL STORAGE ====================
-        const saveToLocalStorage = () => {
-            const dataToSave = {
-                timestamp: new Date().getTime(),
-                recipients: recipients
-            };
-            
+        function saveToLocalStorage() {
+            const dataToSave = { timestamp: new Date().getTime(), recipients: recipients };
             if (localStorageAvailable) {
-                try {
-                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(dataToSave));
-                } catch(e) {
-                    memoryStorage[LOCAL_STORAGE_KEY] = dataToSave;
-                }
+                try { localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(dataToSave)); } 
+                catch(e) { memoryStorage[LOCAL_STORAGE_KEY] = dataToSave; }
             } else {
                 memoryStorage[LOCAL_STORAGE_KEY] = dataToSave;
             }
             updateStats();
-        };
-        const loadFromLocalStorage = () => {
+        }
+
+        function loadFromLocalStorage() {
             let savedData = null;
-            
             if (localStorageAvailable) {
                 try {
                     savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
                     if (savedData) savedData = JSON.parse(savedData);
-                } catch(e) {
-                    savedData = memoryStorage[LOCAL_STORAGE_KEY];
-                }
+                } catch(e) { savedData = memoryStorage[LOCAL_STORAGE_KEY]; }
             } else {
                 savedData = memoryStorage[LOCAL_STORAGE_KEY];
             }
@@ -970,19 +535,12 @@
                 const ONE_DAY = 24 * 60 * 60 * 1000;
                 if (Date.now() - savedData.timestamp < ONE_DAY) {
                     recipients = savedData.recipients || [];
-                } else {
-                    if (localStorageAvailable) {
-                        try {
-                            localStorage.removeItem(LOCAL_STORAGE_KEY);
-                        } catch(e) {
-                            delete memoryStorage[LOCAL_STORAGE_KEY];
-                        }
-                    }
                 }
             }
-        };
-        // ==================== RENDERIZAÇÃO PREMIUM ====================
-        const renderRecipients = () => {
+        }
+
+        // ==================== RENDERIZAÇÃO ====================
+        function renderRecipients() {
             recipientsList.querySelectorAll('[data-id]').forEach(el => el.remove());
             
             if (recipients.length === 0) {
@@ -995,224 +553,567 @@
             }
             updateGenerateButtonState();
             updateStats();
-        };
-        const createRecipientForm = (recipient, index) => {
+        }
+
+        function createRecipientForm(recipient, index) {
             const form = document.createElement('div');
-            form.className = 'p-6 border-2 border-slate-200 rounded-2xl space-y-4 fade-in bg-gradient-to-br from-white to-slate-50 hover:border-indigo-300 hover:shadow-xl transition-all';
+            form.className = 'p-5 border-2 border-slate-200 rounded-xl space-y-4 fade-in bg-white hover:border-indigo-300 transition-all';
             form.dataset.id = recipient.id;
             
             const isComplete = recipient.jovem && recipient.responsavel && recipient.data && recipient.horario && recipient.numero_responsavel;
             const badge = recipient.isPuxada ? 
-                '<span class="badge bg-gradient-to-r from-amber-400 to-orange-500 text-white"><i class="fas fa-bolt"></i> PUXADA</span>' : 
-                '<span class="badge bg-gradient-to-r from-blue-400 to-blue-500 text-white"><i class="fas fa-calendar-day"></i> AMANHÃ</span>';
-            
+                '<span class="badge bg-amber-100 text-amber-800"><i class="fas fa-bolt"></i> PUXADA</span>' : 
+                '<span class="badge bg-blue-100 text-blue-800"><i class="fas fa-calendar-day"></i> AMANHÃ</span>';
             const statusBadge = isComplete ?
-                '<span class="badge bg-gradient-to-r from-green-400 to-green-500 text-white"><i class="fas fa-check-circle"></i> Completo</span>' :
-                '<span class="badge bg-slate-200 text-slate-600"><i class="fas fa-hourglass-half"></i> Incompleto</span>';
+                '<span class="badge bg-green-100 text-green-800"><i class="fas fa-check"></i> Completo</span>' :
+                '<span class="badge bg-slate-100 text-slate-600"><i class="fas fa-hourglass-half"></i> Incompleto</span>';
             
             form.innerHTML = `
                 <div class="flex justify-between items-center">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold">
-                            ${index + 1}
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-lg text-slate-700">Destinatário ${index + 1}</h3>
-                            <div class="flex gap-2 mt-1">
-                                ${badge}
-                                ${statusBadge}
-                            </div>
-                        </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="font-bold text-slate-700">Destinatário ${index + 1}</span>
+                        ${badge} ${statusBadge}
                     </div>
-                    <button class="remove-recipient-btn p-3 text-slate-400 hover:bg-red-100 hover:text-red-600 rounded-xl transition-all" data-id="${recipient.id}" title="Remover">
-                        <i class="fas fa-trash-alt text-xl"></i>
+                    <button class="remove-recipient-btn p-2 text-slate-400 hover:bg-red-100 hover:text-red-600 rounded-full transition-colors" data-id="${recipient.id}">
+                        <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
-                            <i class="fas fa-user text-indigo-500"></i>
-                            Jovem Convocado *
-                        </label>
-                        <input type="text" placeholder="Nome completo" data-field="jovem" value="${recipient.jovem || ''}" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 transition font-medium ${!recipient.jovem ? 'border-red-300' : ''}">
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Jovem *</label>
+                        <input type="text" placeholder="Nome completo" data-field="jovem" value="${recipient.jovem || ''}" class="w-full p-2.5 border-2 border-slate-200 rounded-lg ${!recipient.jovem ? 'border-red-300' : ''}">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
-                            <i class="fas fa-birthday-cake text-pink-500"></i>
-                            Data de Nascimento
-                        </label>
-                        <input type="text" placeholder="DD/MM/AAAA" maxlength="10" data-field="data_nascimento" value="${recipient.data_nascimento || ''}" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 transition date-mask font-medium">
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Data Nascimento</label>
+                        <input type="text" placeholder="DD/MM/AAAA" maxlength="10" data-field="data_nascimento" value="${recipient.data_nascimento || ''}" class="w-full p-2.5 border-2 border-slate-200 rounded-lg date-mask">
                     </div>
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
-                            <i class="fas fa-user-shield text-green-500"></i>
-                            Responsável *
-                        </label>
-                        <input type="text" placeholder="Nome do responsável" data-field="responsavel" value="${recipient.responsavel || ''}" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 transition font-medium ${!recipient.responsavel ? 'border-red-300' : ''}">
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Responsável *</label>
+                        <input type="text" placeholder="Nome do responsável" data-field="responsavel" value="${recipient.responsavel || ''}" class="w-full p-2.5 border-2 border-slate-200 rounded-lg ${!recipient.responsavel ? 'border-red-300' : ''}">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
-                            <i class="fas fa-phone text-blue-500"></i>
-                            Telefone do Responsável *
-                        </label>
-                        <input type="tel" placeholder="55319..." maxlength="15" data-field="numero_responsavel" value="${recipient.numero_responsavel || ''}" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 transition phone-mask font-medium ${!recipient.numero_responsavel ? 'border-red-300' : ''}">
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Tel. Responsável *</label>
+                        <input type="tel" placeholder="5531..." maxlength="15" data-field="numero_responsavel" value="${recipient.numero_responsavel || ''}" class="w-full p-2.5 border-2 border-slate-200 rounded-lg phone-mask ${!recipient.numero_responsavel ? 'border-red-300' : ''}">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
-                            <i class="fas fa-mobile-alt text-purple-500"></i>
-                            Telefone do Jovem
-                        </label>
-                        <input type="tel" placeholder="55319..." maxlength="15" data-field="numero_jovem" value="${recipient.numero_jovem || ''}" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 transition phone-mask font-medium">
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Tel. Jovem</label>
+                        <input type="tel" placeholder="5531..." maxlength="15" data-field="numero_jovem" value="${recipient.numero_jovem || ''}" class="w-full p-2.5 border-2 border-slate-200 rounded-lg phone-mask">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
-                            <i class="fas fa-calendar text-teal-500"></i>
-                            Data do Agendamento *
-                        </label>
-                        <input type="text" placeholder="DD/MM/AAAA" maxlength="10" data-field="data" value="${recipient.data || ''}" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 transition date-mask font-medium ${!recipient.data ? 'border-red-300' : ''}">
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Data Agendamento *</label>
+                        <input type="text" placeholder="DD/MM/AAAA" maxlength="10" data-field="data" value="${recipient.data || ''}" class="w-full p-2.5 border-2 border-slate-200 rounded-lg date-mask ${!recipient.data ? 'border-red-300' : ''}">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
-                            <i class="fas fa-clock text-orange-500"></i>
-                            Horário *
-                        </label>
-                        <input type="text" placeholder="HH:MM" maxlength="5" data-field="horario" value="${recipient.horario || ''}" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 transition time-mask font-medium ${!recipient.horario ? 'border-red-300' : ''}">
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Horário *</label>
+                        <input type="text" placeholder="HH:MM" maxlength="5" data-field="horario" value="${recipient.horario || ''}" class="w-full p-2.5 border-2 border-slate-200 rounded-lg time-mask ${!recipient.horario ? 'border-red-300' : ''}">
                     </div>
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
-                            <i class="fas fa-users text-cyan-500"></i>
-                            Irmãos (opcional)
-                        </label>
-                        <input type="text" placeholder="Ex: João (12), Maria (10)" data-field="irmaos" value="${recipient.irmaos || ''}" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 transition font-medium">
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Irmãos (opcional)</label>
+                        <input type="text" placeholder="Ex: João (12), Maria (10)" data-field="irmaos" value="${recipient.irmaos || ''}" class="w-full p-2.5 border-2 border-slate-200 rounded-lg">
                     </div>
                 </div>`;
             return form;
-        };
+        }
+
         // ==================== MÁSCARAS ====================
         recipientsList.addEventListener('input', (e) => {
             if (!e.target.dataset.field) return;
-            
             const input = e.target;
             let value = input.value;
             const field = input.dataset.field;
             const id = input.closest('[data-id]').dataset.id;
+
             if (input.classList.contains('date-mask')) {
                 value = value.replace(/\D/g, '');
                 if (value.length >= 2) value = value.slice(0, 2) + '/' + value.slice(2);
                 if (value.length >= 5) value = value.slice(0, 5) + '/' + value.slice(5, 9);
-                if (value.length > 10) value = value.slice(0, 10);
-                input.value = value;
-                
-                if (value.length === 10 && !validateDate(value)) {
-                    input.classList.add('border-red-500', 'shake');
-                    showToast('Data inválida', 'error');
-                } else {
-                    input.classList.remove('border-red-500', 'shake');
-                }
-            }
-            else if (input.classList.contains('phone-mask')) {
+                input.value = value.slice(0, 10);
+            } else if (input.classList.contains('phone-mask')) {
                 value = value.replace(/\D/g, '');
                 if (value.length > 0 && !value.startsWith('55')) value = '55' + value;
-                if (value.length > 15) value = value.slice(0, 15);
-                input.value = value;
-                
-                if (value.length >= 12 && !validatePhone(value)) {
-                    input.classList.add('border-red-500');
-                } else {
-                    input.classList.remove('border-red-500');
-                }
-            }
-            else if (input.classList.contains('time-mask')) {
+                input.value = value.slice(0, 15);
+            } else if (input.classList.contains('time-mask')) {
                 value = value.replace(/\D/g, '');
                 if (value.length >= 2) value = value.slice(0, 2) + ':' + value.slice(2, 4);
-                if (value.length > 5) value = value.slice(0, 5);
-                input.value = value;
-                
-                if (value.length === 5 && !validateTime(value)) {
-                    input.classList.add('border-red-500');
-                    showToast('Horário inválido (00:00 - 23:59)', 'error');
-                } else {
-                    input.classList.remove('border-red-500');
-                }
+                input.value = value.slice(0, 5);
             }
             
             handleUpdateRecipient(id, field, input.value);
         });
+
         // ==================== HANDLERS ====================
-        const handleAddRecipient = () => {
-            console.log('🆕 Adicionando novo destinatário...');
+        function handleAddRecipient() {
+            console.log('Adicionando destinatário...');
             recipients.push({ 
                 id: Date.now().toString(), 
-                jovem: '', 
-                responsavel: '', 
-                data: getTomorrowDateString(), 
-                horario: '', 
-                numero_responsavel: '', 
-                numero_jovem: '', 
-                data_nascimento: '', 
-                irmaos: '', 
+                jovem: '', responsavel: '', 
+                data: getTomorrowDateString(), horario: '', 
+                numero_responsavel: '', numero_jovem: '', 
+                data_nascimento: '', irmaos: '', 
                 isPuxada: false
             });
             renderRecipients();
             saveToLocalStorage();
-            showToast('✨ Novo destinatário adicionado', 'success');
-            addToHistory('Destinatário adicionado (Amanhã)', 'success');
-        };
+            showToast('Novo destinatário adicionado', 'success');
+        }
         
-        const handleAddPuxada = () => {
-            console.log('⚡ Adicionando puxada...');
+        function handleAddPuxada() {
+            console.log('Adicionando puxada...');
             recipients.push({ 
                 id: Date.now().toString(), 
-                jovem: '', 
-                responsavel: '', 
-                data: getTodayDateString(), 
-                horario: '', 
-                numero_responsavel: '', 
-                numero_jovem: '', 
-                data_nascimento: '', 
-                irmaos: '', 
+                jovem: '', responsavel: '', 
+                data: getTodayDateString(), horario: '', 
+                numero_responsavel: '', numero_jovem: '', 
+                data_nascimento: '', irmaos: '', 
                 isPuxada: true
             });
             renderRecipients();
             saveToLocalStorage();
-            showToast('⚡ Puxada adicionada', 'warning');
-            addToHistory('Puxada adicionada (Hoje)', 'warning');
-        };
-        const handleRemoveRecipient = (id) => {
-            if (confirm('🗑️ Tem certeza que deseja remover este destinatário?')) {
-                const recipient = recipients.find(r => r.id === id);
+            showToast('Puxada adicionada', 'warning');
+        }
+
+        function handleRemoveRecipient(id) {
+            if (confirm('Remover este destinatário?')) {
                 recipients = recipients.filter(r => r.id !== id);
                 renderRecipients();
                 saveToLocalStorage();
                 showToast('Destinatário removido', 'info');
-                addToHistory(`Removido: ${recipient.jovem || 'Destinatário'}`, 'info');
             }
-        };
+        }
         
-        const handleUpdateRecipient = (id, field, value) => {
+        function handleUpdateRecipient(id, field, value) {
             const recipient = recipients.find(r => r.id === id);
             if (recipient) {
                 recipient[field] = value;
                 saveToLocalStorage();
             }
-        };
-        const updateGenerateButtonState = () => {
+        }
+
+        function updateGenerateButtonState() {
             const hasData = assistantSelect.value !== '' && recipients.length > 0;
             generateMessagesBtn.disabled = !hasData;
             generateInstitutoBtn.disabled = !hasData;
+        }
+
+        // ==================== TEMPLATES DE MENSAGEM ====================
+        const messageTemplates = {
+            long: {
+                title: `*CONVOCAÇÃO PARA TESTE VOCACIONAL E CADASTRAMENTO GRATUITO AO MERCADO DE TRABALHO*`,
+                scheduling_info: `*Dados do Agendamento:*\n\n*Data:* {diaDaSemana}, {data}\n*Horário:* {horario} (chegar 10min antes)`,
+                locations: {
+                    Eldorado: `*Local:* Avenida João César de Oliveira, Nº 953, 2º andar – Eldorado, Contagem.\n\n(Em frente a Caixa Econômica Federal, ao lado da Oral Centter, próximo ao Big Shopping)`,
+                    Centro: `*Local:* Rua Curitiba, 656, 11° andar - Centro, Belo Horizonte.\n\n(Em frente a Casa&Video, próximo a Marisa)`
+                },
+                footer: `*Documentos Necessários:*\n\n• RG, CPF ou Certidão de Nascimento do jovem.\n• Comprovante de Residência.\n\n---\n*Código do Jovem:* {codigo}\n\n*Atenção:* A presença do responsável junto com o jovem é indispensável. O código já foi gerado e a ausência pode ser interpretada como falta de comprometimento, bloqueando futuras oportunidades pelo projeto social.\n\nAtenciosamente,\n\n*{assistente}*\n{organizacao}`
+            }
         };
-        // Continuação do JavaScript...
-        // (O código está muito longo, vou criar em partes)
+
+        function generateMessageText(data) {
+            const assistantDisplayName = assistantFullNameMap[data.assistente] || data.assistente;
+            const diaDaSemana = getDayOfWeek(data.data);
+            const organizacao = data.isInstituto ? "Instituto Crescer'Minas" : "Coordenação | Empresa Crescer";
+            
+            let jovemInfo = `*Jovem Convocado:* ${data.jovem}`;
+            if (data.idade !== null) jovemInfo += ` (${data.idade} anos)`;
+
+            let personalInfo = `${jovemInfo}\n*Responsável:* ${data.responsavel}`;
+            if (data.irmaos && data.irmaos.trim() !== '') personalInfo += `\n*Irmãos:* ${data.irmaos}`;
+
+            const schedulingInfo = messageTemplates.long.scheduling_info
+                .replace(/{diaDaSemana}/g, diaDaSemana)
+                .replace(/{data}/g, data.data)
+                .replace(/{horario}/g, data.horario);
+            
+            const locationText = messageTemplates.long.locations[data.local] || messageTemplates.long.locations.Centro;
+            
+            const footer = messageTemplates.long.footer
+                .replace(/{codigo}/g, data.codigo)
+                .replace(/{assistente}/g, assistantDisplayName)
+                .replace(/{organizacao}/g, organizacao);
+
+            return [messageTemplates.long.title, personalInfo, schedulingInfo, locationText, footer].join('\n---\n');
+        }
+
+        // ==================== COPIAR ====================
+        async function copyToClipboard(text, button) {
+            try {
+                await navigator.clipboard.writeText(text);
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+                button.classList.add('bg-green-600');
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.classList.remove('bg-green-600');
+                }, 2000);
+                showToast('Mensagem copiada!', 'success');
+            } catch (err) {
+                showToast('Erro ao copiar', 'error');
+            }
+        }
+
+        // ==================== GERAÇÃO ====================
+        function handleGenerateMessages(isInstituto = false) {
+            console.log('Gerando mensagens...');
+            const assistantValue = assistantSelect.value;
+            if (!assistantValue) {
+                showToast('Selecione seu nome!', 'warning');
+                return;
+            }
+
+            const generatedMessages = recipients
+                .filter(r => r.jovem && r.responsavel && r.data && r.horario && r.numero_responsavel)
+                .map(r => {
+                    const idade = calculateAge(r.data_nascimento);
+                    const codigo = generateCode(r.jovem);
+                    const originalData = { 
+                        ...r, idade, codigo, 
+                        assistente: assistantValue, 
+                        local: locationSelect.value,
+                        isInstituto: isInstituto
+                    };
+                    return { originalData };
+                });
+            
+            if (generatedMessages.length === 0) {
+                showToast('Preencha os campos obrigatórios!', 'warning');
+                return;
+            }
+            
+            renderMessages(generatedMessages);
+            messagesSection.scrollIntoView({ behavior: 'smooth' });
+            showToast(`${generatedMessages.length} mensagem(ns) gerada(s)!`, 'success');
+        }
+
+        function renderMessages(generatedMessages) {
+            messagesList.innerHTML = '';
+            if (generatedMessages.length > 0) {
+                messagesSection.classList.remove('hidden');
+                generatedMessages.forEach(msgData => {
+                    const messageItem = document.createElement('div');
+                    messageItem.className = 'p-5 border-2 border-slate-200 rounded-xl bg-white';
+                    messageItem.dataset.recipientData = JSON.stringify(msgData.originalData);
+                    
+                    const messageText = generateMessageText(msgData.originalData);
+                    const encodedMessage = encodeURIComponent(messageText);
+
+                    messageItem.innerHTML = `
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <p class="font-bold text-slate-800">${msgData.originalData.jovem}</p>
+                                <p class="text-sm text-slate-600">📞 ${msgData.originalData.numero_responsavel}</p>
+                            </div>
+                            <span class="text-xs text-slate-400">${messageText.length} caracteres</span>
+                        </div>
+                        <pre class="whitespace-pre-wrap bg-slate-50 p-4 rounded-lg text-sm text-slate-700 mb-4 border">${messageText}</pre>
+                        <div class="flex flex-wrap gap-2">
+                            <a href="https://wa.me/${msgData.originalData.numero_responsavel}?text=${encodedMessage}" target="_blank" class="flex-1 sm:flex-none py-2 px-4 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 transition text-center">
+                                <i class="fab fa-whatsapp"></i> Enviar WhatsApp
+                            </a>
+                            <button class="copy-btn py-2 px-4 bg-slate-600 text-white font-bold rounded-lg hover:bg-slate-700 transition">
+                                <i class="fas fa-copy"></i> Copiar
+                            </button>
+                            <button class="save-btn py-2 px-4 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition">
+                                <i class="fas fa-save"></i> Salvar
+                            </button>
+                        </div>`;
+                    messagesList.appendChild(messageItem);
+                });
+            } else {
+                messagesSection.classList.add('hidden');
+            }
+        }
+
+        async function handleSaveToSheet(button) {
+            const messageItem = button.closest('[data-recipient-data]');
+            const data = JSON.parse(messageItem.dataset.recipientData);
+            
+            const now = new Date();
+            data.horario_lancamento = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    button.innerHTML = '<i class="fas fa-check"></i> Salvo!';
+                    button.classList.remove('bg-blue-600');
+                    button.classList.add('bg-green-600');
+                    showToast('Salvo na planilha!', 'success');
+                } else { 
+                    throw new Error(result.message); 
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                button.innerHTML = '<i class="fas fa-times"></i> Erro';
+                button.classList.add('bg-red-600');
+                showToast('Erro ao salvar: ' + error.message, 'error');
+                button.disabled = false;
+            }
+        }
+
+        // ==================== MENSAGEM RÁPIDA ====================
+        quickMessageBtn.addEventListener('click', () => {
+            console.log('Abrindo modal mensagem rápida...');
+            quickMessageModal.style.display = 'flex';
+            quickMessageModal.classList.remove('hidden');
+            document.getElementById('quick-jovem').value = '';
+            document.getElementById('quick-data').value = '';
+            document.getElementById('quick-horario').value = '';
+            document.getElementById('quick-numero').value = '';
+            quickMessageResult.classList.add('hidden');
+        });
+
+        quickModalCancel.addEventListener('click', () => {
+            quickMessageModal.style.display = 'none';
+            quickMessageModal.classList.add('hidden');
+        });
+
+        // Máscaras do modal
+        document.getElementById('quick-data').addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) value = value.slice(0, 2) + '/' + value.slice(2);
+            if (value.length >= 5) value = value.slice(0, 5) + '/' + value.slice(5, 9);
+            e.target.value = value.slice(0, 10);
+        });
+
+        document.getElementById('quick-horario').addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) value = value.slice(0, 2) + ':' + value.slice(2, 4);
+            e.target.value = value.slice(0, 5);
+        });
+
+        document.getElementById('quick-numero').addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 0 && !value.startsWith('55')) value = '55' + value;
+            e.target.value = value.slice(0, 15);
+        });
+
+        quickGenerateBtn.addEventListener('click', () => {
+            const jovem = document.getElementById('quick-jovem').value.trim();
+            const data = document.getElementById('quick-data').value.trim();
+            const horario = document.getElementById('quick-horario').value.trim();
+            const local = document.getElementById('quick-local').value;
+            const assistente = document.getElementById('quick-assistente').value;
+            const numero = document.getElementById('quick-numero').value.trim();
+
+            if (!jovem || !data || !horario || !assistente || !numero) {
+                showToast('Preencha todos os campos!', 'warning');
+                return;
+            }
+
+            const diaDaSemana = getDayOfWeek(data);
+            const endereco = local === 'Eldorado' 
+                ? 'Av. João César de Oliveira, 953 no 2° andar' 
+                : 'Rua Curitiba, 656, 11° andar';
+            const nomeAssistente = assistantFullNameMap[assistente] || assistente;
+
+            const messageText = `*${diaDaSemana}, às ${horario}*, ${jovem} e responsável devem comparecer à *${endereco}* ${local}, para o *Teste Vocacional e Cadastramento Gratuito* ao Mercado De Trabalho. Apresentem *RG, comprovante de residência* e procurem por *${nomeAssistente}*. A presença de ambos é indispensável: o não comparecimento implica no bloqueio de futuras oportunidades no projeto.`;
+
+            const encodedMessage = encodeURIComponent(messageText);
+            const whatsappUrl = `https://wa.me/${numero}?text=${encodedMessage}`;
+
+            quickMessageResult.innerHTML = `
+                <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <p class="font-bold text-green-800 mb-3">✅ Mensagem Gerada!</p>
+                    <pre class="whitespace-pre-wrap text-sm bg-white p-3 rounded border mb-3">${messageText}</pre>
+                    <div class="flex gap-2">
+                        <a href="${whatsappUrl}" target="_blank" class="flex-1 py-2 px-4 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition text-center">
+                            <i class="fab fa-whatsapp"></i> Enviar WhatsApp
+                        </a>
+                        <button class="quick-copy-btn py-2 px-4 bg-slate-600 text-white font-bold rounded-lg hover:bg-slate-700 transition" data-text="${messageText.replace(/"/g, '&quot;')}">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </div>`;
+            quickMessageResult.classList.remove('hidden');
+            showToast('Mensagem rápida gerada!', 'success');
+        });
+
+        // ==================== GERENCIAR ====================
+        async function fetchAppointments() {
+            const assistantName = assistantSelect.value;
+            if (!assistantName) {
+                managementList.innerHTML = '<p class="text-center text-slate-500 py-8">Selecione seu nome para ver os agendamentos.</p>';
+                return;
+            }
+
+            loader.style.display = 'block';
+            managementEmptyState.style.display = 'none';
+            managementList.innerHTML = '';
+            managementList.appendChild(loader);
+
+            const today = new Date();
+            const dateFilter = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${assistantName}&date=${dateFilter}`);
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    allAppointments = result.data;
+                    renderAppointments(allAppointments);
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                managementList.innerHTML = `<p class="text-center text-red-600 py-8 font-bold">Erro: ${error.message}</p>`;
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+
+        function filterAppointments() {
+            const searchTerm = filterSearch.value.toLowerCase();
+            const statusFilter = filterStatus.value;
+            let filtered = allAppointments;
+            if (searchTerm) filtered = filtered.filter(a => a.jovem.toLowerCase().includes(searchTerm));
+            if (statusFilter) filtered = filtered.filter(a => a.situacao === statusFilter);
+            renderAppointments(filtered);
+        }
+
+        function renderAppointments(appointments) {
+            managementList.innerHTML = '';
+            if (appointments.length === 0) {
+                managementEmptyState.style.display = 'block';
+                managementList.appendChild(managementEmptyState);
+                return;
+            }
+
+            appointments.sort((a, b) => (a.horario > b.horario) ? 1 : -1);
+
+            appointments.forEach(appt => {
+                const apptCard = document.createElement('div');
+                apptCard.className = 'p-4 border-2 border-slate-200 rounded-lg bg-white transition-all hover:border-indigo-300';
+                apptCard.id = `appt-${appt.rowId}`;
+
+                const statusOptions = ['PUXADA','SI SEM INTERESSE','CONFIRMADA','CANCELADA','REAGENDAR','JÁ VEIO','MATRICULA','CONFIRMOU E NÃO VEIO'];
+                const selectOptions = statusOptions.map(status => 
+                    `<option value="${status}" ${appt.situacao === status ? 'selected' : ''}>${status}</option>`
+                ).join('');
+
+                apptCard.innerHTML = `
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-start gap-3">
+                        <div class="flex-1">
+                            <p class="font-bold text-slate-800">${appt.jovem}</p>
+                            <p class="text-sm text-slate-600">👤 ${appt.responsavel}</p>
+                            <div class="flex flex-wrap gap-3 mt-2 text-sm text-slate-500">
+                                <span>📞 ${appt.telefone_resp || 'N/D'}</span>
+                                <span>🗓️ ${appt.data}</span>
+                                <span>⏰ ${appt.horario || 'N/D'}</span>
+                            </div>
+                        </div>
+                        <select class="status-select p-2 border-2 border-slate-300 rounded-lg bg-white text-sm font-medium" data-row-id="${appt.rowId}" data-sheet-name="${appt.sheetName}">
+                            <option value="">Pendente</option>
+                            ${selectOptions}
+                        </select>
+                    </div>`;
+                managementList.appendChild(apptCard);
+            });
+        }
+
+        async function updateAppointmentStatus(selectElement) {
+            const rowId = selectElement.dataset.rowId;
+            const sheetName = selectElement.dataset.sheetName;
+            const newStatus = selectElement.value;
+            
+            selectElement.disabled = true;
+            selectElement.style.backgroundColor = '#fef3c7';
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({
+                        action: 'updateStatus',
+                        rowId: rowId,
+                        sheetName: sheetName,
+                        newStatus: newStatus
+                    })
+                });
+
+                const card = document.getElementById(`appt-${rowId}`);
+                card.classList.add('status-updated');
+                setTimeout(() => card.classList.remove('status-updated'), 1500);
+                showToast('Status atualizado!', 'success');
+            } catch (error) {
+                showToast('Erro ao atualizar', 'error');
+            } finally {
+                selectElement.disabled = false;
+                selectElement.style.backgroundColor = '';
+            }
+        }
+
+        // ==================== DASHBOARD ====================
+        async function fetchDashboardData() {
+            const assistantName = assistantSelect.value;
+            if (!assistantName) {
+                document.getElementById('dashboard-stats').innerHTML = '<p class="text-center text-slate-500 p-4">Selecione seu nome</p>';
+                return;
+            }
+
+            const today = new Date();
+            const dateFilter = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${assistantName}&date=${dateFilter}`);
+                const result = await response.json();
+                if (result.status === 'success') renderDashboard(result.data);
+            } catch (error) {
+                console.error('Erro dashboard:', error);
+            }
+        }
+
+        function renderDashboard(data) {
+            const confirmadas = data.filter(a => a.situacao === 'CONFIRMADA' || a.situacao === 'JÁ VEIO').length;
+            const canceladas = data.filter(a => a.situacao === 'CANCELADA' || a.situacao === 'SI SEM INTERESSE').length;
+            const puxadas = data.filter(a => a.situacao === 'PUXADA').length;
+            const reagendar = data.filter(a => a.situacao === 'REAGENDAR').length;
+            const matricula = data.filter(a => a.situacao === 'MATRICULA').length;
+            const pendentes = data.filter(a => !a.situacao || a.situacao === '').length;
+
+            document.getElementById('dashboard-stats').innerHTML = `
+                <div class="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm"><span>📊 Total:</span><span class="font-bold text-lg">${data.length}</span></div>
+                <div class="flex justify-between items-center p-3 bg-green-50 rounded-lg"><span class="text-green-800">✅ Confirmadas:</span><span class="font-bold text-lg text-green-600">${confirmadas}</span></div>
+                <div class="flex justify-between items-center p-3 bg-red-50 rounded-lg"><span class="text-red-800">❌ Canceladas:</span><span class="font-bold text-lg text-red-600">${canceladas}</span></div>
+                <div class="flex justify-between items-center p-3 bg-amber-50 rounded-lg"><span class="text-amber-800">⚡ Puxadas:</span><span class="font-bold text-lg text-amber-600">${puxadas}</span></div>
+                <div class="flex justify-between items-center p-3 bg-blue-50 rounded-lg"><span class="text-blue-800">📅 Reagendar:</span><span class="font-bold text-lg text-blue-600">${reagendar}</span></div>
+                <div class="flex justify-between items-center p-3 bg-purple-50 rounded-lg"><span class="text-purple-800">🎓 Matrícula:</span><span class="font-bold text-lg text-purple-600">${matricula}</span></div>
+                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg"><span class="text-slate-600">⏳ Pendentes:</span><span class="font-bold text-lg text-slate-500">${pendentes}</span></div>
+            `;
+
+            const ctx = document.getElementById('statusChart');
+            if (statusChartInstance) statusChartInstance.destroy();
+
+            statusChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Confirmadas', 'Canceladas', 'Puxadas', 'Reagendar', 'Matrícula', 'Pendentes'],
+                    datasets: [{
+                        data: [confirmadas, canceladas, puxadas, reagendar, matricula, pendentes],
+                        backgroundColor: ['#22c55e', '#ef4444', '#f59e0b', '#3b82f6', '#a855f7', '#cbd5e1'],
+                        borderWidth: 3,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10 } } }
+                }
+            });
+        }
+
         // ==================== EVENT LISTENERS ====================
-        addRecipientBtn.addEventListener('click', () => {
-            console.log('👆 Botão Amanhã clicado');
-            handleAddRecipient();
-        });
-        
-        addPuxadaBtn.addEventListener('click', () => {
-            console.log('👆 Botão Puxada clicado');
-            handleAddPuxada();
-        });
+        addRecipientBtn.addEventListener('click', handleAddRecipient);
+        addPuxadaBtn.addEventListener('click', handleAddPuxada);
         
         recipientsList.addEventListener('click', (e) => {
             if (e.target.closest('.remove-recipient-btn')) {
@@ -1220,22 +1121,54 @@
             }
         });
         
+        generateMessagesBtn.addEventListener('click', () => handleGenerateMessages(false));
+        generateInstitutoBtn.addEventListener('click', () => handleGenerateMessages(true));
+        
+        messagesList.addEventListener('click', (e) => {
+            if (e.target.closest('.save-btn')) handleSaveToSheet(e.target.closest('.save-btn'));
+            if (e.target.closest('.copy-btn')) {
+                const messageItem = e.target.closest('[data-recipient-data]');
+                const data = JSON.parse(messageItem.dataset.recipientData);
+                copyToClipboard(generateMessageText(data), e.target.closest('.copy-btn'));
+            }
+        });
+
+        quickMessageResult.addEventListener('click', (e) => {
+            if (e.target.closest('.quick-copy-btn')) {
+                const text = e.target.closest('.quick-copy-btn').dataset.text;
+                copyToClipboard(text, e.target.closest('.quick-copy-btn'));
+            }
+        });
+        
+        clearMessagesBtn.addEventListener('click', () => {
+            if (confirm('Limpar todas as mensagens?')) {
+                messagesSection.classList.add('hidden');
+                messagesList.innerHTML = '';
+                showToast('Mensagens limpas', 'info');
+            }
+        });
+        
+        refreshAppointmentsBtn.addEventListener('click', fetchAppointments);
+        filterSearch.addEventListener('input', filterAppointments);
+        filterStatus.addEventListener('change', filterAppointments);
+        
+        managementList.addEventListener('change', (e) => {
+            if (e.target.classList.contains('status-select')) updateAppointmentStatus(e.target);
+        });
+        
         assistantSelect.addEventListener('change', () => {
             updateGenerateButtonState();
+            if (!document.getElementById('gerenciar-section').classList.contains('hidden')) fetchAppointments();
+            if (!document.getElementById('dashboard-section').classList.contains('hidden')) fetchDashboardData();
         });
         
         // ==================== INICIALIZAÇÃO ====================
-        console.log('🚀 Sistema iniciando...');
         loadFromLocalStorage();
-        loadHistory();
         renderRecipients();
         updateGenerateButtonState();
         updateStats();
         
-        showToast('🚀 Sistema Centro iniciado com sucesso!', 'success');
-        addToHistory('Sistema iniciado', 'info');
-        
-        console.log('✅ Sistema pronto! Recipients:', recipients.length);
+        showToast('Sistema Centro iniciado!', 'success');
     });
     </script>
 </body>

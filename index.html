@@ -132,12 +132,14 @@
                     <select id="quick-assistente" class="w-full p-3 border-2 border-slate-200 rounded-xl bg-white focus:border-blue-500 outline-none">
                         <option value="ALANA">ALANA</option>
                         <option value="GABRIELA">GABRIELA</option>
+                        <option value="IGOR">IGOR</option>
                         <option value="NAIARA">NAIARA</option>
                         <option value="NOEMY">NOEMY</option>
                         <option value="RAIANE">RAIANE</option>
                         <option value="SHEILA">SHEILA</option>
                         <option value="THAIS">THAIS</option>
                         <option value="TREINAMENTO">TREINAMENTO</option>
+                        <option value="WELKER">WELKER</option>
                     </select>
                     <input type="text" id="quick-telefone" placeholder="Telefone (com DDD)" class="w-full p-3 border-2 border-slate-200 rounded-xl phone-mask focus:border-blue-500 outline-none">
                 </div>
@@ -204,12 +206,14 @@
                                 <option value="">-- Selecione --</option>
                                 <option value="ALANA">ALANA</option>
                                 <option value="GABRIELA">GABRIELA</option>
+                                <option value="IGOR">IGOR</option>
                                 <option value="NAIARA">NAIARA</option>
                                 <option value="NOEMY">NOEMY</option>
                                 <option value="RAIANE">RAIANE (Gerente)</option>
                                 <option value="SHEILA">SHEILA</option>
                                 <option value="THAIS">THAIS</option>
                                 <option value="TREINAMENTO">TREINAMENTO</option>
+                                <option value="WELKER">WELKER (Supervisor)</option>
                             </select>
                         </div>
                         <div>
@@ -480,12 +484,14 @@ const SUPERVISOR_PASS = 'horizonte123';
 const OPERADORES = [
     { id: 'ALANA', nome: 'Amanda Rodrigues', cor: '#3b82f6' },
     { id: 'GABRIELA', nome: 'Sophia Martins', cor: '#10b981' },
+    { id: 'IGOR', nome: 'Igor Araujo da Silva', cor: '#14b8a6' },
     { id: 'NAIARA', nome: 'Naiara Oliveira', cor: '#8b5cf6' },
     { id: 'NOEMY', nome: 'Noemy Ferreira', cor: '#ec4899' },
     { id: 'RAIANE', nome: 'Raiane Santos', cor: '#f97316' },
     { id: 'SHEILA', nome: 'Cristina Almeida', cor: '#ef4444' },
     { id: 'THAIS', nome: 'Thais Carvalho', cor: '#06b6d4' },
-    { id: 'TREINAMENTO', nome: 'Coordenação', cor: '#64748b' }
+    { id: 'TREINAMENTO', nome: 'Coordenação', cor: '#64748b' },
+    { id: 'WELKER', nome: 'Welker Supervisor', cor: '#a855f7' }
 ];
 
 let state = { 
@@ -911,10 +917,10 @@ function generateMessages(tipo) {
     
     const endereco = unidade === 'Eldorado'
         ? 'Av. João César de Oliveira, Nº 953, 2º andar – Eldorado'
-        : 'Rua Curitiba, 656, 11° andar - Centro';
+        : 'Rua Curitiba, 656, 11° andar - Centro, Belo Horizonte';
     const referencia = unidade === 'Eldorado'
         ? '(Em frente a Caixa Econômica Federal, ao lado da Oral Centter, próximo ao Big Shopping)'
-        : '(Próximo à Praça Sete)';
+        : '(Abaixo da Galeria do Ouvidor, em frente a Casa&Video)';
     
     validos.forEach(r => {
         const codigo = r.jovem.split(' ')[0].toUpperCase().substring(0,3) + Math.floor(Math.random()*900+100);
@@ -1482,11 +1488,11 @@ function sendQuickMessage() {
         : (OPERADORES.find(o => o.id === assist)?.nome || assist);
     
     const endereco = local === 'Eldorado' 
-        ? 'Av. João César de Oliveira, 953 no 2° andar' 
-        : 'Rua Curitiba, 656, 11° andar';
+        ? 'Av. João César de Oliveira, 953 no 2° andar - Eldorado' 
+        : 'Rua Curitiba, 656, 11° andar - Centro, Belo Horizonte';
     const referencia = local === 'Eldorado' 
         ? '(Em frente a Caixa Econômica Federal, ao lado da Oral Centter, próximo ao Big Shopping)' 
-        : '(Próximo à Praça Sete)';
+        : '(Abaixo da Galeria do Ouvidor, em frente a Casa&Video)';
     
     let diaSemana = '';
     if (data && data.length === 10) {
@@ -1507,15 +1513,167 @@ function sendQuickMessage() {
     toast('Abrindo WhatsApp...', 'success');
 }
 
-function loadAdminData(period) {
+async function loadAdminData(period, customStart = null, customEnd = null) {
     toast('Carregando dados administrativos...', 'info');
-    // Simulação - implemente conforme sua API
-    $('admin-total').textContent = '0';
-    $('admin-confirmados').textContent = '0';
-    $('admin-taxa').textContent = '0%';
-    $('admin-equipe').textContent = '0';
-    $('admin-ranking').innerHTML = '<p class="text-slate-400 text-center py-4">Sem dados</p>';
-    $('admin-table-body').innerHTML = '';
+    
+    let startDate, endDate;
+    const today = new Date();
+    
+    if (period === 'custom' && customStart && customEnd) {
+        startDate = new Date(customStart + 'T00:00:00');
+        endDate = new Date(customEnd + 'T23:59:59');
+    } else if (period === 'hoje') {
+        startDate = new Date(today);
+        endDate = new Date(today);
+    } else if (period === 'semana') {
+        const firstDay = today.getDate() - today.getDay();
+        startDate = new Date(today.setDate(firstDay));
+        endDate = new Date();
+    } else if (period === 'mes') {
+        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+        endDate = new Date();
+    }
+    
+    try {
+        let allData = [];
+        
+        // Buscar dados de todos os operadores
+        for (const op of OPERADORES) {
+            // Simular busca por período (ajuste conforme sua API)
+            const dateStr = formatDateAPI(startDate);
+            const resp = await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${op.id}&date=${dateStr}`);
+            const json = await resp.json();
+            
+            if (json.status === 'success' && json.data) {
+                allData = allData.concat(json.data.map(d => ({ ...d, operador: op.id })));
+            }
+        }
+        
+        state.adminData = allData;
+        
+        // Calcular estatísticas
+        const total = allData.length;
+        const confirmados = allData.filter(a => ['CONFIRMADA', 'JÁ VEIO', 'MATRICULA'].includes(a.situacao)).length;
+        const taxa = total > 0 ? Math.round((confirmados / total) * 100) : 0;
+        const operadoresAtivos = new Set(allData.map(a => a.operador)).size;
+        
+        // Atualizar cards
+        $('admin-total').textContent = total;
+        $('admin-confirmados').textContent = confirmados;
+        $('admin-taxa').textContent = `${taxa}%`;
+        $('admin-equipe').textContent = operadoresAtivos;
+        
+        // Gerar ranking
+        const rankingMap = {};
+        allData.forEach(item => {
+            if (!rankingMap[item.operador]) {
+                rankingMap[item.operador] = {
+                    nome: OPERADORES.find(o => o.id === item.operador)?.nome || item.operador,
+                    cor: OPERADORES.find(o => o.id === item.operador)?.cor || '#666',
+                    total: 0,
+                    confirmados: 0
+                };
+            }
+            rankingMap[item.operador].total++;
+            if (['CONFIRMADA', 'JÁ VEIO', 'MATRICULA'].includes(item.situacao)) {
+                rankingMap[item.operador].confirmados++;
+            }
+        });
+        
+        const ranking = Object.entries(rankingMap)
+            .map(([id, data]) => ({
+                id,
+                ...data,
+                taxa: data.total > 0 ? Math.round((data.confirmados / data.total) * 100) : 0
+            }))
+            .sort((a, b) => b.confirmados - a.confirmados);
+        
+        // Renderizar ranking
+        const rankingHTML = ranking.map((item, idx) => {
+            const medalha = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}º`;
+            return `
+                <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                    <div class="text-2xl font-black w-12 text-center">${medalha}</div>
+                    <div class="flex-1">
+                        <div class="font-bold text-slate-800">${item.nome}</div>
+                        <div class="text-xs text-slate-500">
+                            ${item.confirmados} confirmados de ${item.total} agendamentos
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xl font-black" style="color: ${item.cor}">${item.taxa}%</div>
+                        <div class="text-xs text-slate-400">Taxa</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        $('admin-ranking').innerHTML = rankingHTML || '<p class="text-slate-400 text-center py-4">Sem dados</p>';
+        
+        // Gráfico comparativo
+        const ctx = $('admin-chart')?.getContext('2d');
+        if (ctx) {
+            if (state.charts.admin) state.charts.admin.destroy();
+            
+            state.charts.admin = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ranking.map(r => r.nome.split(' ')[0]),
+                    datasets: [{
+                        label: 'Confirmados',
+                        data: ranking.map(r => r.confirmados),
+                        backgroundColor: ranking.map(r => r.cor),
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+        
+        // Tabela detalhada
+        const tableHTML = allData.slice(0, 50).map(item => `
+            <tr class="hover:bg-slate-50">
+                <td class="px-4 py-2 text-xs">${item.data || 'N/D'}</td>
+                <td class="px-4 py-2 text-xs font-bold">${item.operador}</td>
+                <td class="px-4 py-2 text-xs">${item.jovem}</td>
+                <td class="px-4 py-2">
+                    <span class="badge ${getStatusBadgeClass(item.situacao)}">${item.situacao || 'PENDENTE'}</span>
+                </td>
+            </tr>
+        `).join('');
+        
+        $('admin-table-body').innerHTML = tableHTML || '<tr><td colspan="4" class="text-center py-4 text-slate-400">Sem dados</td></tr>';
+        
+        toast('Dados carregados com sucesso!', 'success');
+        
+    } catch (error) {
+        console.error('Erro ao carregar dados admin:', error);
+        toast('Erro ao carregar dados', 'error');
+        $('admin-total').textContent = '0';
+        $('admin-confirmados').textContent = '0';
+        $('admin-taxa').textContent = '0%';
+        $('admin-equipe').textContent = '0';
+        $('admin-ranking').innerHTML = '<p class="text-red-400 text-center py-4">Erro ao carregar dados</p>';
+        $('admin-table-body').innerHTML = '<tr><td colspan="4" class="text-center py-4 text-red-400">Erro ao carregar</td></tr>';
+    }
+}
+
+function getStatusBadgeClass(status) {
+    if (status === 'CONFIRMADA' || status === 'JÁ VEIO' || status === 'MATRICULA') return 'bg-green-100 text-green-700';
+    if (status === 'CANCELADA' || status === 'SI SEM INTERESSE') return 'bg-red-100 text-red-700';
+    if (status === 'PUXADA') return 'bg-orange-100 text-orange-700';
+    if (status === 'REAGENDAR') return 'bg-blue-100 text-blue-700';
+    return 'bg-yellow-100 text-yellow-700';
 }
 </script>
 </body>

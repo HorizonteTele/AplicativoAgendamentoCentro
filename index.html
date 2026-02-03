@@ -11,8 +11,6 @@
     <style>
         :root {
             --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #8b5cf6;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
@@ -20,7 +18,6 @@
         body { font-family: 'Inter', sans-serif; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .fade-in { animation: fadeIn 0.4s ease-out; }
         .slide-in { animation: slideIn 0.3s ease-out; }
         .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
@@ -30,30 +27,22 @@
         .toast-info { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
         .toast-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
         .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
-        .stat-card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; transition: transform 0.2s, box-shadow 0.2s; }
-        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.15); }
-        .admin-card { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .stat-card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); }
         .filter-chip { padding: 6px 12px; border-radius: 20px; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
         .filter-chip:hover { transform: scale(1.05); }
         .filter-chip.active { border-color: currentColor; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .appointment-card { transition: all 0.3s ease; }
+        .appointment-card:hover { transform: translateX(4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
         body.dark-mode { background: #0f172a; color: #e2e8f0; }
         body.dark-mode .bg-white { background: #1e293b !important; border-color: #334155 !important; }
         body.dark-mode .bg-slate-50 { background: #0b1220 !important; }
         body.dark-mode .text-slate-800, body.dark-mode .text-slate-700 { color: #e2e8f0 !important; }
         body.dark-mode .text-slate-600, body.dark-mode .text-slate-500, body.dark-mode .text-slate-400 { color: #cbd5e1 !important; }
-        body.dark-mode .border-slate-200 { border-color: #334155 !important; }
-        body.dark-mode .bg-slate-100 { background: #111827 !important; }
-        body.dark-mode .bg-slate-200 { background: #1f2937 !important; }
-        body.dark-mode .stat-card { background: #1e293b !important; border-color: #334155 !important; }
-        body.dark-mode .admin-card { background: #1e293b !important; border-color: #334155 !important; }
+        body.dark-mode .stat-card { background: #1e293b !important; }
         body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background: #0f172a !important; color: #e2e8f0 !important; border-color: #334155 !important; }
-        .appointment-card { transition: all 0.3s ease; }
-        .appointment-card:hover { transform: translateX(4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        .loading-spinner { animation: pulse 1.5s ease-in-out infinite; }
+        .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .collapsible-content.expanded { max-height: 2000px; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800">
@@ -62,7 +51,7 @@
     <!-- Password Modal -->
     <div id="password-modal" class="fixed inset-0 bg-black/80 z-50" style="display: none;">
         <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all">
+            <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
                 <div class="text-center mb-6">
                     <div class="w-16 h-16 bg-gradient-to-br from-purple-600 to-purple-700 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                         <i class="fas fa-crown text-2xl text-white"></i>
@@ -72,8 +61,73 @@
                 </div>
                 <input type="password" id="supervisor-password" class="w-full p-4 text-center text-xl font-bold border-2 border-slate-200 rounded-xl focus:border-purple-600 focus:ring-0 outline-none mb-4" placeholder="Senha...">
                 <div class="flex gap-3">
-                    <button id="btn-cancel-auth" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 transition-colors">Cancelar</button>
+                    <button id="btn-cancel-auth" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300">Cancelar</button>
                     <button id="btn-confirm-auth" class="flex-1 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold rounded-xl hover:from-purple-700 hover:to-purple-800 shadow-lg">Entrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gerar Mensagens Modal -->
+    <div id="mensagens-modal" class="fixed inset-0 bg-black/80 z-50" style="display: none;">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+                <h3 class="text-2xl font-black text-slate-800 mb-6 flex items-center gap-2">
+                    <i class="fas fa-comments text-indigo-600"></i> Gerar Mensagens
+                </h3>
+                <p class="text-slate-600 mb-4">Escolha o tipo de mensagem que deseja gerar:</p>
+                <div class="space-y-3">
+                    <button id="btn-gen-rapida" class="w-full py-4 bg-gradient-to-r from-slate-700 to-slate-800 text-white font-bold rounded-xl hover:from-slate-800 hover:to-slate-900 shadow-lg flex items-center justify-center gap-2">
+                        <i class="fas fa-paper-plane"></i> Mensagem Rápida
+                    </button>
+                    <button id="btn-gen-projeto" class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg flex items-center justify-center gap-2">
+                        <i class="fas fa-users"></i> Projeto Conecta Jovem
+                    </button>
+                    <button id="btn-gen-instituto" class="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold rounded-xl hover:from-purple-700 hover:to-purple-800 shadow-lg flex items-center justify-center gap-2">
+                        <i class="fas fa-university"></i> Instituto Conecta Jovem
+                    </button>
+                </div>
+                <button id="btn-close-mensagens" class="w-full mt-4 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Message Modal -->
+    <div id="quick-modal" class="fixed inset-0 bg-black/80 z-50" style="display: none;">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl">
+                <h3 class="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-paper-plane text-blue-500"></i> Mensagem Rápida
+                </h3>
+                <div class="space-y-3">
+                    <input type="text" id="quick-jovem" placeholder="Nome do Jovem" class="w-full p-3 border-2 border-slate-200 rounded-xl">
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="text" id="quick-data" placeholder="Data (DD/MM/AAAA)" class="w-full p-3 border-2 border-slate-200 rounded-xl date-mask">
+                        <input type="text" id="quick-horario" placeholder="Hora (HH:MM)" class="w-full p-3 border-2 border-slate-200 rounded-xl time-mask">
+                    </div>
+                    <select id="quick-local" class="w-full p-3 border-2 border-slate-200 rounded-xl bg-white">
+                        <option value="Centro" selected>Centro</option>
+                        <option value="Eldorado">Eldorado</option>
+                    </select>
+                    <select id="quick-assistente" class="w-full p-3 border-2 border-slate-200 rounded-xl bg-white">
+                        <option value="ALANA">ALANA</option>
+                        <option value="GABRIELA">GABRIELA</option>
+                        <option value="IGOR">IGOR</option>
+                        <option value="NAIARA">NAIARA</option>
+                        <option value="NOEMY">NOEMY</option>
+                        <option value="RAIANE">RAIANE</option>
+                        <option value="SHEILA">SHEILA</option>
+                        <option value="THAIS">THAIS</option>
+                        <option value="TREINAMENTO">TREINAMENTO</option>
+                        <option value="WELKER">WELKER</option>
+                    </select>
+                    <input type="text" id="quick-telefone" placeholder="Telefone (com DDD)" class="w-full p-3 border-2 border-slate-200 rounded-xl phone-mask">
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button id="btn-cancel-quick" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300">Fechar</button>
+                    <button id="btn-send-quick" class="flex-1 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold rounded-xl hover:from-green-700 hover:to-green-800 shadow-lg">
+                        <i class="fab fa-whatsapp"></i> Enviar
+                    </button>
                 </div>
             </div>
         </div>
@@ -105,55 +159,15 @@
                     </div>
                 </div>
                 <div class="flex gap-3 mt-8">
-                    <button id="btn-cancel-metas" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 transition-colors">Cancelar</button>
+                    <button id="btn-cancel-metas" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300">Cancelar</button>
                     <button id="btn-save-metas" class="flex-1 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold rounded-xl hover:from-green-700 hover:to-green-800 shadow-lg">Salvar Metas</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Quick Message Modal -->
-    <div id="quick-modal" class="fixed inset-0 bg-black/80 z-50" style="display: none;">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl">
-                <h3 class="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
-                    <i class="fas fa-paper-plane text-blue-500"></i> Mensagem Rápida
-                </h3>
-                <div class="space-y-3">
-                    <input type="text" id="quick-jovem" placeholder="Nome do Jovem" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 outline-none">
-                    <div class="grid grid-cols-2 gap-3">
-                        <input type="text" id="quick-data" placeholder="Data (DD/MM/AAAA)" class="w-full p-3 border-2 border-slate-200 rounded-xl date-mask focus:border-blue-500 outline-none">
-                        <input type="text" id="quick-horario" placeholder="Hora (HH:MM)" class="w-full p-3 border-2 border-slate-200 rounded-xl time-mask focus:border-blue-500 outline-none">
-                    </div>
-                    <select id="quick-local" class="w-full p-3 border-2 border-slate-200 rounded-xl bg-white focus:border-blue-500 outline-none">
-                        <option value="Centro" selected>Centro</option>
-                        <option value="Eldorado">Eldorado</option>
-                    </select>
-                    <select id="quick-assistente" class="w-full p-3 border-2 border-slate-200 rounded-xl bg-white focus:border-blue-500 outline-none">
-                        <option value="ALANA">ALANA</option>
-                        <option value="GABRIELA">GABRIELA</option>
-                        <option value="IGOR">IGOR</option>
-                        <option value="NAIARA">NAIARA</option>
-                        <option value="NOEMY">NOEMY</option>
-                        <option value="RAIANE">RAIANE</option>
-                        <option value="SHEILA">SHEILA</option>
-                        <option value="THAIS">THAIS</option>
-                        <option value="TREINAMENTO">TREINAMENTO</option>
-                        <option value="WELKER">WELKER</option>
-                    </select>
-                    <input type="text" id="quick-telefone" placeholder="Telefone (com DDD)" class="w-full p-3 border-2 border-slate-200 rounded-xl phone-mask focus:border-blue-500 outline-none">
-                </div>
-                <div class="flex gap-3 mt-6">
-                    <button id="btn-cancel-quick" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 transition-colors">Fechar</button>
-                    <button id="btn-send-quick" class="flex-1 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg">
-                        <i class="fab fa-whatsapp"></i> Enviar
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="container mx-auto p-4 max-w-7xl">
+        <!-- Header -->
         <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <div class="flex items-center gap-4">
                 <div class="w-14 h-14 bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg">
@@ -161,11 +175,11 @@
                 </div>
                 <div>
                     <h1 class="text-2xl md:text-3xl font-black text-slate-800">Agendador PRO</h1>
-                    <p class="text-slate-500 font-medium">Unidade Centro • v3.0</p>
+                    <p class="text-slate-500 font-medium">Unidade Centro • v3.1</p>
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <button id="btn-toggle-dark" class="px-3 py-2 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">
+                <button id="btn-toggle-dark" class="px-3 py-2 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">
                     <i class="fas fa-moon"></i>
                 </button>
                 <div class="px-4 py-2 bg-slate-100 rounded-full font-mono text-sm font-bold text-slate-600">
@@ -177,20 +191,18 @@
             </div>
         </header>
 
+        <!-- Navigation -->
         <nav class="flex flex-wrap gap-2 mb-6 p-2 bg-white rounded-2xl shadow-sm border border-slate-200">
             <button class="nav-btn flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2" data-target="agendar">
                 <i class="fas fa-plus-circle"></i> Agendar
             </button>
-            <button class="nav-btn flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2" data-target="gerenciar">
-                <i class="fas fa-tasks"></i> Gerenciar
-            </button>
-            <button class="nav-btn flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2" data-target="consulta">
-                <i class="fas fa-search"></i> Consulta
+            <button class="nav-btn flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2" data-target="agendamentos">
+                <i class="fas fa-list"></i> Meus Agendamentos
             </button>
             <button class="nav-btn flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2" data-target="dashboard">
                 <i class="fas fa-chart-pie"></i> Dashboard
             </button>
-            <button id="nav-admin" class="nav-btn hidden flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all items-center justify-center gap-2" data-target="admin">
+            <button id="nav-admin" class="nav-btn hidden py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2" data-target="admin">
                 <i class="fas fa-crown"></i> Admin
             </button>
         </nav>
@@ -202,7 +214,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Seu Nome</label>
-                            <select id="select-assistente" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold text-slate-700 focus:border-indigo-500 outline-none transition-colors">
+                            <select id="select-assistente" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold text-slate-700 focus:border-indigo-500 outline-none">
                                 <option value="">-- Selecione --</option>
                                 <option value="ALANA">ALANA</option>
                                 <option value="GABRIELA">GABRIELA</option>
@@ -226,26 +238,33 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-                    <div class="stat-card">
-                        <div class="text-3xl font-black text-indigo-600" id="stat-total">0</div>
-                        <div class="text-xs font-bold text-slate-400 uppercase">Total</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="text-3xl font-black text-green-600" id="stat-completo">0</div>
-                        <div class="text-xs font-bold text-slate-400 uppercase">Prontos</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="text-3xl font-black text-amber-500" id="stat-puxada">0</div>
-                        <div class="text-xs font-bold text-slate-400 uppercase">Puxadas</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="text-3xl font-black text-blue-500" id="stat-amanha">0</div>
-                        <div class="text-xs font-bold text-slate-400 uppercase">Amanhã</div>
-                    </div>
-                    <div class="stat-card cursor-pointer hover:bg-purple-50 transition-colors" id="btn-update-ag-amanha">
-                        <div class="text-3xl font-black text-purple-600" id="stat-ag-amanha">-</div>
-                        <div class="text-xs font-bold text-slate-400 uppercase">Ag. Amanhã ↻</div>
+                <!-- Stats (Collapsible) -->
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                    <button id="btn-toggle-stats" class="w-full flex items-center justify-between text-left font-bold text-slate-700 hover:text-indigo-600 transition-colors">
+                        <span class="flex items-center gap-2">
+                            <i class="fas fa-chart-bar"></i> Estatísticas Rápidas
+                        </span>
+                        <i class="fas fa-chevron-down transition-transform" id="stats-icon"></i>
+                    </button>
+                    <div id="stats-container" class="collapsible-content mt-4">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div class="stat-card text-center">
+                                <div class="text-3xl font-black text-indigo-600" id="stat-total">0</div>
+                                <div class="text-xs font-bold text-slate-400 uppercase">Total</div>
+                            </div>
+                            <div class="stat-card text-center">
+                                <div class="text-3xl font-black text-green-600" id="stat-completo">0</div>
+                                <div class="text-xs font-bold text-slate-400 uppercase">Prontos</div>
+                            </div>
+                            <div class="stat-card text-center">
+                                <div class="text-3xl font-black text-amber-500" id="stat-puxada">0</div>
+                                <div class="text-xs font-bold text-slate-400 uppercase">Puxadas</div>
+                            </div>
+                            <div class="stat-card text-center cursor-pointer hover:bg-purple-50 transition-colors" id="btn-update-ag-amanha">
+                                <div class="text-3xl font-black text-purple-600" id="stat-ag-amanha">-</div>
+                                <div class="text-xs font-bold text-slate-400 uppercase">Ag. Amanhã ↻</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -269,15 +288,9 @@
                     </div>
                 </div>
 
-                <div class="flex flex-wrap gap-3 justify-end">
-                    <button id="btn-open-quick" class="py-3 px-6 bg-gradient-to-r from-slate-700 to-slate-800 text-white font-bold rounded-xl hover:from-slate-800 hover:to-slate-900 transition-all">
-                        <i class="fas fa-paper-plane"></i> Msg Rápida
-                    </button>
-                    <button id="btn-gen-projeto" class="py-3 px-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all">
-                        Projeto Conecta Jovem
-                    </button>
-                    <button id="btn-gen-instituto" class="py-3 px-6 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold rounded-xl hover:from-purple-700 hover:to-purple-800 shadow-lg transition-all">
-                        Instituto Conecta Jovem
+                <div class="flex justify-end">
+                    <button id="btn-open-mensagens" class="py-3 px-8 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-bold rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-lg transition-all flex items-center gap-2">
+                        <i class="fas fa-comments"></i> Gerar Mensagens
                     </button>
                 </div>
 
@@ -290,109 +303,105 @@
                 </div>
             </section>
 
-            <!-- Gerenciar Page -->
-            <section id="page-gerenciar" class="page-content hidden fade-in space-y-6">
+            <!-- Meus Agendamentos Page (Unificado: Gerenciar + Consulta) -->
+            <section id="page-agendamentos" class="page-content hidden fade-in space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <!-- Toggle: Hoje / Outras Datas -->
+                    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
                         <h2 class="text-xl font-bold text-slate-700 flex items-center gap-2">
-                            <i class="fas fa-tasks text-indigo-600"></i> Gerenciar Hoje
+                            <i class="fas fa-list text-indigo-600"></i> Meus Agendamentos
                         </h2>
                         <div class="flex gap-2">
-                            <button id="btn-refresh-hoje" class="p-2 bg-indigo-100 rounded-lg hover:bg-indigo-200 text-indigo-600 transition-colors">
-                                <i class="fas fa-sync-alt"></i>
+                            <button class="view-toggle px-4 py-2 rounded-lg font-bold text-sm bg-indigo-600 text-white" data-view="hoje">
+                                Hoje
                             </button>
-                            <button id="btn-export-hoje" class="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-bold hover:bg-green-200 transition-colors">
-                                <i class="fas fa-download"></i> Exportar
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Filtros -->
-                    <div class="mb-6 space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <input type="text" id="search-hoje" placeholder="🔍 Buscar por nome, telefone ou responsável..." class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none">
-                            <select id="filter-status" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none">
-                                <option value="">Todos os Status</option>
-                                <option value="CONFIRMADA">✅ Confirmada</option>
-                                <option value="CANCELADA">❌ Cancelada</option>
-                                <option value="PENDENTE">⏳ Pendente</option>
-                                <option value="PUXADA">⚡ Puxada</option>
-                                <option value="REAGENDAR">🔄 Reagendar</option>
-                                <option value="JÁ VEIO">✔️ Já Veio</option>
-                                <option value="MATRICULA">📝 Matrícula</option>
-                            </select>
-                        </div>
-                        
-                        <!-- Quick Stats -->
-                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                            <div class="filter-chip bg-slate-100 text-slate-700" data-status="">
-                                <div class="text-lg font-black" id="count-total">0</div>
-                                <div class="text-xs">Total</div>
-                            </div>
-                            <div class="filter-chip bg-green-100 text-green-700" data-status="CONFIRMADA">
-                                <div class="text-lg font-black" id="count-confirmada">0</div>
-                                <div class="text-xs">Confirmadas</div>
-                            </div>
-                            <div class="filter-chip bg-yellow-100 text-yellow-700" data-status="PENDENTE">
-                                <div class="text-lg font-black" id="count-pendente">0</div>
-                                <div class="text-xs">Pendentes</div>
-                            </div>
-                            <div class="filter-chip bg-red-100 text-red-700" data-status="CANCELADA">
-                                <div class="text-lg font-black" id="count-cancelada">0</div>
-                                <div class="text-xs">Canceladas</div>
-                            </div>
-                            <div class="filter-chip bg-orange-100 text-orange-700" data-status="PUXADA">
-                                <div class="text-lg font-black" id="count-puxada">0</div>
-                                <div class="text-xs">Puxadas</div>
-                            </div>
-                            <div class="filter-chip bg-blue-100 text-blue-700" data-status="REAGENDAR">
-                                <div class="text-lg font-black" id="count-reagendar">0</div>
-                                <div class="text-xs">Reagendar</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="lista-hoje" class="space-y-3">
-                        <p class="text-center text-slate-400 py-8">Carregando...</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Consulta Page -->
-            <section id="page-consulta" class="page-content hidden fade-in space-y-6">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <h2 class="text-xl font-bold text-slate-700 mb-6 flex items-center gap-2">
-                        <i class="fas fa-search text-indigo-600"></i> Consultar Agendamentos
-                    </h2>
-
-                    <div class="flex flex-wrap gap-2 mb-6">
-                        <button class="date-preset px-4 py-2 bg-slate-100 rounded-lg font-bold text-slate-600 hover:bg-slate-200 transition-colors" data-days="-1">Ontem</button>
-                        <button class="date-preset px-4 py-2 bg-indigo-100 rounded-lg font-bold text-indigo-600 transition-colors" data-days="0">Hoje</button>
-                        <button class="date-preset px-4 py-2 bg-slate-100 rounded-lg font-bold text-slate-600 hover:bg-slate-200 transition-colors" data-days="1">Amanhã</button>
-                        <button class="date-preset px-4 py-2 bg-slate-100 rounded-lg font-bold text-slate-600 hover:bg-slate-200 transition-colors" data-days="7">Próxima Semana</button>
-                        <div class="flex items-center gap-2 ml-auto">
-                            <input type="date" id="consulta-date" class="p-2 border-2 border-slate-200 rounded-lg font-bold text-slate-700 focus:border-indigo-500 outline-none">
-                            <button id="btn-consulta-go" class="p-2 px-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-800 font-bold transition-all">
-                                <i class="fas fa-search"></i> Buscar
+                            <button class="view-toggle px-4 py-2 rounded-lg font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200" data-view="outras">
+                                Outras Datas
                             </button>
                         </div>
                     </div>
 
-                    <div class="flex justify-between items-center mb-4 p-4 bg-gradient-to-r from-slate-50 to-indigo-50 rounded-xl border border-slate-200">
-                        <div>
-                            <p class="text-xs font-bold text-slate-400 uppercase">Data Selecionada</p>
-                            <h3 class="text-xl font-black text-slate-800" id="consulta-display-date">--/--/----</h3>
+                    <!-- View: Hoje -->
+                    <div id="view-hoje">
+                        <div class="mb-6 space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <input type="text" id="search-hoje" placeholder="🔍 Buscar por nome, telefone ou responsável..." class="w-full p-3 border-2 border-slate-200 rounded-xl">
+                                <select id="filter-status" class="w-full p-3 border-2 border-slate-200 rounded-xl">
+                                    <option value="">Todos os Status</option>
+                                    <option value="CONFIRMADA">✅ Confirmada</option>
+                                    <option value="CANCELADA">❌ Cancelada</option>
+                                    <option value="PENDENTE">⏳ Pendente</option>
+                                    <option value="PUXADA">⚡ Puxada</option>
+                                    <option value="REAGENDAR">🔄 Reagendar</option>
+                                    <option value="JÁ VEIO">✔️ Já Veio</option>
+                                    <option value="MATRICULA">📝 Matrícula</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Quick Stats -->
+                            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                                <div class="filter-chip bg-slate-100 text-slate-700" data-status="">
+                                    <div class="text-lg font-black" id="count-total">0</div>
+                                    <div class="text-xs">Total</div>
+                                </div>
+                                <div class="filter-chip bg-green-100 text-green-700" data-status="CONFIRMADA">
+                                    <div class="text-lg font-black" id="count-confirmada">0</div>
+                                    <div class="text-xs">Confirmadas</div>
+                                </div>
+                                <div class="filter-chip bg-yellow-100 text-yellow-700" data-status="PENDENTE">
+                                    <div class="text-lg font-black" id="count-pendente">0</div>
+                                    <div class="text-xs">Pendentes</div>
+                                </div>
+                                <div class="filter-chip bg-red-100 text-red-700" data-status="CANCELADA">
+                                    <div class="text-lg font-black" id="count-cancelada">0</div>
+                                    <div class="text-xs">Canceladas</div>
+                                </div>
+                                <div class="filter-chip bg-orange-100 text-orange-700" data-status="PUXADA">
+                                    <div class="text-lg font-black" id="count-puxada">0</div>
+                                    <div class="text-xs">Puxadas</div>
+                                </div>
+                                <div class="filter-chip bg-blue-100 text-blue-700" data-status="REAGENDAR">
+                                    <div class="text-lg font-black" id="count-reagendar">0</div>
+                                    <div class="text-xs">Reagendar</div>
+                                </div>
+                            </div>
                         </div>
-                        <div id="consulta-status-badge"></div>
+
+                        <div id="lista-hoje" class="space-y-3">
+                            <p class="text-center text-slate-400 py-8">Carregando...</p>
+                        </div>
                     </div>
 
-                    <!-- Filtros Consulta -->
-                    <div class="mb-4">
-                        <input type="text" id="search-consulta" placeholder="🔍 Buscar na consulta..." class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none">
-                    </div>
+                    <!-- View: Outras Datas -->
+                    <div id="view-outras" class="hidden">
+                        <div class="flex flex-wrap gap-2 mb-6">
+                            <button class="date-preset px-4 py-2 bg-slate-100 rounded-lg font-bold text-slate-600 hover:bg-slate-200" data-days="-1">Ontem</button>
+                            <button class="date-preset px-4 py-2 bg-indigo-100 rounded-lg font-bold text-indigo-600" data-days="0">Hoje</button>
+                            <button class="date-preset px-4 py-2 bg-slate-100 rounded-lg font-bold text-slate-600 hover:bg-slate-200" data-days="1">Amanhã</button>
+                            <button class="date-preset px-4 py-2 bg-slate-100 rounded-lg font-bold text-slate-600 hover:bg-slate-200" data-days="7">Próxima Semana</button>
+                            <div class="flex items-center gap-2 ml-auto">
+                                <input type="date" id="consulta-date" class="p-2 border-2 border-slate-200 rounded-lg font-bold text-slate-700">
+                                <button id="btn-consulta-go" class="p-2 px-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-800 font-bold">
+                                    <i class="fas fa-search"></i> Buscar
+                                </button>
+                            </div>
+                        </div>
 
-                    <div id="lista-consulta" class="space-y-3">
-                        <p class="text-center text-slate-400 py-8">Selecione uma data para consultar</p>
+                        <div class="flex justify-between items-center mb-4 p-4 bg-gradient-to-r from-slate-50 to-indigo-50 rounded-xl border border-slate-200">
+                            <div>
+                                <p class="text-xs font-bold text-slate-400 uppercase">Data Selecionada</p>
+                                <h3 class="text-xl font-black text-slate-800" id="consulta-display-date">--/--/----</h3>
+                            </div>
+                            <div id="consulta-status-badge"></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <input type="text" id="search-consulta" placeholder="🔍 Buscar na consulta..." class="w-full p-3 border-2 border-slate-200 rounded-xl">
+                        </div>
+
+                        <div id="lista-consulta" class="space-y-3">
+                            <p class="text-center text-slate-400 py-8">Selecione uma data para consultar</p>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -414,64 +423,81 @@
 
             <!-- Admin Page -->
             <section id="page-admin" class="page-content hidden fade-in space-y-6">
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap gap-2 items-center justify-between">
-                    <div class="flex gap-2 flex-wrap">
-                        <button class="admin-period px-4 py-2 rounded-lg font-bold text-sm bg-indigo-600 text-white transition-colors" data-period="hoje">Hoje</button>
-                        <button class="admin-period px-4 py-2 rounded-lg font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors" data-period="semana">Esta Semana</button>
-                        <button class="admin-period px-4 py-2 rounded-lg font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors" data-period="mes">Este Mês</button>
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex flex-wrap gap-2 items-center justify-between mb-4">
+                        <div class="flex gap-2">
+                            <button class="admin-period px-4 py-2 rounded-lg font-bold text-sm bg-indigo-600 text-white" data-period="hoje">Hoje</button>
+                            <button class="admin-period px-4 py-2 rounded-lg font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200" data-period="semana">Esta Semana</button>
+                            <button class="admin-period px-4 py-2 rounded-lg font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200" data-period="mes">Este Mês</button>
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="btn-metas" class="px-4 py-2 bg-amber-100 text-amber-700 rounded-lg font-bold hover:bg-amber-200"><i class="fas fa-bullseye"></i> Metas</button>
+                            <button id="btn-export" class="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-bold hover:bg-green-200"><i class="fas fa-download"></i> Exportar</button>
+                        </div>
                     </div>
-                    <div class="flex gap-2">
-                        <button id="btn-metas" class="px-4 py-2 bg-amber-100 text-amber-700 rounded-lg font-bold hover:bg-amber-200 transition-colors"><i class="fas fa-bullseye"></i> Metas</button>
-                        <button id="btn-export" class="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-bold hover:bg-green-200 transition-colors"><i class="fas fa-download"></i> Exportar</button>
+
+                    <!-- Admin Tabs -->
+                    <div class="flex gap-2 mb-6">
+                        <button class="admin-tab px-4 py-2 rounded-lg font-bold text-sm bg-indigo-600 text-white" data-tab="visao">Visão Geral</button>
+                        <button class="admin-tab px-4 py-2 rounded-lg font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200" data-tab="relatorios">Relatórios</button>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="admin-card text-center border-l-4 border-indigo-500">
-                        <div class="text-3xl font-black text-indigo-600" id="admin-total">0</div>
-                        <div class="text-xs font-bold text-slate-400 uppercase">Total Período</div>
+                <!-- Tab: Visão Geral -->
+                <div id="admin-tab-visao">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white border-l-4 border-indigo-500 p-6 rounded-2xl shadow-sm text-center">
+                            <div class="text-3xl font-black text-indigo-600" id="admin-total">0</div>
+                            <div class="text-xs font-bold text-slate-400 uppercase">Total Período</div>
+                        </div>
+                        <div class="bg-white border-l-4 border-green-500 p-6 rounded-2xl shadow-sm text-center">
+                            <div class="text-3xl font-black text-green-600" id="admin-confirmados">0</div>
+                            <div class="text-xs font-bold text-slate-400 uppercase">Confirmados</div>
+                        </div>
+                        <div class="bg-white border-l-4 border-purple-500 p-6 rounded-2xl shadow-sm text-center">
+                            <div class="text-3xl font-black text-purple-600" id="admin-taxa">0%</div>
+                            <div class="text-xs font-bold text-slate-400 uppercase">Taxa Sucesso</div>
+                        </div>
+                        <div class="bg-white border-l-4 border-blue-500 p-6 rounded-2xl shadow-sm text-center">
+                            <div class="text-3xl font-black text-blue-600" id="admin-equipe">0</div>
+                            <div class="text-xs font-bold text-slate-400 uppercase">Ativos</div>
+                        </div>
                     </div>
-                    <div class="admin-card text-center border-l-4 border-green-500">
-                        <div class="text-3xl font-black text-green-600" id="admin-confirmados">0</div>
-                        <div class="text-xs font-bold text-slate-400 uppercase">Confirmados</div>
-                    </div>
-                    <div class="admin-card text-center border-l-4 border-purple-500">
-                        <div class="text-3xl font-black text-purple-600" id="admin-taxa">0%</div>
-                        <div class="text-xs font-bold text-slate-400 uppercase">Taxa Sucesso</div>
-                    </div>
-                    <div class="admin-card text-center border-l-4 border-blue-500">
-                        <div class="text-3xl font-black text-blue-600" id="admin-equipe">0</div>
-                        <div class="text-xs font-bold text-slate-400 uppercase">Ativos</div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h3 class="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2">
+                            <i class="fas fa-trophy text-amber-500"></i> Ranking do Período
+                        </h3>
+                        <div id="admin-ranking" class="space-y-3 max-h-[400px] overflow-y-auto"></div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="admin-card">
-                        <h3 class="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-trophy text-amber-500"></i> Ranking do Período</h3>
-                        <div id="admin-ranking" class="space-y-3 max-h-[400px] overflow-y-auto pr-2"></div>
-                    </div>
-                    <div class="admin-card">
-                        <h3 class="text-lg font-bold text-slate-700 mb-4"><i class="fas fa-chart-bar text-indigo-500"></i> Comparativo</h3>
+                <!-- Tab: Relatórios -->
+                <div id="admin-tab-relatorios" class="hidden space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h3 class="text-lg font-bold text-slate-700 mb-4">
+                            <i class="fas fa-chart-bar text-indigo-500"></i> Comparativo
+                        </h3>
                         <canvas id="admin-chart"></canvas>
                     </div>
-                </div>
 
-                <div class="admin-card">
-                    <h3 class="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2">
-                        <i class="fas fa-table text-indigo-500"></i> Detalhamento Completo
-                    </h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left">
-                            <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b">
-                                <tr>
-                                    <th class="px-4 py-3">Data</th>
-                                    <th class="px-4 py-3">Operador</th>
-                                    <th class="px-4 py-3">Jovem</th>
-                                    <th class="px-4 py-3">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="admin-table-body" class="divide-y divide-slate-100"></tbody>
-                        </table>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h3 class="text-lg font-bold text-slate-700 mb-4">
+                            <i class="fas fa-table text-indigo-500"></i> Detalhamento Completo
+                        </h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left">
+                                <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b">
+                                    <tr>
+                                        <th class="px-4 py-3">Data</th>
+                                        <th class="px-4 py-3">Operador</th>
+                                        <th class="px-4 py-3">Jovem</th>
+                                        <th class="px-4 py-3">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-table-body" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -481,6 +507,8 @@
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyjKPgtDS1mRK0aNsbGEjv1m93JCmcaHqqfHoE6b3aIJCJ4T52X0VUDa7ztuUnq_1pG/exec';
 const SUPERVISOR_PASS = 'horizonte123';
+const WELKER_PASS = 'vilavelha';
+const ALANA_PASS = 'Alana1234@';
 const OPERADORES = [
     { id: 'ALANA', nome: 'Amanda Rodrigues', cor: '#3b82f6' },
     { id: 'GABRIELA', nome: 'Sophia Martins', cor: '#10b981' },
@@ -545,35 +573,41 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function updateClock() {
-    const now = new Date();
-    $('live-clock').textContent = now.toLocaleTimeString('pt-BR');
+    $('live-clock').textContent = new Date().toLocaleTimeString('pt-BR');
 }
 
 function loadSavedUser() {
     try {
         const savedUser = localStorage.getItem('agendadorCentroUser');
         const savedIsSupervisor = localStorage.getItem('agendadorCentroIsSupervisor') === 'true';
+        const savedAuth = localStorage.getItem('agendadorCentroAuth') === 'true';
+        
         if (savedUser) {
             state.user = savedUser;
             $('select-assistente').value = savedUser;
-            if (savedUser === 'RAIANE' && savedIsSupervisor) {
+            
+            if ((savedUser === 'RAIANE' || savedUser === 'WELKER') && savedIsSupervisor) {
                 state.isSupervisor = true;
                 setSupervisorMode(true);
             }
+            
+            if ((savedUser === 'ALANA' || savedUser === 'RAIANE' || savedUser === 'WELKER') && !savedAuth) {
+                state.user = '';
+                $('select-assistente').value = '';
+                localStorage.removeItem('agendadorCentroUser');
+            }
+            
             updateStats();
         }
-    } catch (e) {
-        console.error('Error loading user:', e);
-    }
+    } catch (e) {}
 }
 
 function saveUser() {
     try {
         localStorage.setItem('agendadorCentroUser', state.user);
         localStorage.setItem('agendadorCentroIsSupervisor', state.isSupervisor.toString());
-    } catch (e) {
-        console.error('Error saving user:', e);
-    }
+        localStorage.setItem('agendadorCentroAuth', 'true');
+    } catch (e) {}
 }
 
 function loadTheme() {
@@ -615,13 +649,10 @@ function switchTab(target) {
         activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-lg');
     }
     
-    if (target === 'gerenciar') fetchAppointmentsHoje();
-    if (target === 'dashboard') updateDashboard();
-    if (target === 'consulta') {
-        const today = new Date();
-        $('consulta-date').value = formatDateAPI(today);
-        fetchConsulta(today);
+    if (target === 'agendamentos') {
+        fetchAppointmentsHoje();
     }
+    if (target === 'dashboard') updateDashboard();
     if (target === 'admin' && state.isSupervisor) loadAdminData('hoje');
 }
 
@@ -631,10 +662,83 @@ function setupEventListeners() {
         btn.addEventListener('click', () => switchTab(btn.dataset.target));
     });
     
+    // Stats toggle
+    $('btn-toggle-stats').addEventListener('click', () => {
+        const container = $('stats-container');
+        const icon = $('stats-icon');
+        container.classList.toggle('expanded');
+        icon.classList.toggle('fa-chevron-down');
+        icon.classList.toggle('fa-chevron-up');
+    });
+    
+    // View toggle (Hoje / Outras Datas)
+    document.querySelectorAll('.view-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const view = btn.dataset.view;
+            document.querySelectorAll('.view-toggle').forEach(b => {
+                b.classList.remove('bg-indigo-600', 'text-white');
+                b.classList.add('bg-slate-100', 'text-slate-600');
+            });
+            btn.classList.add('bg-indigo-600', 'text-white');
+            btn.classList.remove('bg-slate-100', 'text-slate-600');
+            
+            if (view === 'hoje') {
+                $('view-hoje').classList.remove('hidden');
+                $('view-outras').classList.add('hidden');
+                fetchAppointmentsHoje();
+            } else {
+                $('view-hoje').classList.add('hidden');
+                $('view-outras').classList.remove('hidden');
+                const today = new Date();
+                $('consulta-date').value = formatDateAPI(today);
+                fetchConsulta(today);
+            }
+        });
+    });
+    
+    // Admin tabs
+    document.querySelectorAll('.admin-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.dataset.tab;
+            document.querySelectorAll('.admin-tab').forEach(b => {
+                b.classList.remove('bg-indigo-600', 'text-white');
+                b.classList.add('bg-slate-100', 'text-slate-600');
+            });
+            btn.classList.add('bg-indigo-600', 'text-white');
+            btn.classList.remove('bg-slate-100', 'text-slate-600');
+            
+            if (tab === 'visao') {
+                $('admin-tab-visao').classList.remove('hidden');
+                $('admin-tab-relatorios').classList.add('hidden');
+            } else {
+                $('admin-tab-visao').classList.add('hidden');
+                $('admin-tab-relatorios').classList.remove('hidden');
+            }
+        });
+    });
+    
     // User selection
     $('select-assistente').addEventListener('change', (e) => {
         state.user = e.target.value;
-        if (state.user === 'RAIANE') {
+        if (state.user === 'RAIANE' || state.user === 'WELKER' || state.user === 'ALANA') {
+            const modalTitle = $('password-modal').querySelector('h3');
+            const modalDesc = $('password-modal').querySelector('p');
+            const modalIcon = $('password-modal').querySelector('.fa-crown');
+            
+            if (state.user === 'RAIANE') {
+                modalTitle.textContent = 'Acesso Gerente';
+                modalDesc.textContent = 'Digite a senha de gerente para acessar o painel administrativo';
+                if (modalIcon) modalIcon.className = 'fas fa-crown text-2xl text-white';
+            } else if (state.user === 'WELKER') {
+                modalTitle.textContent = 'Acesso Supervisor';
+                modalDesc.textContent = 'Digite a senha de supervisor para acessar o painel administrativo';
+                if (modalIcon) modalIcon.className = 'fas fa-user-shield text-2xl text-white';
+            } else {
+                modalTitle.textContent = 'Acesso Protegido';
+                modalDesc.textContent = 'Digite sua senha para continuar';
+                if (modalIcon) modalIcon.className = 'fas fa-lock text-2xl text-white';
+            }
+            
             $('password-modal').style.display = 'flex';
             $('supervisor-password').value = '';
             $('supervisor-password').focus();
@@ -660,18 +764,40 @@ function setupEventListeners() {
     $('btn-add-amanha').addEventListener('click', () => addRecipient(1));
     $('btn-add-hoje').addEventListener('click', () => addRecipient(0));
     
-    // Messages
-    $('btn-gen-projeto').addEventListener('click', () => generateMessages('Projeto'));
-    $('btn-gen-instituto').addEventListener('click', () => generateMessages('Instituto'));
+    // Messages modal
+    $('btn-open-mensagens').addEventListener('click', () => {
+        if (state.recipients.filter(r => r.jovem && r.data && r.horario && r.telefone_resp).length === 0) {
+            toast('Adicione e preencha os destinatários primeiro', 'warning');
+            return;
+        }
+        $('mensagens-modal').style.display = 'flex';
+    });
+    
+    $('btn-close-mensagens').addEventListener('click', () => {
+        $('mensagens-modal').style.display = 'none';
+    });
+    
+    $('btn-gen-rapida').addEventListener('click', () => {
+        $('mensagens-modal').style.display = 'none';
+        $('quick-modal').style.display = 'flex';
+    });
+    
+    $('btn-gen-projeto').addEventListener('click', () => {
+        $('mensagens-modal').style.display = 'none';
+        generateMessages('Projeto');
+    });
+    
+    $('btn-gen-instituto').addEventListener('click', () => {
+        $('mensagens-modal').style.display = 'none';
+        generateMessages('Instituto');
+    });
+    
     $('btn-clear-msgs').addEventListener('click', () => {
         $('area-mensagens').classList.add('hidden');
         $('lista-mensagens').innerHTML = '';
     });
     
     // Quick message
-    $('btn-open-quick').addEventListener('click', () => {
-        $('quick-modal').style.display = 'flex';
-    });
     $('btn-cancel-quick').addEventListener('click', () => {
         $('quick-modal').style.display = 'none';
     });
@@ -760,12 +886,8 @@ function setupEventListeners() {
     $('btn-save-metas').addEventListener('click', saveMetas);
     
     // Other buttons
-    $('btn-refresh-hoje').addEventListener('click', fetchAppointmentsHoje);
     $('btn-update-ag-amanha').addEventListener('click', fetchAgendamentosAmanha);
     $('btn-export').addEventListener('click', exportAdminData);
-    if ($('btn-export-hoje')) {
-        $('btn-export-hoje').addEventListener('click', exportHojeData);
-    }
     $('btn-toggle-dark').addEventListener('click', toggleTheme);
     
     // Input masks
@@ -778,15 +900,30 @@ function setupEventListeners() {
 
 function checkPassword() {
     const pwd = $('supervisor-password').value;
-    if (pwd === SUPERVISOR_PASS) {
+    
+    if (state.user === 'RAIANE' && pwd === SUPERVISOR_PASS) {
         setSupervisorMode(true);
         $('password-modal').style.display = 'none';
         toast('Bem-vinda, Gerente Raiane!', 'success');
         saveUser();
         updateStats();
         fetchAgendamentosAmanha();
+    } else if (state.user === 'WELKER' && pwd === WELKER_PASS) {
+        setSupervisorMode(true);
+        $('password-modal').style.display = 'none';
+        toast('Bem-vindo, Supervisor Welker!', 'success');
+        saveUser();
+        updateStats();
+        fetchAgendamentosAmanha();
+    } else if (state.user === 'ALANA' && pwd === ALANA_PASS) {
+        setSupervisorMode(false);
+        $('password-modal').style.display = 'none';
+        toast('Bem-vinda, Alana!', 'success');
+        saveUser();
+        updateStats();
     } else {
         toast('Senha incorreta', 'error');
+        $('supervisor-password').value = '';
     }
 }
 
@@ -796,6 +933,13 @@ function setSupervisorMode(active) {
         $('supervisor-badge').classList.remove('hidden');
         $('nav-admin').classList.remove('hidden');
         $('nav-admin').style.display = 'flex';
+        
+        // Atualiza texto do badge conforme usuário
+        if (state.user === 'WELKER') {
+            $('supervisor-badge').innerHTML = '<i class="fas fa-user-shield"></i> Modo Supervisor';
+        } else {
+            $('supervisor-badge').innerHTML = '<i class="fas fa-crown"></i> Modo Gerente';
+        }
     } else {
         $('supervisor-badge').classList.add('hidden');
         $('nav-admin').classList.add('hidden');
@@ -1026,7 +1170,7 @@ async function fetchAppointmentsHoje() {
     }
     
     const list = $('lista-hoje');
-    list.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-indigo-500 loading-spinner"></i></div>';
+    list.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-indigo-500"></i></div>';
     
     const todayStr = formatDateAPI(new Date());
     
@@ -1052,9 +1196,18 @@ async function fetchAppointmentsHoje() {
 
 function updateStatsHoje(data) {
     $('count-total').textContent = data.length;
-    $('count-confirmada').textContent = data.filter(a => a.situacao === 'CONFIRMADA').length;
+    // Confirmadas = CONFIRMADA + JÁ VEIO + MATRICULA
+    $('count-confirmada').textContent = data.filter(a => 
+        a.situacao === 'CONFIRMADA' || 
+        a.situacao === 'JÁ VEIO' || 
+        a.situacao === 'MATRICULA'
+    ).length;
     $('count-pendente').textContent = data.filter(a => !a.situacao || a.situacao === '').length;
-    $('count-cancelada').textContent = data.filter(a => a.situacao === 'CANCELADA').length;
+    // Canceladas = CANCELADA + SI SEM INTERESSE
+    $('count-cancelada').textContent = data.filter(a => 
+        a.situacao === 'CANCELADA' || 
+        a.situacao === 'SI SEM INTERESSE'
+    ).length;
     $('count-puxada').textContent = data.filter(a => a.situacao === 'PUXADA').length;
     $('count-reagendar').textContent = data.filter(a => a.situacao === 'REAGENDAR').length;
 }
@@ -1062,7 +1215,6 @@ function updateStatsHoje(data) {
 function filterAndRenderHoje() {
     let filtered = [...state.appointmentsHoje];
     
-    // Filter by status
     if (state.filters.status) {
         if (state.filters.status === 'PENDENTE') {
             filtered = filtered.filter(a => !a.situacao || a.situacao === '');
@@ -1071,7 +1223,6 @@ function filterAndRenderHoje() {
         }
     }
     
-    // Filter by search
     if (state.filters.search) {
         filtered = filtered.filter(a => {
             const searchIn = `${a.jovem} ${a.responsavel} ${a.telefone_resp} ${a.telefone_jovem}`.toLowerCase();
@@ -1140,7 +1291,7 @@ function renderListHoje(data) {
                 div.classList.add('bg-green-50');
                 setTimeout(() => {
                     div.classList.remove('bg-green-50');
-                    fetchAppointmentsHoje(); // Refresh to update stats
+                    fetchAppointmentsHoje();
                 }, 1000);
             } catch {
                 toast('Erro ao atualizar', 'error');
@@ -1154,7 +1305,7 @@ function renderListHoje(data) {
 
 async function fetchConsulta(date) {
     const list = $('lista-consulta');
-    list.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-indigo-500 loading-spinner"></i></div>';
+    list.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-indigo-500"></i></div>';
     
     const dateStr = formatDateAPI(date);
     const dateBR = formatDateBR(date);
@@ -1238,8 +1389,10 @@ function renderConsulta(data, isEditable) {
                 <select class="select-status mt-2 w-full text-xs border rounded p-1 bg-white" data-row="${item.rowId}" data-sheet="${item.sheetName}">
                     <option value="">PENDENTE</option>
                     <option value="CONFIRMADA" ${item.situacao === 'CONFIRMADA' ? 'selected' : ''}>CONFIRMADA</option>
+                    <option value="JÁ VEIO" ${item.situacao === 'JÁ VEIO' ? 'selected' : ''}>JÁ VEIO</option>
                     <option value="CANCELADA" ${item.situacao === 'CANCELADA' ? 'selected' : ''}>CANCELADA</option>
                     <option value="REAGENDAR" ${item.situacao === 'REAGENDAR' ? 'selected' : ''}>REAGENDAR</option>
+                    <option value="PUXADA" ${item.situacao === 'PUXADA' ? 'selected' : ''}>PUXADA</option>
                     <option value="SI SEM INTERESSE" ${item.situacao === 'SI SEM INTERESSE' ? 'selected' : ''}>SEM INTERESSE</option>
                     <option value="MATRICULA" ${item.situacao === 'MATRICULA' ? 'selected' : ''}>MATRÍCULA</option>
                     <option value="DESCLASSIFICADA" ${item.situacao === 'DESCLASSIFICADA' ? 'selected' : ''}>DESCLASSIFICADA</option>
@@ -1334,9 +1487,7 @@ function saveLocalData() {
             recipients: state.recipients,
             timestamp: Date.now()
         }));
-    } catch (e) {
-        console.error('Error saving local data:', e);
-    }
+    } catch (e) {}
 }
 
 function loadLocalData() {
@@ -1349,9 +1500,7 @@ function loadLocalData() {
                 renderRecipients();
             }
         }
-    } catch (e) {
-        console.error('Error loading local data:', e);
-    }
+    } catch (e) {}
 }
 
 function maskDate(el) {
@@ -1380,7 +1529,7 @@ async function fetchAgendamentosAmanha() {
     if (tomorrow.getDay() === 0) tomorrow.setDate(tomorrow.getDate() + 1);
     
     const dateStr = formatDateAPI(tomorrow);
-    $('stat-ag-amanha').innerHTML = '<i class="fas fa-spinner fa-spin loading-spinner"></i>';
+    $('stat-ag-amanha').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     
     try {
         let total = 0;
@@ -1400,12 +1549,10 @@ function updateStats() {
     const total = state.recipients.length;
     const completos = state.recipients.filter(r => r.jovem && r.data && r.horario && r.telefone_resp).length;
     const puxadas = state.recipients.filter(r => r.tipo === 'PUXADA').length;
-    const amanha = state.recipients.filter(r => r.tipo === 'AMANHÃ').length;
     
     $('stat-total').textContent = total;
     $('stat-completo').textContent = completos;
     $('stat-puxada').textContent = puxadas;
-    $('stat-amanha').textContent = amanha;
 }
 
 function loadMetas() {
@@ -1420,9 +1567,7 @@ function loadMetas() {
                 taxa: Number(metas.taxa || 0)
             };
         }
-    } catch (e) {
-        console.error('Error loading metas:', e);
-    }
+    } catch (e) {}
 }
 
 function saveMetas() {
@@ -1452,22 +1597,6 @@ function exportAdminData() {
     el.click();
     el.remove();
     toast('Relatório exportado!', 'success');
-}
-
-function exportHojeData() {
-    if (state.appointmentsHoje.length === 0) {
-        toast('Sem dados para exportar', 'warning');
-        return;
-    }
-    
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state.appointmentsHoje, null, 2));
-    const el = document.createElement('a');
-    el.setAttribute('href', dataStr);
-    el.setAttribute('download', `agendamentos_hoje_${new Date().toISOString().split('T')[0]}.json`);
-    document.body.appendChild(el);
-    el.click();
-    el.remove();
-    toast('Dados exportados!', 'success');
 }
 
 function sendQuickMessage() {
@@ -1506,42 +1635,24 @@ function sendQuickMessage() {
     if (telClean.startsWith('5555')) telClean = telClean.substring(2);
     if (!telClean.startsWith('55')) telClean = '55' + telClean;
     
-    const msg = `*${diaSemana}, ${data}, às ${hora}*, ${jovem} e responsável devem comparecer à *${endereco}* ${local}, para o *Teste Vocacional e Cadastramento Gratuito* ao Mercado De Trabalho. Apresentem *RG, comprovante de residência* e procurem por *${assistNome}*. A presença de ambos é indispensável: o não comparecimento implica no bloqueio de futuras oportunidades no projeto.\n\n${referencia}`;
+    const msg = `*${diaSemana}, ${data}, às ${hora}*, ${jovem} e responsável devem comparecer à *${endereco}*, para o *Teste Vocacional e Cadastramento Gratuito* ao Mercado De Trabalho. Apresentem *RG, comprovante de residência* e procurem por *${assistNome}*. A presença de ambos é indispensável: o não comparecimento implica no bloqueio de futuras oportunidades no projeto.\n\n${referencia}`;
     
     window.open(`https://wa.me/${telClean}?text=${encodeURIComponent(msg)}`, '_blank');
     $('quick-modal').style.display = 'none';
     toast('Abrindo WhatsApp...', 'success');
 }
 
-async function loadAdminData(period, customStart = null, customEnd = null) {
+async function loadAdminData(period) {
     toast('Carregando dados administrativos...', 'info');
     
-    let startDate, endDate;
     const today = new Date();
-    
-    if (period === 'custom' && customStart && customEnd) {
-        startDate = new Date(customStart + 'T00:00:00');
-        endDate = new Date(customEnd + 'T23:59:59');
-    } else if (period === 'hoje') {
-        startDate = new Date(today);
-        endDate = new Date(today);
-    } else if (period === 'semana') {
-        const firstDay = today.getDate() - today.getDay();
-        startDate = new Date(today.setDate(firstDay));
-        endDate = new Date();
-    } else if (period === 'mes') {
-        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-        endDate = new Date();
-    }
+    const todayStr = formatDateAPI(today);
     
     try {
         let allData = [];
         
-        // Buscar dados de todos os operadores
         for (const op of OPERADORES) {
-            // Simular busca por período (ajuste conforme sua API)
-            const dateStr = formatDateAPI(startDate);
-            const resp = await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${op.id}&date=${dateStr}`);
+            const resp = await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${op.id}&date=${todayStr}`);
             const json = await resp.json();
             
             if (json.status === 'success' && json.data) {
@@ -1551,19 +1662,16 @@ async function loadAdminData(period, customStart = null, customEnd = null) {
         
         state.adminData = allData;
         
-        // Calcular estatísticas
         const total = allData.length;
         const confirmados = allData.filter(a => ['CONFIRMADA', 'JÁ VEIO', 'MATRICULA'].includes(a.situacao)).length;
         const taxa = total > 0 ? Math.round((confirmados / total) * 100) : 0;
         const operadoresAtivos = new Set(allData.map(a => a.operador)).size;
         
-        // Atualizar cards
         $('admin-total').textContent = total;
         $('admin-confirmados').textContent = confirmados;
         $('admin-taxa').textContent = `${taxa}%`;
         $('admin-equipe').textContent = operadoresAtivos;
         
-        // Gerar ranking
         const rankingMap = {};
         allData.forEach(item => {
             if (!rankingMap[item.operador]) {
@@ -1588,7 +1696,6 @@ async function loadAdminData(period, customStart = null, customEnd = null) {
             }))
             .sort((a, b) => b.confirmados - a.confirmados);
         
-        // Renderizar ranking
         const rankingHTML = ranking.map((item, idx) => {
             const medalha = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}º`;
             return `
@@ -1610,7 +1717,6 @@ async function loadAdminData(period, customStart = null, customEnd = null) {
         
         $('admin-ranking').innerHTML = rankingHTML || '<p class="text-slate-400 text-center py-4">Sem dados</p>';
         
-        // Gráfico comparativo
         const ctx = $('admin-chart')?.getContext('2d');
         if (ctx) {
             if (state.charts.admin) state.charts.admin.destroy();
@@ -1640,7 +1746,6 @@ async function loadAdminData(period, customStart = null, customEnd = null) {
             });
         }
         
-        // Tabela detalhada
         const tableHTML = allData.slice(0, 50).map(item => `
             <tr class="hover:bg-slate-50">
                 <td class="px-4 py-2 text-xs">${item.data || 'N/D'}</td>
@@ -1657,7 +1762,6 @@ async function loadAdminData(period, customStart = null, customEnd = null) {
         toast('Dados carregados com sucesso!', 'success');
         
     } catch (error) {
-        console.error('Erro ao carregar dados admin:', error);
         toast('Erro ao carregar dados', 'error');
         $('admin-total').textContent = '0';
         $('admin-confirmados').textContent = '0';

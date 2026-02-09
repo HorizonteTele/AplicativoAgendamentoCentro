@@ -3,21 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agendador PRO 3.0 - Unidade Centro</title>
+    <title>Agendador PRO 3.1 - Unidade Centro</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary: #6366f1;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-        }
+        :root { --primary: #6366f1; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; }
         body { font-family: 'Inter', sans-serif; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
         .fade-in { animation: fadeIn 0.4s ease-out; }
         .slide-in { animation: slideIn 0.3s ease-out; }
         .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
@@ -34,134 +30,181 @@
         .filter-chip.active { border-color: currentColor; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
         .appointment-card { transition: all 0.3s ease; }
         .appointment-card:hover { transform: translateX(4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .collapsible-content.expanded { max-height: 2000px; }
+        .modal-overlay { display: none; }
+        .modal-overlay.active { display: flex; }
         body.dark-mode { background: #0f172a; color: #e2e8f0; }
         body.dark-mode .bg-white { background: #1e293b !important; border-color: #334155 !important; }
         body.dark-mode .bg-slate-50 { background: #0b1220 !important; }
         body.dark-mode .text-slate-800, body.dark-mode .text-slate-700 { color: #e2e8f0 !important; }
         body.dark-mode .text-slate-600, body.dark-mode .text-slate-500, body.dark-mode .text-slate-400 { color: #cbd5e1 !important; }
-        body.dark-mode .stat-card { background: #1e293b !important; }
+        body.dark-mode .stat-card { background: #1e293b !important; border-color: #334155 !important; }
         body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background: #0f172a !important; color: #e2e8f0 !important; border-color: #334155 !important; }
-        .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
-        .collapsible-content.expanded { max-height: 2000px; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800">
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Password Modal -->
-    <div id="password-modal" class="fixed inset-0 bg-black/80 z-50" style="display: none;">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
-                <div class="text-center mb-6">
-                    <div class="w-16 h-16 bg-gradient-to-br from-purple-600 to-purple-700 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <i class="fas fa-crown text-2xl text-white"></i>
-                    </div>
-                    <h3 class="text-2xl font-black text-slate-800">Acesso Gerente</h3>
-                    <p class="text-slate-500">Digite a senha de gerente para acessar o painel administrativo</p>
+    <div id="password-modal" class="modal-overlay fixed inset-0 bg-black/80 z-50 items-center justify-center">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl m-4">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-gradient-to-br from-purple-600 to-purple-700 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <i id="auth-icon" class="fas fa-crown text-2xl text-white"></i>
                 </div>
-                <input type="password" id="supervisor-password" class="w-full p-4 text-center text-xl font-bold border-2 border-slate-200 rounded-xl focus:border-purple-600 focus:ring-0 outline-none mb-4" placeholder="Senha...">
-                <div class="flex gap-3">
-                    <button id="btn-cancel-auth" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300">Cancelar</button>
-                    <button id="btn-confirm-auth" class="flex-1 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold rounded-xl hover:from-purple-700 hover:to-purple-800 shadow-lg">Entrar</button>
-                </div>
+                <h3 id="auth-title" class="text-2xl font-black text-slate-800">Acesso Gerente</h3>
+                <p id="auth-desc" class="text-slate-500">Digite a senha para acessar</p>
+            </div>
+            <input type="password" id="supervisor-password" class="w-full p-4 text-center text-xl font-bold border-2 border-slate-200 rounded-xl focus:border-purple-600 focus:ring-0 outline-none mb-4" placeholder="Senha...">
+            <div class="flex gap-3">
+                <button id="btn-cancel-auth" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300">Cancelar</button>
+                <button id="btn-confirm-auth" class="flex-1 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold rounded-xl hover:from-purple-700 hover:to-purple-800 shadow-lg">Entrar</button>
             </div>
         </div>
     </div>
 
     <!-- Gerar Mensagens Modal -->
-    <div id="mensagens-modal" class="fixed inset-0 bg-black/80 z-50" style="display: none;">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
-                <h3 class="text-2xl font-black text-slate-800 mb-6 flex items-center gap-2">
-                    <i class="fas fa-comments text-indigo-600"></i> Gerar Mensagens
-                </h3>
-                <p class="text-slate-600 mb-4">Escolha o tipo de mensagem que deseja gerar:</p>
-                <div class="space-y-3">
-                    <button id="btn-gen-rapida" class="w-full py-4 bg-gradient-to-r from-slate-700 to-slate-800 text-white font-bold rounded-xl hover:from-slate-800 hover:to-slate-900 shadow-lg flex items-center justify-center gap-2">
-                        <i class="fas fa-paper-plane"></i> Mensagem Rápida
-                    </button>
-                    <button id="btn-gen-projeto" class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg flex items-center justify-center gap-2">
-                        <i class="fas fa-users"></i> Projeto Conecta Jovem
-                    </button>
-                    <button id="btn-gen-instituto" class="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold rounded-xl hover:from-purple-700 hover:to-purple-800 shadow-lg flex items-center justify-center gap-2">
-                        <i class="fas fa-university"></i> Instituto Conecta Jovem
-                    </button>
-                </div>
-                <button id="btn-close-mensagens" class="w-full mt-4 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200">Fechar</button>
+    <div id="mensagens-modal" class="modal-overlay fixed inset-0 bg-black/80 z-50 items-center justify-center">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl m-4">
+            <h3 class="text-2xl font-black text-slate-800 mb-6 flex items-center gap-2">
+                <i class="fas fa-comments text-indigo-600"></i> Gerar Mensagens
+            </h3>
+            <p class="text-slate-600 mb-4">Escolha o tipo de mensagem:</p>
+            <div class="space-y-3">
+                <button id="btn-gen-rapida" class="w-full py-4 bg-gradient-to-r from-slate-700 to-slate-800 text-white font-bold rounded-xl hover:from-slate-800 hover:to-slate-900 shadow-lg flex items-center justify-center gap-2">
+                    <i class="fas fa-paper-plane"></i> Mensagem Rápida
+                </button>
+                <button id="btn-gen-projeto" class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg flex items-center justify-center gap-2">
+                    <i class="fas fa-users"></i> Projeto Conecta Jovem
+                </button>
+                <button id="btn-gen-instituto" class="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold rounded-xl hover:from-purple-700 hover:to-purple-800 shadow-lg flex items-center justify-center gap-2">
+                    <i class="fas fa-university"></i> Instituto Conecta Jovem
+                </button>
             </div>
+            <button id="btn-close-mensagens" class="w-full mt-4 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200">Fechar</button>
         </div>
     </div>
 
     <!-- Quick Message Modal -->
-    <div id="quick-modal" class="fixed inset-0 bg-black/80 z-50" style="display: none;">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl">
-                <h3 class="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
-                    <i class="fas fa-paper-plane text-blue-500"></i> Mensagem Rápida
-                </h3>
-                <div class="space-y-3">
-                    <input type="text" id="quick-jovem" placeholder="Nome do Jovem" class="w-full p-3 border-2 border-slate-200 rounded-xl">
-                    <div class="grid grid-cols-2 gap-3">
-                        <input type="text" id="quick-data" placeholder="Data (DD/MM/AAAA)" class="w-full p-3 border-2 border-slate-200 rounded-xl date-mask">
-                        <input type="text" id="quick-horario" placeholder="Hora (HH:MM)" class="w-full p-3 border-2 border-slate-200 rounded-xl time-mask">
-                    </div>
-                    <select id="quick-local" class="w-full p-3 border-2 border-slate-200 rounded-xl bg-white">
-                        <option value="Centro" selected>Centro</option>
-                        <option value="Eldorado">Eldorado</option>
-                    </select>
-                    <select id="quick-assistente" class="w-full p-3 border-2 border-slate-200 rounded-xl bg-white">
-                        <option value="ALANA">ALANA</option>
-                        <option value="GABRIELA">GABRIELA</option>
-                        <option value="IGOR">IGOR</option>
-                        <option value="NAIARA">NAIARA</option>
-                        <option value="NOEMY">NOEMY</option>
-                        <option value="RAIANE">RAIANE</option>
-                        <option value="SHEILA">SHEILA</option>
-                        <option value="THAIS">THAIS</option>
-                        <option value="TREINAMENTO">TREINAMENTO</option>
-                        <option value="WELKER">WELKER</option>
-                    </select>
-                    <input type="text" id="quick-telefone" placeholder="Telefone (com DDD)" class="w-full p-3 border-2 border-slate-200 rounded-xl phone-mask">
+    <div id="quick-modal" class="modal-overlay fixed inset-0 bg-black/80 z-50 items-center justify-center">
+        <div class="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl m-4">
+            <h3 class="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
+                <i class="fas fa-paper-plane text-blue-500"></i> Mensagem Rápida
+            </h3>
+            <div class="space-y-3">
+                <input type="text" id="quick-jovem" placeholder="Nome do Jovem" class="w-full p-3 border-2 border-slate-200 rounded-xl">
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="text" id="quick-data" placeholder="Data (DD/MM/AAAA)" class="w-full p-3 border-2 border-slate-200 rounded-xl date-mask">
+                    <input type="text" id="quick-horario" placeholder="Hora (HH:MM)" class="w-full p-3 border-2 border-slate-200 rounded-xl time-mask">
                 </div>
-                <div class="flex gap-3 mt-6">
-                    <button id="btn-cancel-quick" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300">Fechar</button>
-                    <button id="btn-send-quick" class="flex-1 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold rounded-xl hover:from-green-700 hover:to-green-800 shadow-lg">
-                        <i class="fab fa-whatsapp"></i> Enviar
-                    </button>
-                </div>
+                <select id="quick-local" class="w-full p-3 border-2 border-slate-200 rounded-xl bg-white">
+                    <option value="Centro" selected>Centro</option>
+                    <option value="Eldorado">Eldorado</option>
+                </select>
+                <select id="quick-assistente" class="w-full p-3 border-2 border-slate-200 rounded-xl bg-white">
+                    <option value="ALANA">ALANA</option>
+                    <option value="BARBÁRA">BARBÁRA</option>
+                    <option value="GABRIELA">GABRIELA</option>
+                    <option value="IGOR">IGOR</option>
+                    <option value="NAIARA">NAIARA</option>
+                    <option value="NOEMY">NOEMY</option>
+                    <option value="RAIANE">RAIANE</option>
+                    <option value="SHEILA">SHEILA</option>
+                    <option value="THAIS">THAIS</option>
+                    <option value="TREINAMENTO">TREINAMENTO</option>
+                    <option value="WELKER">WELKER</option>
+                </select>
+                <input type="text" id="quick-telefone" placeholder="Telefone (com DDD)" class="w-full p-3 border-2 border-slate-200 rounded-xl phone-mask">
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button id="btn-cancel-quick" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300">Fechar</button>
+                <button id="btn-send-quick" class="flex-1 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold rounded-xl hover:from-green-700 hover:to-green-800 shadow-lg">
+                    <i class="fab fa-whatsapp"></i> Enviar
+                </button>
             </div>
         </div>
     </div>
 
     <!-- Metas Modal -->
-    <div id="metas-modal" class="fixed inset-0 bg-black/80 z-50" style="display: none;">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-white rounded-2xl p-8 max-w-lg w-full shadow-2xl">
-                <h3 class="text-2xl font-black text-slate-800 mb-6 flex items-center gap-2">
-                    <i class="fas fa-bullseye text-red-500"></i> Definir Metas
-                </h3>
-                <div class="space-y-4">
+    <div id="metas-modal" class="modal-overlay fixed inset-0 bg-black/80 z-50 items-center justify-center">
+        <div class="bg-white rounded-2xl p-8 max-w-lg w-full shadow-2xl m-4">
+            <h3 class="text-2xl font-black text-slate-800 mb-6 flex items-center gap-2">
+                <i class="fas fa-bullseye text-red-500"></i> Definir Metas
+            </h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block font-bold text-sm text-slate-600 mb-1">Meta Diária (por operador)</label>
+                    <input type="number" id="meta-diaria" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold">
+                </div>
+                <div>
+                    <label class="block font-bold text-sm text-slate-600 mb-1">Meta Semanal (por operador)</label>
+                    <input type="number" id="meta-semanal" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold">
+                </div>
+                <div>
+                    <label class="block font-bold text-sm text-slate-600 mb-1">Meta Mensal (por operador)</label>
+                    <input type="number" id="meta-mensal" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold">
+                </div>
+                <div>
+                    <label class="block font-bold text-sm text-slate-600 mb-1">Taxa Mínima (%)</label>
+                    <input type="number" id="meta-taxa" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold">
+                </div>
+            </div>
+            <div class="flex gap-3 mt-8">
+                <button id="btn-cancel-metas" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300">Cancelar</button>
+                <button id="btn-save-metas" class="flex-1 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold rounded-xl hover:from-green-700 hover:to-green-800 shadow-lg">Salvar Metas</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal-overlay fixed inset-0 bg-black/80 z-50 items-center justify-center">
+        <div class="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl m-4 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
+                <i class="fas fa-edit text-indigo-600"></i> Editar Agendamento
+            </h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nome do Jovem</label>
+                    <input type="text" id="edit-jovem" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Responsável</label>
+                    <input type="text" id="edit-responsavel" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block font-bold text-sm text-slate-600 mb-1">Meta Diária (por operador)</label>
-                        <input type="number" id="meta-diaria" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Data</label>
+                        <input type="text" id="edit-data" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold date-mask">
                     </div>
                     <div>
-                        <label class="block font-bold text-sm text-slate-600 mb-1">Meta Semanal (por operador)</label>
-                        <input type="number" id="meta-semanal" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-sm text-slate-600 mb-1">Meta Mensal (por operador)</label>
-                        <input type="number" id="meta-mensal" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-sm text-slate-600 mb-1">Taxa Mínima (%)</label>
-                        <input type="number" id="meta-taxa" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Horário</label>
+                        <input type="text" id="edit-horario" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold time-mask">
                     </div>
                 </div>
-                <div class="flex gap-3 mt-8">
-                    <button id="btn-cancel-metas" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300">Cancelar</button>
-                    <button id="btn-save-metas" class="flex-1 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold rounded-xl hover:from-green-700 hover:to-green-800 shadow-lg">Salvar Metas</button>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tel. Responsável</label>
+                        <input type="text" id="edit-tel-resp" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold phone-mask">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tel. Jovem</label>
+                        <input type="text" id="edit-tel-jovem" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold phone-mask">
+                    </div>
                 </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Local</label>
+                    <select id="edit-local" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold bg-white">
+                        <option value="Centro">Centro</option>
+                        <option value="Eldorado">Eldorado</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button id="btn-cancel-edit" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300">Cancelar</button>
+                <button id="btn-save-edit" class="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-bold rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-lg">
+                    <i class="fas fa-save"></i> Salvar
+                </button>
             </div>
         </div>
     </div>
@@ -183,7 +226,7 @@
                     <i class="fas fa-moon"></i>
                 </button>
                 <div class="px-4 py-2 bg-slate-100 rounded-full font-mono text-sm font-bold text-slate-600">
-                    <i class="far fa-clock"></i> <span id="live-clock">00:00:00</span>
+                    <i class="far fa-clock"></i> <span id="live-clock">--:--:--</span>
                 </div>
                 <div id="supervisor-badge" class="hidden px-4 py-2 bg-purple-100 text-purple-700 rounded-full font-bold text-sm border border-purple-200">
                     <i class="fas fa-crown"></i> Modo Gerente
@@ -202,13 +245,13 @@
             <button class="nav-btn flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2" data-target="dashboard">
                 <i class="fas fa-chart-pie"></i> Dashboard
             </button>
-            <button id="nav-admin" class="nav-btn hidden py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2" data-target="admin">
+            <button id="nav-admin" class="nav-btn py-3 px-4 rounded-xl font-bold text-sm transition-all items-center justify-center gap-2" data-target="admin" style="display:none;">
                 <i class="fas fa-crown"></i> Admin
             </button>
         </nav>
 
         <main>
-            <!-- Agendar Page -->
+            <!-- ==================== AGENDAR PAGE ==================== -->
             <section id="page-agendar" class="page-content fade-in space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -217,6 +260,7 @@
                             <select id="select-assistente" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold text-slate-700 focus:border-indigo-500 outline-none">
                                 <option value="">-- Selecione --</option>
                                 <option value="ALANA">ALANA</option>
+                                <option value="BARBÁRA">BARBÁRA</option>
                                 <option value="GABRIELA">GABRIELA</option>
                                 <option value="IGOR">IGOR</option>
                                 <option value="NAIARA">NAIARA</option>
@@ -238,12 +282,10 @@
                     </div>
                 </div>
 
-                <!-- Stats (Collapsible) -->
+                <!-- Stats Collapsible -->
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
                     <button id="btn-toggle-stats" class="w-full flex items-center justify-between text-left font-bold text-slate-700 hover:text-indigo-600 transition-colors">
-                        <span class="flex items-center gap-2">
-                            <i class="fas fa-chart-bar"></i> Estatísticas Rápidas
-                        </span>
+                        <span class="flex items-center gap-2"><i class="fas fa-chart-bar"></i> Estatísticas Rápidas</span>
                         <i class="fas fa-chevron-down transition-transform" id="stats-icon"></i>
                     </button>
                     <div id="stats-container" class="collapsible-content mt-4">
@@ -268,6 +310,7 @@
                     </div>
                 </div>
 
+                <!-- Destinatários -->
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                         <h2 class="text-xl font-bold text-slate-700">Destinatários</h2>
@@ -303,21 +346,16 @@
                 </div>
             </section>
 
-            <!-- Meus Agendamentos Page (Unificado: Gerenciar + Consulta) -->
+            <!-- ==================== MEUS AGENDAMENTOS PAGE ==================== -->
             <section id="page-agendamentos" class="page-content hidden fade-in space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <!-- Toggle: Hoje / Outras Datas -->
                     <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
                         <h2 class="text-xl font-bold text-slate-700 flex items-center gap-2">
                             <i class="fas fa-list text-indigo-600"></i> Meus Agendamentos
                         </h2>
                         <div class="flex gap-2">
-                            <button class="view-toggle px-4 py-2 rounded-lg font-bold text-sm bg-indigo-600 text-white" data-view="hoje">
-                                Hoje
-                            </button>
-                            <button class="view-toggle px-4 py-2 rounded-lg font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200" data-view="outras">
-                                Outras Datas
-                            </button>
+                            <button class="view-toggle px-4 py-2 rounded-lg font-bold text-sm bg-indigo-600 text-white" data-view="hoje">Hoje</button>
+                            <button class="view-toggle px-4 py-2 rounded-lg font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200" data-view="outras">Outras Datas</button>
                         </div>
                     </div>
 
@@ -337,38 +375,35 @@
                                     <option value="MATRICULA">📝 Matrícula</option>
                                 </select>
                             </div>
-                            
-                            <!-- Quick Stats -->
                             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                                <div class="filter-chip bg-slate-100 text-slate-700" data-status="">
+                                <div class="filter-chip bg-slate-100 text-slate-700 text-center" data-status="">
                                     <div class="text-lg font-black" id="count-total">0</div>
                                     <div class="text-xs">Total</div>
                                 </div>
-                                <div class="filter-chip bg-green-100 text-green-700" data-status="CONFIRMADA">
+                                <div class="filter-chip bg-green-100 text-green-700 text-center" data-status="CONFIRMADA">
                                     <div class="text-lg font-black" id="count-confirmada">0</div>
                                     <div class="text-xs">Confirmadas</div>
                                 </div>
-                                <div class="filter-chip bg-yellow-100 text-yellow-700" data-status="PENDENTE">
+                                <div class="filter-chip bg-yellow-100 text-yellow-700 text-center" data-status="PENDENTE">
                                     <div class="text-lg font-black" id="count-pendente">0</div>
                                     <div class="text-xs">Pendentes</div>
                                 </div>
-                                <div class="filter-chip bg-red-100 text-red-700" data-status="CANCELADA">
+                                <div class="filter-chip bg-red-100 text-red-700 text-center" data-status="CANCELADA">
                                     <div class="text-lg font-black" id="count-cancelada">0</div>
                                     <div class="text-xs">Canceladas</div>
                                 </div>
-                                <div class="filter-chip bg-orange-100 text-orange-700" data-status="PUXADA">
+                                <div class="filter-chip bg-orange-100 text-orange-700 text-center" data-status="PUXADA">
                                     <div class="text-lg font-black" id="count-puxada">0</div>
                                     <div class="text-xs">Puxadas</div>
                                 </div>
-                                <div class="filter-chip bg-blue-100 text-blue-700" data-status="REAGENDAR">
+                                <div class="filter-chip bg-blue-100 text-blue-700 text-center" data-status="REAGENDAR">
                                     <div class="text-lg font-black" id="count-reagendar">0</div>
                                     <div class="text-xs">Reagendar</div>
                                 </div>
                             </div>
                         </div>
-
                         <div id="lista-hoje" class="space-y-3">
-                            <p class="text-center text-slate-400 py-8">Carregando...</p>
+                            <p class="text-center text-slate-400 py-8">Selecione um usuário e clique em "Meus Agendamentos"</p>
                         </div>
                     </div>
 
@@ -378,7 +413,7 @@
                             <button class="date-preset px-4 py-2 bg-slate-100 rounded-lg font-bold text-slate-600 hover:bg-slate-200" data-days="-1">Ontem</button>
                             <button class="date-preset px-4 py-2 bg-indigo-100 rounded-lg font-bold text-indigo-600" data-days="0">Hoje</button>
                             <button class="date-preset px-4 py-2 bg-slate-100 rounded-lg font-bold text-slate-600 hover:bg-slate-200" data-days="1">Amanhã</button>
-                            <button class="date-preset px-4 py-2 bg-slate-100 rounded-lg font-bold text-slate-600 hover:bg-slate-200" data-days="7">Próxima Semana</button>
+                            <button class="date-preset px-4 py-2 bg-slate-100 rounded-lg font-bold text-slate-600 hover:bg-slate-200" data-days="7">Próx. Semana</button>
                             <div class="flex items-center gap-2 ml-auto">
                                 <input type="date" id="consulta-date" class="p-2 border-2 border-slate-200 rounded-lg font-bold text-slate-700">
                                 <button id="btn-consulta-go" class="p-2 px-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-800 font-bold">
@@ -386,7 +421,6 @@
                                 </button>
                             </div>
                         </div>
-
                         <div class="flex justify-between items-center mb-4 p-4 bg-gradient-to-r from-slate-50 to-indigo-50 rounded-xl border border-slate-200">
                             <div>
                                 <p class="text-xs font-bold text-slate-400 uppercase">Data Selecionada</p>
@@ -394,11 +428,9 @@
                             </div>
                             <div id="consulta-status-badge"></div>
                         </div>
-
                         <div class="mb-4">
                             <input type="text" id="search-consulta" placeholder="🔍 Buscar na consulta..." class="w-full p-3 border-2 border-slate-200 rounded-xl">
                         </div>
-
                         <div id="lista-consulta" class="space-y-3">
                             <p class="text-center text-slate-400 py-8">Selecione uma data para consultar</p>
                         </div>
@@ -406,22 +438,20 @@
                 </div>
             </section>
 
-            <!-- Dashboard Page -->
+            <!-- ==================== DASHBOARD PAGE ==================== -->
             <section id="page-dashboard" class="page-content hidden fade-in">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <h2 class="text-xl font-bold text-slate-700 mb-6 flex items-center gap-2">
                         <i class="fas fa-chart-pie text-indigo-600"></i> Dashboard Pessoal (Hoje)
                     </h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div>
-                            <canvas id="chart-dashboard"></canvas>
-                        </div>
+                        <div><canvas id="chart-dashboard"></canvas></div>
                         <div id="stats-dashboard" class="space-y-4"></div>
                     </div>
                 </div>
             </section>
 
-            <!-- Admin Page -->
+            <!-- ==================== ADMIN PAGE ==================== -->
             <section id="page-admin" class="page-content hidden fade-in space-y-6">
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex flex-wrap gap-2 items-center justify-between mb-4">
@@ -435,9 +465,7 @@
                             <button id="btn-export" class="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-bold hover:bg-green-200"><i class="fas fa-download"></i> Exportar</button>
                         </div>
                     </div>
-
-                    <!-- Admin Tabs -->
-                    <div class="flex gap-2 mb-6">
+                    <div class="flex gap-2">
                         <button class="admin-tab px-4 py-2 rounded-lg font-bold text-sm bg-indigo-600 text-white" data-tab="visao">Visão Geral</button>
                         <button class="admin-tab px-4 py-2 rounded-lg font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200" data-tab="relatorios">Relatórios</button>
                     </div>
@@ -463,28 +491,22 @@
                             <div class="text-xs font-bold text-slate-400 uppercase">Ativos</div>
                         </div>
                     </div>
-
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                         <h3 class="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2">
                             <i class="fas fa-trophy text-amber-500"></i> Ranking do Período
                         </h3>
-                        <div id="admin-ranking" class="space-y-3 max-h-[400px] overflow-y-auto"></div>
+                        <div id="admin-ranking" class="space-y-3 max-h-[500px] overflow-y-auto"></div>
                     </div>
                 </div>
 
                 <!-- Tab: Relatórios -->
                 <div id="admin-tab-relatorios" class="hidden space-y-6">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <h3 class="text-lg font-bold text-slate-700 mb-4">
-                            <i class="fas fa-chart-bar text-indigo-500"></i> Comparativo
-                        </h3>
+                        <h3 class="text-lg font-bold text-slate-700 mb-4"><i class="fas fa-chart-bar text-indigo-500"></i> Comparativo</h3>
                         <canvas id="admin-chart"></canvas>
                     </div>
-
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <h3 class="text-lg font-bold text-slate-700 mb-4">
-                            <i class="fas fa-table text-indigo-500"></i> Detalhamento Completo
-                        </h3>
+                        <h3 class="text-lg font-bold text-slate-700 mb-4"><i class="fas fa-table text-indigo-500"></i> Detalhamento Completo</h3>
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm text-left">
                                 <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b">
@@ -505,12 +527,15 @@
     </div>
 
 <script>
+// ==================== CONFIGURAÇÕES ====================
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyjKPgtDS1mRK0aNsbGEjv1m93JCmcaHqqfHoE6b3aIJCJ4T52X0VUDa7ztuUnq_1pG/exec';
 const SUPERVISOR_PASS = 'horizonte123';
 const WELKER_PASS = 'vilavelha';
 const ALANA_PASS = 'Alana1234@';
+
 const OPERADORES = [
     { id: 'ALANA', nome: 'Amanda Rodrigues', cor: '#3b82f6' },
+    { id: 'BARBÁRA', nome: 'Barbára', cor: '#f472b6' },
     { id: 'GABRIELA', nome: 'Sophia Martins', cor: '#10b981' },
     { id: 'IGOR', nome: 'Igor Araujo da Silva', cor: '#14b8a6' },
     { id: 'NAIARA', nome: 'Naiara Oliveira', cor: '#8b5cf6' },
@@ -522,374 +547,322 @@ const OPERADORES = [
     { id: 'WELKER', nome: 'Welker Supervisor', cor: '#a855f7' }
 ];
 
-let state = { 
-    user: '', 
-    isSupervisor: false, 
-    recipients: [], 
+// ==================== STATE ====================
+let state = {
+    user: '',
+    isSupervisor: false,
+    recipients: [],
     appointmentsHoje: [],
     appointmentsConsulta: [],
-    adminData: [], 
-    charts: {}, 
+    adminData: [],
+    charts: {},
     meta: { diaria: 0, semanal: 0, mensal: 0, taxa: 0 },
-    filters: { status: '', search: '' }
+    filters: { status: '', search: '' },
+    editingItem: null
 };
 
+// ==================== UTILS ====================
 const $ = (id) => document.getElementById(id);
-const formatDateBR = (date) => date.toLocaleDateString('pt-BR');
-const formatDateAPI = (date) => {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+const formatDateBR = (d) => d.toLocaleDateString('pt-BR');
+const formatDateAPI = (d) => {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 };
+const showModal = (id) => $(id).classList.add('active');
+const hideModal = (id) => $(id).classList.remove('active');
 
 const toast = (msg, type = 'info') => {
-    const icons = {
-        success: 'fa-check-circle',
-        error: 'fa-exclamation-circle',
-        warning: 'fa-exclamation-triangle',
-        info: 'fa-info-circle'
-    };
+    const icons = { success:'fa-check-circle', error:'fa-exclamation-circle', warning:'fa-exclamation-triangle', info:'fa-info-circle' };
     const el = document.createElement('div');
     el.className = `toast toast-${type}`;
     el.innerHTML = `<i class="fas ${icons[type]}"></i> <span>${msg}</span>`;
     $('toast-container').appendChild(el);
-    setTimeout(() => { 
-        el.style.opacity = '0'; 
-        setTimeout(() => el.remove(), 300); 
-    }, 3000);
+    setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 3500);
 };
 
-// Initialize
+// ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', () => {
-    loadSavedUser();
-    loadLocalData();
-    loadTheme();
-    loadMetas();
     updateClock();
     setInterval(updateClock, 1000);
-    setupEventListeners();
+    loadTheme();
+    loadMetas();
+    loadLocalData();
+    loadSavedUser();
+    setupAllEvents();
     switchTab('agendar');
 });
 
 function updateClock() {
-    $('live-clock').textContent = new Date().toLocaleTimeString('pt-BR');
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    $('live-clock').textContent = `${h}:${m}:${s}`;
 }
 
+// ==================== AUTH ====================
 function loadSavedUser() {
     try {
-        const savedUser = localStorage.getItem('agendadorCentroUser');
-        const savedIsSupervisor = localStorage.getItem('agendadorCentroIsSupervisor') === 'true';
-        const savedAuth = localStorage.getItem('agendadorCentroAuth') === 'true';
-        
-        if (savedUser) {
-            state.user = savedUser;
-            $('select-assistente').value = savedUser;
-            
-            if ((savedUser === 'RAIANE' || savedUser === 'WELKER') && savedIsSupervisor) {
+        const saved = localStorage.getItem('agCentroUser');
+        const savedSuper = localStorage.getItem('agCentroSuper') === 'true';
+        const savedAuth = localStorage.getItem('agCentroAuth') === 'true';
+        if (saved) {
+            state.user = saved;
+            $('select-assistente').value = saved;
+            if ((saved === 'RAIANE' || saved === 'WELKER') && savedSuper) {
                 state.isSupervisor = true;
-                setSupervisorMode(true);
+                applySupervisorMode(true);
             }
-            
-            if ((savedUser === 'ALANA' || savedUser === 'RAIANE' || savedUser === 'WELKER') && !savedAuth) {
+            if ((saved === 'ALANA' || saved === 'RAIANE' || saved === 'WELKER') && !savedAuth) {
                 state.user = '';
                 $('select-assistente').value = '';
-                localStorage.removeItem('agendadorCentroUser');
+                localStorage.removeItem('agCentroUser');
             }
-            
             updateStats();
         }
-    } catch (e) {}
+    } catch(e) {}
 }
 
 function saveUser() {
     try {
-        localStorage.setItem('agendadorCentroUser', state.user);
-        localStorage.setItem('agendadorCentroIsSupervisor', state.isSupervisor.toString());
-        localStorage.setItem('agendadorCentroAuth', 'true');
-    } catch (e) {}
+        localStorage.setItem('agCentroUser', state.user);
+        localStorage.setItem('agCentroSuper', state.isSupervisor.toString());
+        localStorage.setItem('agCentroAuth', 'true');
+    } catch(e) {}
 }
 
+function checkPassword() {
+    const pwd = $('supervisor-password').value;
+    if (state.user === 'RAIANE' && pwd === SUPERVISOR_PASS) {
+        state.isSupervisor = true;
+        applySupervisorMode(true);
+        hideModal('password-modal');
+        toast('Bem-vinda, Gerente Raiane! 👑', 'success');
+        saveUser(); updateStats(); fetchAgendamentosAmanha();
+    } else if (state.user === 'WELKER' && pwd === WELKER_PASS) {
+        state.isSupervisor = true;
+        applySupervisorMode(true);
+        hideModal('password-modal');
+        toast('Bem-vindo, Supervisor Welker! 🛡️', 'success');
+        saveUser(); updateStats(); fetchAgendamentosAmanha();
+    } else if (state.user === 'ALANA' && pwd === ALANA_PASS) {
+        state.isSupervisor = false;
+        applySupervisorMode(false);
+        hideModal('password-modal');
+        toast('Bem-vinda, Alana! ✨', 'success');
+        saveUser(); updateStats();
+    } else {
+        toast('Senha incorreta!', 'error');
+        $('supervisor-password').value = '';
+    }
+}
+
+function applySupervisorMode(active) {
+    state.isSupervisor = active;
+    if (active) {
+        $('supervisor-badge').classList.remove('hidden');
+        $('nav-admin').style.display = 'flex';
+        if (state.user === 'WELKER') {
+            $('supervisor-badge').innerHTML = '<i class="fas fa-user-shield"></i> Modo Supervisor';
+        } else {
+            $('supervisor-badge').innerHTML = '<i class="fas fa-crown"></i> Modo Gerente';
+        }
+    } else {
+        $('supervisor-badge').classList.add('hidden');
+        $('nav-admin').style.display = 'none';
+    }
+}
+
+// ==================== THEME ====================
 function loadTheme() {
-    const saved = localStorage.getItem('agendadorCentroTheme');
-    if (saved === 'dark') {
+    if (localStorage.getItem('agCentroTheme') === 'dark') {
         document.body.classList.add('dark-mode');
-        const icon = document.querySelector('#btn-toggle-dark i');
-        if (icon) icon.classList.replace('fa-moon', 'fa-sun');
+        const i = document.querySelector('#btn-toggle-dark i');
+        if (i) i.classList.replace('fa-moon', 'fa-sun');
     }
 }
 
 function toggleTheme() {
     document.body.classList.toggle('dark-mode');
-    const icon = document.querySelector('#btn-toggle-dark i');
-    if (icon) {
-        if (document.body.classList.contains('dark-mode')) {
-            icon.classList.replace('fa-moon', 'fa-sun');
-            localStorage.setItem('agendadorCentroTheme', 'dark');
-        } else {
-            icon.classList.replace('fa-sun', 'fa-moon');
-            localStorage.setItem('agendadorCentroTheme', 'light');
-        }
+    const i = document.querySelector('#btn-toggle-dark i');
+    if (document.body.classList.contains('dark-mode')) {
+        i && i.classList.replace('fa-moon', 'fa-sun');
+        localStorage.setItem('agCentroTheme', 'dark');
+    } else {
+        i && i.classList.replace('fa-sun', 'fa-moon');
+        localStorage.setItem('agCentroTheme', 'light');
     }
 }
 
+// ==================== NAVIGATION ====================
 function switchTab(target) {
     document.querySelectorAll('.page-content').forEach(el => el.classList.add('hidden'));
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-lg');
         btn.classList.add('text-slate-600', 'hover:bg-slate-50');
     });
-    
     const page = $(`page-${target}`);
     if (page) page.classList.remove('hidden');
-    
-    const activeBtn = document.querySelector(`.nav-btn[data-target="${target}"]`);
-    if (activeBtn) {
-        activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-50');
-        activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-lg');
+    const btn = document.querySelector(`.nav-btn[data-target="${target}"]`);
+    if (btn) {
+        btn.classList.remove('text-slate-600', 'hover:bg-slate-50');
+        btn.classList.add('bg-indigo-600', 'text-white', 'shadow-lg');
     }
-    
-    if (target === 'agendamentos') {
-        fetchAppointmentsHoje();
-    }
+    if (target === 'agendamentos') fetchAppointmentsHoje();
     if (target === 'dashboard') updateDashboard();
     if (target === 'admin' && state.isSupervisor) loadAdminData('hoje');
 }
 
-function setupEventListeners() {
-    // Navigation
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.addEventListener('click', () => switchTab(btn.dataset.target));
-    });
-    
+// ==================== EVENTS ====================
+function setupAllEvents() {
+    // Nav
+    document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.target)));
+
+    // Theme
+    $('btn-toggle-dark').addEventListener('click', toggleTheme);
+
     // Stats toggle
     $('btn-toggle-stats').addEventListener('click', () => {
-        const container = $('stats-container');
-        const icon = $('stats-icon');
-        container.classList.toggle('expanded');
-        icon.classList.toggle('fa-chevron-down');
-        icon.classList.toggle('fa-chevron-up');
+        $('stats-container').classList.toggle('expanded');
+        $('stats-icon').classList.toggle('fa-chevron-down');
+        $('stats-icon').classList.toggle('fa-chevron-up');
     });
-    
-    // View toggle (Hoje / Outras Datas)
-    document.querySelectorAll('.view-toggle').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const view = btn.dataset.view;
-            document.querySelectorAll('.view-toggle').forEach(b => {
-                b.classList.remove('bg-indigo-600', 'text-white');
-                b.classList.add('bg-slate-100', 'text-slate-600');
-            });
-            btn.classList.add('bg-indigo-600', 'text-white');
-            btn.classList.remove('bg-slate-100', 'text-slate-600');
-            
-            if (view === 'hoje') {
-                $('view-hoje').classList.remove('hidden');
-                $('view-outras').classList.add('hidden');
-                fetchAppointmentsHoje();
-            } else {
-                $('view-hoje').classList.add('hidden');
-                $('view-outras').classList.remove('hidden');
-                const today = new Date();
-                $('consulta-date').value = formatDateAPI(today);
-                fetchConsulta(today);
-            }
-        });
-    });
-    
-    // Admin tabs
-    document.querySelectorAll('.admin-tab').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tab = btn.dataset.tab;
-            document.querySelectorAll('.admin-tab').forEach(b => {
-                b.classList.remove('bg-indigo-600', 'text-white');
-                b.classList.add('bg-slate-100', 'text-slate-600');
-            });
-            btn.classList.add('bg-indigo-600', 'text-white');
-            btn.classList.remove('bg-slate-100', 'text-slate-600');
-            
-            if (tab === 'visao') {
-                $('admin-tab-visao').classList.remove('hidden');
-                $('admin-tab-relatorios').classList.add('hidden');
-            } else {
-                $('admin-tab-visao').classList.add('hidden');
-                $('admin-tab-relatorios').classList.remove('hidden');
-            }
-        });
-    });
-    
-    // User selection
+
+    // User select
     $('select-assistente').addEventListener('change', (e) => {
         state.user = e.target.value;
-        if (state.user === 'RAIANE' || state.user === 'WELKER' || state.user === 'ALANA') {
-            const modalTitle = $('password-modal').querySelector('h3');
-            const modalDesc = $('password-modal').querySelector('p');
-            const modalIcon = $('password-modal').querySelector('.fa-crown');
-            
+        if (['RAIANE','WELKER','ALANA'].includes(state.user)) {
             if (state.user === 'RAIANE') {
-                modalTitle.textContent = 'Acesso Gerente';
-                modalDesc.textContent = 'Digite a senha de gerente para acessar o painel administrativo';
-                if (modalIcon) modalIcon.className = 'fas fa-crown text-2xl text-white';
+                $('auth-title').textContent = 'Acesso Gerente';
+                $('auth-desc').textContent = 'Digite a senha de gerente';
+                $('auth-icon').className = 'fas fa-crown text-2xl text-white';
             } else if (state.user === 'WELKER') {
-                modalTitle.textContent = 'Acesso Supervisor';
-                modalDesc.textContent = 'Digite a senha de supervisor para acessar o painel administrativo';
-                if (modalIcon) modalIcon.className = 'fas fa-user-shield text-2xl text-white';
+                $('auth-title').textContent = 'Acesso Supervisor';
+                $('auth-desc').textContent = 'Digite a senha de supervisor';
+                $('auth-icon').className = 'fas fa-user-shield text-2xl text-white';
             } else {
-                modalTitle.textContent = 'Acesso Protegido';
-                modalDesc.textContent = 'Digite sua senha para continuar';
-                if (modalIcon) modalIcon.className = 'fas fa-lock text-2xl text-white';
+                $('auth-title').textContent = 'Acesso Protegido';
+                $('auth-desc').textContent = 'Digite sua senha para continuar';
+                $('auth-icon').className = 'fas fa-lock text-2xl text-white';
             }
-            
-            $('password-modal').style.display = 'flex';
             $('supervisor-password').value = '';
-            $('supervisor-password').focus();
+            showModal('password-modal');
+            setTimeout(() => $('supervisor-password').focus(), 200);
         } else {
-            setSupervisorMode(false);
-            saveUser();
-            updateStats();
+            applySupervisorMode(false);
+            saveUser(); updateStats();
         }
     });
-    
+
     // Password modal
     $('btn-confirm-auth').addEventListener('click', checkPassword);
     $('btn-cancel-auth').addEventListener('click', () => {
-        $('password-modal').style.display = 'none';
+        hideModal('password-modal');
         $('select-assistente').value = '';
         state.user = '';
     });
-    $('supervisor-password').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') checkPassword();
-    });
-    
+    $('supervisor-password').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkPassword(); });
+
     // Recipients
     $('btn-add-amanha').addEventListener('click', () => addRecipient(1));
     $('btn-add-hoje').addEventListener('click', () => addRecipient(0));
-    
+
     // Messages modal
     $('btn-open-mensagens').addEventListener('click', () => {
         if (state.recipients.filter(r => r.jovem && r.data && r.horario && r.telefone_resp).length === 0) {
-            toast('Adicione e preencha os destinatários primeiro', 'warning');
-            return;
+            return toast('Preencha os destinatários primeiro', 'warning');
         }
-        $('mensagens-modal').style.display = 'flex';
+        showModal('mensagens-modal');
     });
-    
-    $('btn-close-mensagens').addEventListener('click', () => {
-        $('mensagens-modal').style.display = 'none';
-    });
-    
-    $('btn-gen-rapida').addEventListener('click', () => {
-        $('mensagens-modal').style.display = 'none';
-        $('quick-modal').style.display = 'flex';
-    });
-    
-    $('btn-gen-projeto').addEventListener('click', () => {
-        $('mensagens-modal').style.display = 'none';
-        generateMessages('Projeto');
-    });
-    
-    $('btn-gen-instituto').addEventListener('click', () => {
-        $('mensagens-modal').style.display = 'none';
-        generateMessages('Instituto');
-    });
-    
-    $('btn-clear-msgs').addEventListener('click', () => {
-        $('area-mensagens').classList.add('hidden');
-        $('lista-mensagens').innerHTML = '';
-    });
-    
+    $('btn-close-mensagens').addEventListener('click', () => hideModal('mensagens-modal'));
+    $('btn-gen-rapida').addEventListener('click', () => { hideModal('mensagens-modal'); showModal('quick-modal'); });
+    $('btn-gen-projeto').addEventListener('click', () => { hideModal('mensagens-modal'); generateMessages('Projeto'); });
+    $('btn-gen-instituto').addEventListener('click', () => { hideModal('mensagens-modal'); generateMessages('Instituto'); });
+    $('btn-clear-msgs').addEventListener('click', () => { $('area-mensagens').classList.add('hidden'); $('lista-mensagens').innerHTML = ''; });
+
     // Quick message
-    $('btn-cancel-quick').addEventListener('click', () => {
-        $('quick-modal').style.display = 'none';
-    });
+    $('btn-cancel-quick').addEventListener('click', () => hideModal('quick-modal'));
     $('btn-send-quick').addEventListener('click', sendQuickMessage);
-    
+
+    // View toggle
+    document.querySelectorAll('.view-toggle').forEach(b => {
+        b.addEventListener('click', () => {
+            document.querySelectorAll('.view-toggle').forEach(x => { x.classList.remove('bg-indigo-600','text-white'); x.classList.add('bg-slate-100','text-slate-600'); });
+            b.classList.add('bg-indigo-600','text-white'); b.classList.remove('bg-slate-100','text-slate-600');
+            if (b.dataset.view === 'hoje') {
+                $('view-hoje').classList.remove('hidden'); $('view-outras').classList.add('hidden');
+                fetchAppointmentsHoje();
+            } else {
+                $('view-hoje').classList.add('hidden'); $('view-outras').classList.remove('hidden');
+                const t = new Date(); $('consulta-date').value = formatDateAPI(t); fetchConsulta(t);
+            }
+        });
+    });
+
+    // Search & filter
+    $('search-hoje').addEventListener('input', (e) => { state.filters.search = e.target.value.toLowerCase(); filterAndRenderHoje(); });
+    $('filter-status').addEventListener('change', (e) => { state.filters.status = e.target.value; filterAndRenderHoje(); });
+    $('search-consulta').addEventListener('input', (e) => filterConsulta(e.target.value));
+
+    // Filter chips
+    document.querySelectorAll('.filter-chip').forEach(c => {
+        c.addEventListener('click', () => {
+            state.filters.status = c.dataset.status;
+            $('filter-status').value = c.dataset.status;
+            document.querySelectorAll('.filter-chip').forEach(x => x.classList.remove('active'));
+            c.classList.add('active');
+            filterAndRenderHoje();
+        });
+    });
+
     // Consulta
     $('btn-consulta-go').addEventListener('click', () => {
-        const dateValue = $('consulta-date').value;
-        if (!dateValue) {
-            toast('Selecione uma data válida', 'warning');
-            return;
-        }
-        const date = new Date(dateValue + 'T12:00:00');
-        fetchConsulta(date);
+        const v = $('consulta-date').value;
+        if (!v) return toast('Selecione uma data', 'warning');
+        fetchConsulta(new Date(v + 'T12:00:00'));
     });
-    
-    document.querySelectorAll('.date-preset').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const days = parseInt(btn.dataset.days);
-            const date = new Date();
-            date.setDate(date.getDate() + days);
-            $('consulta-date').value = formatDateAPI(date);
-            fetchConsulta(date);
+    document.querySelectorAll('.date-preset').forEach(b => {
+        b.addEventListener('click', () => {
+            const d = new Date(); d.setDate(d.getDate() + parseInt(b.dataset.days));
+            $('consulta-date').value = formatDateAPI(d); fetchConsulta(d);
         });
     });
-    
-    // Search filters
-    if ($('search-hoje')) {
-        $('search-hoje').addEventListener('input', (e) => {
-            state.filters.search = e.target.value.toLowerCase();
-            filterAndRenderHoje();
-        });
-    }
-    
-    if ($('filter-status')) {
-        $('filter-status').addEventListener('change', (e) => {
-            state.filters.status = e.target.value;
-            filterAndRenderHoje();
-        });
-    }
-    
-    if ($('search-consulta')) {
-        $('search-consulta').addEventListener('input', (e) => {
-            filterConsulta(e.target.value);
-        });
-    }
-    
-    // Filter chips
-    document.querySelectorAll('.filter-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-            const status = chip.dataset.status;
-            state.filters.status = status;
-            $('filter-status').value = status;
-            
-            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-            
-            filterAndRenderHoje();
+
+    // Admin tabs
+    document.querySelectorAll('.admin-tab').forEach(b => {
+        b.addEventListener('click', () => {
+            document.querySelectorAll('.admin-tab').forEach(x => { x.classList.remove('bg-indigo-600','text-white'); x.classList.add('bg-slate-100','text-slate-600'); });
+            b.classList.add('bg-indigo-600','text-white'); b.classList.remove('bg-slate-100','text-slate-600');
+            $('admin-tab-visao').classList.toggle('hidden', b.dataset.tab !== 'visao');
+            $('admin-tab-relatorios').classList.toggle('hidden', b.dataset.tab !== 'relatorios');
         });
     });
-    
-    // Admin
-    document.querySelectorAll('.admin-period').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.admin-period').forEach(b => {
-                b.classList.remove('bg-indigo-600', 'text-white');
-                b.classList.add('bg-slate-100', 'text-slate-600');
-            });
-            btn.classList.add('bg-indigo-600', 'text-white');
-            btn.classList.remove('bg-slate-100', 'text-slate-600');
-            loadAdminData(btn.dataset.period);
+
+    // Admin periods
+    document.querySelectorAll('.admin-period').forEach(b => {
+        b.addEventListener('click', () => {
+            document.querySelectorAll('.admin-period').forEach(x => { x.classList.remove('bg-indigo-600','text-white'); x.classList.add('bg-slate-100','text-slate-600'); });
+            b.classList.add('bg-indigo-600','text-white'); b.classList.remove('bg-slate-100','text-slate-600');
+            loadAdminData(b.dataset.period);
         });
     });
-    
+
     // Metas
     $('btn-metas').addEventListener('click', () => {
-        $('metas-modal').style.display = 'flex';
-        $('meta-diaria').value = state.meta.diaria;
-        $('meta-semanal').value = state.meta.semanal;
-        $('meta-mensal').value = state.meta.mensal;
-        $('meta-taxa').value = state.meta.taxa;
+        $('meta-diaria').value = state.meta.diaria; $('meta-semanal').value = state.meta.semanal;
+        $('meta-mensal').value = state.meta.mensal; $('meta-taxa').value = state.meta.taxa;
+        showModal('metas-modal');
     });
-    $('btn-cancel-metas').addEventListener('click', () => {
-        $('metas-modal').style.display = 'none';
-    });
+    $('btn-cancel-metas').addEventListener('click', () => hideModal('metas-modal'));
     $('btn-save-metas').addEventListener('click', saveMetas);
-    
-    // Other buttons
+
+    // Edit modal
+    $('btn-cancel-edit').addEventListener('click', () => hideModal('edit-modal'));
+    $('btn-save-edit').addEventListener('click', saveEdit);
+
+    // Others
     $('btn-update-ag-amanha').addEventListener('click', fetchAgendamentosAmanha);
     $('btn-export').addEventListener('click', exportAdminData);
-    $('btn-toggle-dark').addEventListener('click', toggleTheme);
-    
+
     // Input masks
     document.body.addEventListener('input', (e) => {
         if (e.target.classList.contains('date-mask')) maskDate(e.target);
@@ -898,887 +871,564 @@ function setupEventListeners() {
     });
 }
 
-function checkPassword() {
-    const pwd = $('supervisor-password').value;
-    
-    if (state.user === 'RAIANE' && pwd === SUPERVISOR_PASS) {
-        setSupervisorMode(true);
-        $('password-modal').style.display = 'none';
-        toast('Bem-vinda, Gerente Raiane!', 'success');
-        saveUser();
-        updateStats();
-        fetchAgendamentosAmanha();
-    } else if (state.user === 'WELKER' && pwd === WELKER_PASS) {
-        setSupervisorMode(true);
-        $('password-modal').style.display = 'none';
-        toast('Bem-vindo, Supervisor Welker!', 'success');
-        saveUser();
-        updateStats();
-        fetchAgendamentosAmanha();
-    } else if (state.user === 'ALANA' && pwd === ALANA_PASS) {
-        setSupervisorMode(false);
-        $('password-modal').style.display = 'none';
-        toast('Bem-vinda, Alana!', 'success');
-        saveUser();
-        updateStats();
-    } else {
-        toast('Senha incorreta', 'error');
-        $('supervisor-password').value = '';
-    }
-}
-
-function setSupervisorMode(active) {
-    state.isSupervisor = active;
-    if (active) {
-        $('supervisor-badge').classList.remove('hidden');
-        $('nav-admin').classList.remove('hidden');
-        $('nav-admin').style.display = 'flex';
-        
-        // Atualiza texto do badge conforme usuário
-        if (state.user === 'WELKER') {
-            $('supervisor-badge').innerHTML = '<i class="fas fa-user-shield"></i> Modo Supervisor';
-        } else {
-            $('supervisor-badge').innerHTML = '<i class="fas fa-crown"></i> Modo Gerente';
-        }
-    } else {
-        $('supervisor-badge').classList.add('hidden');
-        $('nav-admin').classList.add('hidden');
-    }
-}
-
+// ==================== RECIPIENTS ====================
 function addRecipient(daysOffset) {
-    const date = new Date();
-    date.setDate(date.getDate() + daysOffset);
-    if (daysOffset === 1 && date.getDay() === 0) date.setDate(date.getDate() + 1);
-    
-    const r = {
-        id: Date.now(),
-        jovem: '',
-        data_nascimento: '',
-        responsavel: '',
-        telefone_resp: '',
-        telefone_jovem: '',
-        data: formatDateBR(date),
-        horario: '',
-        irmaos: '',
-        tipo: daysOffset === 0 ? 'PUXADA' : 'AMANHÃ'
-    };
-    
-    state.recipients.push(r);
-    renderRecipients();
-    saveLocalData();
-    toast(`Destinatário adicionado (${r.tipo})`, 'success');
+    const d = new Date(); d.setDate(d.getDate() + daysOffset);
+    if (daysOffset === 1 && d.getDay() === 0) d.setDate(d.getDate() + 1);
+    state.recipients.push({
+        id: Date.now(), jovem: '', data_nascimento: '', responsavel: '',
+        telefone_resp: '', telefone_jovem: '', data: formatDateBR(d),
+        horario: '', irmaos: '', tipo: daysOffset === 0 ? 'PUXADA' : 'AMANHÃ'
+    });
+    renderRecipients(); saveLocalData();
+    toast(`Destinatário adicionado`, 'success');
 }
 
 function renderRecipients() {
     const list = $('lista-destinatarios');
     const empty = $('empty-state');
-    
-    Array.from(list.children).forEach(child => {
-        if (child.id !== 'empty-state') child.remove();
-    });
-    
-    if (state.recipients.length === 0) {
-        empty.classList.remove('hidden');
-        updateStats();
-        return;
-    }
-    
+    Array.from(list.children).forEach(c => { if (c.id !== 'empty-state') c.remove(); });
+    if (state.recipients.length === 0) { empty.classList.remove('hidden'); updateStats(); return; }
     empty.classList.add('hidden');
-    
     state.recipients.forEach((r, idx) => {
         const div = document.createElement('div');
         div.className = 'p-4 border-2 border-slate-200 rounded-xl bg-white relative slide-in';
         div.dataset.id = r.id;
         div.innerHTML = `
-            <button class="btn-remove-recipient absolute top-2 right-2 text-red-400 hover:text-red-600 p-1" data-id="${r.id}">
-                <i class="fas fa-times"></i>
-            </button>
+            <button class="btn-rm absolute top-2 right-2 text-red-400 hover:text-red-600 p-1" data-id="${r.id}"><i class="fas fa-times"></i></button>
             <div class="flex items-center gap-2 mb-3">
-                <span class="badge ${r.tipo === 'PUXADA' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}">${r.tipo}</span>
-                <span class="font-bold text-slate-400">#${idx + 1}</span>
+                <span class="badge ${r.tipo==='PUXADA'?'bg-amber-100 text-amber-700':'bg-blue-100 text-blue-700'}">${r.tipo}</span>
+                <span class="font-bold text-slate-400">#${idx+1}</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <input type="text" placeholder="Nome do Jovem *" value="${r.jovem}" data-field="jovem" class="input-field p-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none">
-                <input type="text" placeholder="Data Nascimento (DD/MM/AAAA)" value="${r.data_nascimento}" data-field="data_nascimento" class="input-field p-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none date-mask">
-                <input type="text" placeholder="Nome do Responsável *" value="${r.responsavel}" data-field="responsavel" class="input-field p-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none">
-                <input type="text" placeholder="Tel. Responsável * (5531...)" value="${r.telefone_resp}" data-field="telefone_resp" class="input-field p-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none phone-mask">
-                <input type="text" placeholder="Tel. Jovem (5531...)" value="${r.telefone_jovem}" data-field="telefone_jovem" class="input-field p-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none phone-mask">
-                <input type="text" placeholder="Data Agendamento *" value="${r.data}" data-field="data" class="input-field p-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none date-mask">
-                <input type="text" placeholder="Horário * (HH:MM)" value="${r.horario}" data-field="horario" class="input-field p-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none time-mask">
-                <input type="text" placeholder="Irmãos (opcional)" value="${r.irmaos || ''}" data-field="irmaos" class="input-field p-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none">
-            </div>
-        `;
-        
-        div.querySelectorAll('.input-field').forEach(input => {
-            input.addEventListener('input', (e) => {
-                const id = parseInt(div.dataset.id);
-                const field = e.target.dataset.field;
-                const recipient = state.recipients.find(r => r.id === id);
-                if (recipient) {
-                    recipient[field] = e.target.value;
-                    saveLocalData();
-                    updateStats();
-                }
+                <input type="text" placeholder="Nome do Jovem *" value="${r.jovem}" data-field="jovem" class="ipt p-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none">
+                <input type="text" placeholder="Data Nasc. (DD/MM/AAAA)" value="${r.data_nascimento}" data-field="data_nascimento" class="ipt p-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none date-mask">
+                <input type="text" placeholder="Responsável *" value="${r.responsavel}" data-field="responsavel" class="ipt p-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none">
+                <input type="text" placeholder="Tel. Resp. * (5531...)" value="${r.telefone_resp}" data-field="telefone_resp" class="ipt p-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none phone-mask">
+                <input type="text" placeholder="Tel. Jovem (5531...)" value="${r.telefone_jovem}" data-field="telefone_jovem" class="ipt p-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none phone-mask">
+                <input type="text" placeholder="Data Agendamento *" value="${r.data}" data-field="data" class="ipt p-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none date-mask">
+                <input type="text" placeholder="Horário * (HH:MM)" value="${r.horario}" data-field="horario" class="ipt p-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none time-mask">
+                <input type="text" placeholder="Irmãos (opcional)" value="${r.irmaos||''}" data-field="irmaos" class="ipt p-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none">
+            </div>`;
+        div.querySelectorAll('.ipt').forEach(inp => {
+            inp.addEventListener('input', (e) => {
+                const rec = state.recipients.find(x => x.id === parseInt(div.dataset.id));
+                if (rec) { rec[e.target.dataset.field] = e.target.value; saveLocalData(); updateStats(); }
             });
         });
-        
-        div.querySelector('.btn-remove-recipient').addEventListener('click', () => {
-            const id = parseInt(div.dataset.id);
-            state.recipients = state.recipients.filter(r => r.id !== id);
-            renderRecipients();
-            saveLocalData();
-            toast('Destinatário removido', 'info');
+        div.querySelector('.btn-rm').addEventListener('click', () => {
+            state.recipients = state.recipients.filter(x => x.id !== parseInt(div.dataset.id));
+            renderRecipients(); saveLocalData(); toast('Removido', 'info');
         });
-        
         list.appendChild(div);
     });
-    
     updateStats();
 }
 
+// ==================== MESSAGES ====================
 function generateMessages(tipo) {
-    if (!state.user) {
-        toast('Selecione seu nome primeiro', 'warning');
-        return;
-    }
-    
+    if (!state.user) return toast('Selecione seu nome', 'warning');
     const validos = state.recipients.filter(r => r.jovem && r.data && r.horario && r.telefone_resp);
-    if (validos.length === 0) {
-        toast('Preencha os campos obrigatórios', 'warning');
-        return;
-    }
-    
-    const lista = $('lista-mensagens');
-    lista.innerHTML = '';
+    if (!validos.length) return toast('Preencha os campos obrigatórios', 'warning');
+
+    const lista = $('lista-mensagens'); lista.innerHTML = '';
     $('area-mensagens').classList.remove('hidden');
-    
+
     const unidade = $('select-local').value;
     const isCentro = unidade === 'Centro';
-    const assistenteNome = state.user === 'GABRIELA'
-        ? (isCentro ? 'Sara Gabriela Silva' : 'Sophia Martins')
-        : (OPERADORES.find(o => o.id === state.user)?.nome || state.user);
-    
-    const endereco = unidade === 'Eldorado'
-        ? 'Av. João César de Oliveira, Nº 953, 2º andar – Eldorado'
-        : 'Rua Curitiba, 656, 11° andar - Centro, Belo Horizonte';
-    const referencia = unidade === 'Eldorado'
-        ? '(Em frente a Caixa Econômica Federal, ao lado da Oral Centter, próximo ao Big Shopping)'
-        : '(Abaixo da Galeria do Ouvidor, em frente a Casa&Video)';
-    
+    const nome = state.user === 'GABRIELA' ? (isCentro ? 'Sara Gabriela Silva' : 'Sophia Martins') : (OPERADORES.find(o=>o.id===state.user)?.nome || state.user);
+    const endereco = isCentro ? 'Rua Curitiba, 656, 11° andar - Centro, Belo Horizonte' : 'Av. João César de Oliveira, Nº 953, 2º andar – Eldorado';
+    const ref = isCentro ? '(Abaixo da Galeria do Ouvidor, em frente a Casa&Video)' : '(Em frente a Caixa Econômica Federal, ao lado da Oral Centter, próximo ao Big Shopping)';
+
     validos.forEach(r => {
-        const codigo = r.jovem.split(' ')[0].toUpperCase().substring(0,3) + Math.floor(Math.random()*900+100);
+        const cod = r.jovem.split(' ')[0].toUpperCase().substring(0,3) + Math.floor(Math.random()*900+100);
         const org = tipo === 'Projeto' ? 'Coordenação | Projeto Conecta Jovem' : 'Instituto Conecta Jovem';
-        
-        let diaSemana = '';
-        if (r.data && r.data.length === 10) {
-            const parts = r.data.split('/');
-            const dataAgend = new Date(parts[2], parts[1] - 1, parts[0]);
-            const diasSemana = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
-            diaSemana = diasSemana[dataAgend.getDay()];
-        }
-        
-        let idadeStr = '';
-        if (r.data_nascimento && r.data_nascimento.length === 10) {
-            const parts = r.data_nascimento.split('/');
-            const nascimento = new Date(parts[2], parts[1] - 1, parts[0]);
-            const hoje = new Date();
-            let idade = hoje.getFullYear() - nascimento.getFullYear();
-            const m = hoje.getMonth() - nascimento.getMonth();
-            if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) idade--;
-            if (idade > 0 && idade < 100) idadeStr = ` (${idade} anos)`;
-        }
-        
-        let irmaosStr = '';
-        if (r.irmaos && r.irmaos.trim() !== '') {
-            irmaosStr = `\n*Irmãos:* ${r.irmaos}`;
-        }
-        
-        const msg = `*CONVOCAÇÃO PARA TESTE VOCACIONAL E CADASTRAMENTO GRATUITO AO MERCADO DE TRABALHO*\n\n*Jovem Convocado:* ${r.jovem}${idadeStr}\n*Responsável:* ${r.responsavel}${irmaosStr}\n\n*Dados do Agendamento:*\n*Data:* ${diaSemana}, ${r.data}\n*Horário:* ${r.horario} (chegar 10min antes)\n\n*Local:* ${endereco}\n${referencia}\n\n*Documentos Necessários:*\n• RG, CPF ou Certidão de Nascimento do jovem.\n• Comprovante de Residência.\n\n---\n*Código do Jovem:* ${codigo}\n\nAtenção: A presença do responsável junto com o jovem é indispensável.\n\nAtenciosamente,\n\n*${assistenteNome}*\n${org}`;
-        
-        let telefoneClean = r.telefone_resp.replace(/\D/g, '');
-        if (telefoneClean.startsWith('5555')) telefoneClean = telefoneClean.substring(2);
-        if (!telefoneClean.startsWith('55')) telefoneClean = '55' + telefoneClean;
-        
+        let dia = '';
+        if (r.data && r.data.length === 10) { const p = r.data.split('/'); const dt = new Date(p[2],p[1]-1,p[0]); dia = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'][dt.getDay()]; }
+        let idade = '';
+        if (r.data_nascimento && r.data_nascimento.length === 10) { const p = r.data_nascimento.split('/'); const n = new Date(p[2],p[1]-1,p[0]); const h = new Date(); let a = h.getFullYear()-n.getFullYear(); const m = h.getMonth()-n.getMonth(); if (m<0||(m===0&&h.getDate()<n.getDate())) a--; if (a>0&&a<100) idade = ` (${a} anos)`; }
+        let irm = r.irmaos && r.irmaos.trim() ? `\n*Irmãos:* ${r.irmaos}` : '';
+
+        const msg = `*CONVOCAÇÃO PARA TESTE VOCACIONAL E CADASTRAMENTO GRATUITO AO MERCADO DE TRABALHO*\n\n*Jovem Convocado:* ${r.jovem}${idade}\n*Responsável:* ${r.responsavel}${irm}\n\n*Dados do Agendamento:*\n*Data:* ${dia}, ${r.data}\n*Horário:* ${r.horario} (chegar 10min antes)\n\n*Local:* ${endereco}\n${ref}\n\n*Documentos Necessários:*\n• RG, CPF ou Certidão de Nascimento do jovem.\n• Comprovante de Residência.\n\n---\n*Código do Jovem:* ${cod}\n\nAtenção: A presença do responsável junto com o jovem é indispensável.\n\nAtenciosamente,\n\n*${nome}*\n${org}`;
+
+        let tel = r.telefone_resp.replace(/\D/g,'');
+        if (tel.startsWith('5555')) tel = tel.substring(2);
+        if (!tel.startsWith('55')) tel = '55' + tel;
+
         const div = document.createElement('div');
         div.className = 'p-4 bg-slate-50 rounded-xl border border-slate-200 slide-in';
         div.innerHTML = `
             <div class="mb-2 font-bold text-slate-700">${r.jovem}</div>
             <textarea class="w-full h-40 text-xs p-2 rounded border mb-2 font-mono" readonly>${msg}</textarea>
             <div class="flex flex-wrap gap-2">
-                <button class="btn-copy px-3 py-1 bg-slate-200 rounded text-xs font-bold hover:bg-slate-300 transition-colors">Copiar</button>
-                <a href="https://wa.me/${telefoneClean}?text=${encodeURIComponent(msg)}" target="_blank" class="px-3 py-1 bg-green-500 text-white rounded text-xs font-bold hover:bg-green-600 transition-colors">WhatsApp</a>
-                <button class="btn-save px-3 py-1 bg-blue-500 text-white rounded text-xs font-bold hover:bg-blue-600 transition-colors" data-info='${JSON.stringify({...r, codigo, assistente: state.user, local: unidade})}'>Salvar Planilha</button>
-            </div>
-        `;
-        
-        div.querySelector('.btn-copy').addEventListener('click', () => {
-            navigator.clipboard.writeText(msg);
-            toast('Mensagem copiada!', 'success');
-        });
-        
+                <button class="btn-copy px-3 py-1 bg-slate-200 rounded text-xs font-bold hover:bg-slate-300">Copiar</button>
+                <a href="https://wa.me/${tel}?text=${encodeURIComponent(msg)}" target="_blank" class="px-3 py-1 bg-green-500 text-white rounded text-xs font-bold hover:bg-green-600">WhatsApp</a>
+                <button class="btn-save px-3 py-1 bg-blue-500 text-white rounded text-xs font-bold hover:bg-blue-600" data-info='${JSON.stringify({...r,codigo:cod,assistente:state.user,local:unidade}).replace(/'/g,"\\'")}'>Salvar Planilha</button>
+            </div>`;
+
+        div.querySelector('.btn-copy').addEventListener('click', () => { navigator.clipboard.writeText(msg); toast('Copiado!', 'success'); });
         div.querySelector('.btn-save').addEventListener('click', async (e) => {
-            const btn = e.target;
-            const data = JSON.parse(btn.dataset.info);
-            btn.disabled = true;
-            btn.textContent = 'Salvando...';
-            
+            const btn = e.target; const info = JSON.parse(btn.dataset.info);
+            btn.disabled = true; btn.textContent = 'Salvando...';
             try {
-                const payload = {
-                    data: data.data,
-                    assistente: data.assistente,
-                    jovem: data.jovem,
-                    data_nascimento: data.data_nascimento || '',
-                    responsavel: data.responsavel,
-                    numero_jovem: data.telefone_jovem || '',
-                    numero_responsavel: data.telefone_resp,
-                    local: data.local,
-                    horario: data.horario,
-                    codigo: data.codigo,
-                    irmaos: data.irmaos || '',
-                    isPuxada: data.tipo === 'PUXADA',
-                    horario_lancamento: new Date().toLocaleString('pt-BR')
-                };
-                
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                btn.textContent = 'Salvo!';
-                btn.classList.replace('bg-blue-500', 'bg-green-600');
-                toast('Salvo na planilha!', 'success');
-            } catch (e) {
-                btn.textContent = 'Erro';
-                btn.classList.replace('bg-blue-500', 'bg-red-600');
-                toast('Erro ao salvar', 'error');
-            }
+                await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
+                    data:info.data, assistente:info.assistente, jovem:info.jovem, data_nascimento:info.data_nascimento||'',
+                    responsavel:info.responsavel, numero_jovem:info.telefone_jovem||'', numero_responsavel:info.telefone_resp,
+                    local:info.local, horario:info.horario, codigo:info.codigo, irmaos:info.irmaos||'',
+                    isPuxada:info.tipo==='PUXADA', horario_lancamento:new Date().toLocaleString('pt-BR')
+                })});
+                btn.textContent = 'Salvo ✓'; btn.className = 'px-3 py-1 bg-green-600 text-white rounded text-xs font-bold'; toast('Salvo!', 'success');
+            } catch { btn.textContent = 'Erro'; btn.className = 'px-3 py-1 bg-red-600 text-white rounded text-xs font-bold'; toast('Erro ao salvar', 'error'); }
         });
-        
         lista.appendChild(div);
     });
-    
     toast(`${validos.length} mensagem(ns) gerada(s)`, 'success');
 }
 
+// ==================== APPOINTMENTS ====================
 async function fetchAppointmentsHoje() {
-    if (!state.user) {
-        toast('Selecione um usuário', 'warning');
-        return;
-    }
-    
+    if (!state.user) return;
     const list = $('lista-hoje');
-    list.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-indigo-500"></i></div>';
-    
-    const todayStr = formatDateAPI(new Date());
-    
+    list.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-indigo-500"></i><p class="text-slate-400 mt-2">Carregando...</p></div>';
     try {
         let data = [];
-        const targets = state.isSupervisor ? OPERADORES : [{ id: state.user }];
-        
+        const targets = state.isSupervisor ? OPERADORES : [{id:state.user}];
         for (const op of targets) {
-            const resp = await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${op.id}&date=${todayStr}`);
-            const json = await resp.json();
-            if (json.status === 'success') {
-                data = data.concat(json.data.map(d => ({ ...d, operador: op.id })));
-            }
+            try {
+                const r = await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${op.id}&date=${formatDateAPI(new Date())}`);
+                const j = await r.json();
+                if (j.status === 'success' && j.data) data = data.concat(j.data.map(d => ({...d, operador:op.id})));
+            } catch(e) { console.warn(`Erro ${op.id}:`, e); }
         }
-        
         state.appointmentsHoje = data;
-        updateStatsHoje(data);
+        updateCounters(data);
         filterAndRenderHoje();
-    } catch (e) {
-        list.innerHTML = `<p class="text-red-500 text-center py-8">Erro: ${e.message}</p>`;
-    }
+    } catch(e) { list.innerHTML = `<p class="text-red-500 text-center py-8">Erro: ${e.message}</p>`; }
 }
 
-function updateStatsHoje(data) {
+function updateCounters(data) {
     $('count-total').textContent = data.length;
-    // Confirmadas = CONFIRMADA + JÁ VEIO + MATRICULA
-    $('count-confirmada').textContent = data.filter(a => 
-        a.situacao === 'CONFIRMADA' || 
-        a.situacao === 'JÁ VEIO' || 
-        a.situacao === 'MATRICULA'
-    ).length;
-    $('count-pendente').textContent = data.filter(a => !a.situacao || a.situacao === '').length;
-    // Canceladas = CANCELADA + SI SEM INTERESSE
-    $('count-cancelada').textContent = data.filter(a => 
-        a.situacao === 'CANCELADA' || 
-        a.situacao === 'SI SEM INTERESSE'
-    ).length;
-    $('count-puxada').textContent = data.filter(a => a.situacao === 'PUXADA').length;
-    $('count-reagendar').textContent = data.filter(a => a.situacao === 'REAGENDAR').length;
+    $('count-confirmada').textContent = data.filter(a => a.situacao==='CONFIRMADA'||a.situacao==='JÁ VEIO'||a.situacao==='MATRICULA').length;
+    $('count-pendente').textContent = data.filter(a => !a.situacao||a.situacao==='').length;
+    $('count-cancelada').textContent = data.filter(a => a.situacao==='CANCELADA'||a.situacao==='SI SEM INTERESSE').length;
+    $('count-puxada').textContent = data.filter(a => a.situacao==='PUXADA').length;
+    $('count-reagendar').textContent = data.filter(a => a.situacao==='REAGENDAR').length;
 }
 
 function filterAndRenderHoje() {
-    let filtered = [...state.appointmentsHoje];
-    
+    let f = [...state.appointmentsHoje];
     if (state.filters.status) {
-        if (state.filters.status === 'PENDENTE') {
-            filtered = filtered.filter(a => !a.situacao || a.situacao === '');
-        } else {
-            filtered = filtered.filter(a => a.situacao === state.filters.status);
-        }
+        if (state.filters.status === 'PENDENTE') f = f.filter(a => !a.situacao||a.situacao==='');
+        else f = f.filter(a => a.situacao === state.filters.status);
     }
-    
-    if (state.filters.search) {
-        filtered = filtered.filter(a => {
-            const searchIn = `${a.jovem} ${a.responsavel} ${a.telefone_resp} ${a.telefone_jovem}`.toLowerCase();
-            return searchIn.includes(state.filters.search);
-        });
-    }
-    
-    renderListHoje(filtered);
+    if (state.filters.search) f = f.filter(a => `${a.jovem} ${a.responsavel} ${a.telefone_resp} ${a.telefone_jovem}`.toLowerCase().includes(state.filters.search));
+    renderAppointments(f, $('lista-hoje'), true);
 }
 
-function renderListHoje(data) {
-    const list = $('lista-hoje');
-    list.innerHTML = '';
-    
-    if (data.length === 0) {
-        list.innerHTML = '<p class="text-center text-slate-400 py-8">Nenhum agendamento encontrado</p>';
-        return;
-    }
-    
-    data.sort((a,b) => (a.horario || '').localeCompare(b.horario || ''));
-    
+function renderAppointments(data, container, editable) {
+    container.innerHTML = '';
+    if (!data.length) { container.innerHTML = '<p class="text-center text-slate-400 py-8">Nenhum agendamento encontrado</p>'; return; }
+    data.sort((a,b) => (a.horario||'').localeCompare(b.horario||''));
     data.forEach(item => {
         const div = document.createElement('div');
-        const opBadge = state.isSupervisor ? `<span class="text-xs font-bold px-2 py-1 bg-slate-200 rounded mr-2">${item.operador}</span>` : '';
-        div.className = `appointment-card p-4 border-l-4 ${getStatusColor(item.situacao)} bg-white rounded shadow-sm`;
+        const op = state.isSupervisor ? `<span class="text-xs font-bold px-2 py-1 bg-slate-200 rounded mr-2">${item.operador}</span>` : '';
+        div.className = `appointment-card p-4 border-l-4 ${getStatusColor(item.situacao)} bg-white rounded-xl shadow-sm`;
         div.innerHTML = `
             <div class="flex justify-between items-start">
-                <div>
-                    <div class="flex items-center mb-1">${opBadge}<span class="font-bold text-slate-800">${item.jovem}</span></div>
-                    <div class="text-xs text-slate-500"><i class="far fa-clock"></i> ${item.horario || 'N/D'} • Resp: ${item.responsavel}</div>
-                    <div class="text-xs text-slate-400 mt-1 space-y-1">
-                        <div><i class="fas fa-phone"></i> Resp: ${item.telefone_resp || 'N/D'}</div>
-                        <div><i class="fas fa-mobile-alt"></i> Jovem: ${item.telefone_jovem || 'N/D'}</div>
-                        <div><i class="fas fa-map-marker-alt"></i> ${item.local || 'N/D'}</div>
+                <div class="flex-1">
+                    <div class="flex items-center mb-1">${op}<span class="font-bold text-slate-800">${item.jovem||'N/D'}</span></div>
+                    <div class="text-xs text-slate-500"><i class="far fa-clock"></i> ${item.horario||'N/D'} • Resp: ${item.responsavel||'N/D'}</div>
+                    <div class="text-xs text-slate-400 mt-1">
+                        <span class="mr-3"><i class="fas fa-phone"></i> ${item.telefone_resp||'N/D'}</span>
+                        <span class="mr-3"><i class="fas fa-mobile-alt"></i> ${item.telefone_jovem||'N/D'}</span>
+                        <span><i class="fas fa-map-marker-alt"></i> ${item.local||'N/D'}</span>
                     </div>
                 </div>
-                <select class="select-status text-xs p-1 border rounded bg-slate-50 font-bold" data-row="${item.rowId}" data-sheet="${item.sheetName}">
-                    <option value="">PENDENTE</option>
-                    <option value="CONFIRMADA" ${item.situacao === 'CONFIRMADA' ? 'selected' : ''}>CONFIRMADA</option>
-                    <option value="CANCELADA" ${item.situacao === 'CANCELADA' ? 'selected' : ''}>CANCELADA</option>
-                    <option value="REAGENDAR" ${item.situacao === 'REAGENDAR' ? 'selected' : ''}>REAGENDAR</option>
-                    <option value="JÁ VEIO" ${item.situacao === 'JÁ VEIO' ? 'selected' : ''}>JÁ VEIO</option>
-                    <option value="PUXADA" ${item.situacao === 'PUXADA' ? 'selected' : ''}>PUXADA</option>
-                    <option value="SI SEM INTERESSE" ${item.situacao === 'SI SEM INTERESSE' ? 'selected' : ''}>SEM INTERESSE</option>
-                    <option value="MATRICULA" ${item.situacao === 'MATRICULA' ? 'selected' : ''}>MATRÍCULA</option>
-                    <option value="DESCLASSIFICADA" ${item.situacao === 'DESCLASSIFICADA' ? 'selected' : ''}>DESCLASSIFICADA</option>
-                </select>
-            </div>
-        `;
-        
-        div.querySelector('.select-status').addEventListener('change', async (e) => {
-            const sel = e.target;
-            sel.disabled = true;
-            const payload = {
-                action: 'updateStatus',
-                rowId: String(sel.dataset.row).trim(),
-                sheetName: String(sel.dataset.sheet).trim(),
-                newStatus: String(sel.value).trim()
-            };
-            
+                <div class="flex flex-col items-end gap-2">
+                    ${editable ? `<button class="btn-edit text-indigo-500 hover:text-indigo-700 text-sm" title="Editar"><i class="fas fa-edit"></i></button>` : ''}
+                    <select class="sel-status text-xs p-1 border rounded bg-slate-50 font-bold" data-row="${item.rowId}" data-sheet="${item.sheetName}">
+                        <option value="">PENDENTE</option>
+                        <option value="CONFIRMADA" ${item.situacao==='CONFIRMADA'?'selected':''}>CONFIRMADA</option>
+                        <option value="JÁ VEIO" ${item.situacao==='JÁ VEIO'?'selected':''}>JÁ VEIO</option>
+                        <option value="CANCELADA" ${item.situacao==='CANCELADA'?'selected':''}>CANCELADA</option>
+                        <option value="REAGENDAR" ${item.situacao==='REAGENDAR'?'selected':''}>REAGENDAR</option>
+                        <option value="PUXADA" ${item.situacao==='PUXADA'?'selected':''}>PUXADA</option>
+                        <option value="SI SEM INTERESSE" ${item.situacao==='SI SEM INTERESSE'?'selected':''}>SEM INTERESSE</option>
+                        <option value="MATRICULA" ${item.situacao==='MATRICULA'?'selected':''}>MATRÍCULA</option>
+                        <option value="DESCLASSIFICADA" ${item.situacao==='DESCLASSIFICADA'?'selected':''}>DESCLASSIFICADA</option>
+                    </select>
+                </div>
+            </div>`;
+
+        // Edit button
+        const editBtn = div.querySelector('.btn-edit');
+        if (editBtn) {
+            editBtn.addEventListener('click', () => {
+                state.editingItem = item;
+                $('edit-jovem').value = item.jovem || '';
+                $('edit-responsavel').value = item.responsavel || '';
+                $('edit-data').value = item.data || '';
+                $('edit-horario').value = item.horario || '';
+                $('edit-tel-resp').value = item.telefone_resp || '';
+                $('edit-tel-jovem').value = item.telefone_jovem || '';
+                $('edit-local').value = item.local || 'Centro';
+                showModal('edit-modal');
+            });
+        }
+
+        // Status change
+        div.querySelector('.sel-status').addEventListener('change', async (e) => {
+            const sel = e.target; sel.disabled = true;
             try {
-                const formData = new FormData();
-                Object.entries(payload).forEach(([k, v]) => formData.append(k, v));
-                await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: formData });
+                const fd = new FormData();
+                fd.append('action', 'updateStatus');
+                fd.append('rowId', String(sel.dataset.row).trim());
+                fd.append('sheetName', String(sel.dataset.sheet).trim());
+                fd.append('newStatus', String(sel.value).trim());
+                await fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', body:fd});
                 toast('Status atualizado!', 'success');
-                div.classList.add('bg-green-50');
-                setTimeout(() => {
-                    div.classList.remove('bg-green-50');
-                    fetchAppointmentsHoje();
-                }, 1000);
-            } catch {
-                toast('Erro ao atualizar', 'error');
-            }
+                div.style.background = '#f0fdf4';
+                setTimeout(() => { div.style.background = ''; fetchAppointmentsHoje(); }, 800);
+            } catch { toast('Erro ao atualizar', 'error'); }
             sel.disabled = false;
         });
-        
-        list.appendChild(div);
+        container.appendChild(div);
     });
 }
 
+async function saveEdit() {
+    const item = state.editingItem;
+    if (!item) return;
+    const btn = $('btn-save-edit');
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+    try {
+        const fd = new FormData();
+        fd.append('action', 'updateAppointment');
+        fd.append('rowId', String(item.rowId).trim());
+        fd.append('sheetName', String(item.sheetName).trim());
+        fd.append('jovem', $('edit-jovem').value);
+        fd.append('responsavel', $('edit-responsavel').value);
+        fd.append('data', $('edit-data').value);
+        fd.append('horario', $('edit-horario').value);
+        fd.append('telefone_resp', $('edit-tel-resp').value);
+        fd.append('telefone_jovem', $('edit-tel-jovem').value);
+        fd.append('local', $('edit-local').value);
+        await fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', body:fd});
+        toast('Agendamento editado!', 'success');
+        hideModal('edit-modal');
+        setTimeout(() => fetchAppointmentsHoje(), 500);
+    } catch(e) { toast('Erro ao salvar edição', 'error'); }
+    btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Salvar';
+}
+
+// ==================== CONSULTA ====================
 async function fetchConsulta(date) {
     const list = $('lista-consulta');
     list.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-indigo-500"></i></div>';
-    
-    const dateStr = formatDateAPI(date);
-    const dateBR = formatDateBR(date);
-    $('consulta-display-date').textContent = dateBR;
-    
-    const isToday = formatDateAPI(new Date()) === dateStr;
-    $('consulta-status-badge').innerHTML = isToday 
-        ? '<span class="badge bg-green-100 text-green-700">✏️ Editável</span>' 
-        : '<span class="badge bg-orange-100 text-orange-700">🔒 Só Visualização</span>';
-    
+    const ds = formatDateAPI(date);
+    $('consulta-display-date').textContent = formatDateBR(date);
+    const isToday = formatDateAPI(new Date()) === ds;
+    $('consulta-status-badge').innerHTML = isToday ? '<span class="badge bg-green-100 text-green-700">✏️ Editável</span>' : '<span class="badge bg-orange-100 text-orange-700">🔒 Visualização</span>';
     try {
         let data = [];
-        const targets = state.isSupervisor ? OPERADORES : [{ id: state.user }];
-        
+        const targets = state.isSupervisor ? OPERADORES : [{id:state.user}];
         for (const op of targets) {
-            const resp = await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${op.id}&date=${dateStr}`);
-            const json = await resp.json();
-            if (json.status === 'success') {
-                data = data.concat(json.data.map(d => ({ ...d, operador: op.id })));
-            }
+            try {
+                const r = await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${op.id}&date=${ds}`);
+                const j = await r.json();
+                if (j.status==='success'&&j.data) data = data.concat(j.data.map(d=>({...d, operador:op.id})));
+            } catch(e) {}
         }
-        
         state.appointmentsConsulta = data;
-        data.sort((a,b) => (a.horario || '').localeCompare(b.horario || ''));
-        renderConsulta(data, isToday);
-    } catch (e) {
-        list.innerHTML = `<p class="text-red-500 text-center py-8">Erro: ${e.message}</p>`;
-    }
+        data.sort((a,b) => (a.horario||'').localeCompare(b.horario||''));
+        renderAppointments(data, list, isToday);
+    } catch(e) { list.innerHTML = `<p class="text-red-500 text-center py-8">Erro: ${e.message}</p>`; }
 }
 
-function filterConsulta(searchTerm) {
-    const search = searchTerm.toLowerCase();
-    let filtered = [...state.appointmentsConsulta];
-    
-    if (search) {
-        filtered = filtered.filter(a => {
-            const searchIn = `${a.jovem} ${a.responsavel} ${a.telefone_resp} ${a.telefone_jovem}`.toLowerCase();
-            return searchIn.includes(search);
-        });
-    }
-    
-    const isToday = formatDateAPI(new Date()) === formatDateAPI(new Date($('consulta-date').value + 'T12:00:00'));
-    renderConsulta(filtered, isToday);
+function filterConsulta(term) {
+    const s = term.toLowerCase();
+    let f = [...state.appointmentsConsulta];
+    if (s) f = f.filter(a => `${a.jovem} ${a.responsavel} ${a.telefone_resp}`.toLowerCase().includes(s));
+    const isToday = $('consulta-date').value && formatDateAPI(new Date()) === $('consulta-date').value;
+    renderAppointments(f, $('lista-consulta'), isToday);
 }
 
-function renderConsulta(data, isEditable) {
-    const list = $('lista-consulta');
-    list.innerHTML = '';
-    
-    if (data.length === 0) {
-        list.innerHTML = '<p class="text-center text-slate-400 py-8">Nenhum registro nesta data</p>';
-        return;
-    }
-    
-    data.forEach(item => {
-        const div = document.createElement('div');
-        const statusColor = getStatusColor(item.situacao);
-        const opBadge = state.isSupervisor 
-            ? `<span class="text-xs bg-slate-200 px-2 py-0.5 rounded font-bold">${item.operador}</span>` 
-            : '';
-        
-        div.className = `appointment-card p-4 rounded-xl bg-white border-2 ${statusColor.replace('border-l-4', '')}`;
-        div.innerHTML = `
-            <div class="flex justify-between items-start mb-2">
-                <div>
-                    <div class="flex items-center gap-2 mb-1">${opBadge}<h4 class="font-black text-slate-800 text-lg">${item.jovem}</h4></div>
-                    <p class="text-xs text-slate-500">Resp: ${item.responsavel}</p>
-                </div>
-                <div class="text-right">
-                    <div class="text-xl font-black text-slate-700">${item.horario || 'N/D'}</div>
-                    <span class="badge bg-slate-100 text-slate-600">${item.situacao || 'PENDENTE'}</span>
-                </div>
-            </div>
-            <div class="flex flex-wrap gap-4 text-xs text-slate-500 mt-2 border-t pt-2">
-                <span><i class="fas fa-phone"></i> Resp: ${item.telefone_resp || 'N/D'}</span>
-                <span><i class="fas fa-mobile-alt"></i> Jovem: ${item.telefone_jovem || 'N/D'}</span>
-                <span><i class="fas fa-map-marker-alt"></i> ${item.local || 'N/D'}</span>
-                <span><i class="fas fa-barcode"></i> ${item.codigo || 'N/A'}</span>
-            </div>
-            ${isEditable ? `
-                <select class="select-status mt-2 w-full text-xs border rounded p-1 bg-white" data-row="${item.rowId}" data-sheet="${item.sheetName}">
-                    <option value="">PENDENTE</option>
-                    <option value="CONFIRMADA" ${item.situacao === 'CONFIRMADA' ? 'selected' : ''}>CONFIRMADA</option>
-                    <option value="JÁ VEIO" ${item.situacao === 'JÁ VEIO' ? 'selected' : ''}>JÁ VEIO</option>
-                    <option value="CANCELADA" ${item.situacao === 'CANCELADA' ? 'selected' : ''}>CANCELADA</option>
-                    <option value="REAGENDAR" ${item.situacao === 'REAGENDAR' ? 'selected' : ''}>REAGENDAR</option>
-                    <option value="PUXADA" ${item.situacao === 'PUXADA' ? 'selected' : ''}>PUXADA</option>
-                    <option value="SI SEM INTERESSE" ${item.situacao === 'SI SEM INTERESSE' ? 'selected' : ''}>SEM INTERESSE</option>
-                    <option value="MATRICULA" ${item.situacao === 'MATRICULA' ? 'selected' : ''}>MATRÍCULA</option>
-                    <option value="DESCLASSIFICADA" ${item.situacao === 'DESCLASSIFICADA' ? 'selected' : ''}>DESCLASSIFICADA</option>
-                </select>
-            ` : ''}
-        `;
-        
-        if (isEditable) {
-            div.querySelector('.select-status').addEventListener('change', async (e) => {
-                const sel = e.target;
-                sel.disabled = true;
-                const payload = {
-                    action: 'updateStatus',
-                    rowId: String(sel.dataset.row).trim(),
-                    sheetName: String(sel.dataset.sheet).trim(),
-                    newStatus: String(sel.value).trim()
-                };
-                
-                try {
-                    const formData = new FormData();
-                    Object.entries(payload).forEach(([k, v]) => formData.append(k, v));
-                    await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: formData });
-                    toast('Status atualizado!', 'success');
-                } catch {
-                    toast('Erro ao atualizar', 'error');
-                }
-                sel.disabled = false;
-            });
-        }
-        
-        list.appendChild(div);
-    });
-}
-
-function getStatusColor(status) {
-    if (status === 'CONFIRMADA' || status === 'JÁ VEIO' || status === 'MATRICULA') return 'border-green-500';
-    if (status === 'CANCELADA' || status === 'SI SEM INTERESSE') return 'border-red-500';
-    if (status === 'PUXADA') return 'border-orange-500';
-    if (status === 'REAGENDAR') return 'border-blue-500';
-    return 'border-yellow-400';
-}
-
+// ==================== DASHBOARD ====================
 function updateDashboard() {
-    if (!state.user) {
-        toast('Selecione um usuário primeiro', 'warning');
-        return;
-    }
-    
+    if (!state.user) return toast('Selecione um usuário', 'warning');
     fetchAppointmentsHoje().then(() => {
-        const data = state.appointmentsHoje;
-        const confirmadas = data.filter(a => ['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(a.situacao)).length;
-        const canceladas = data.filter(a => ['CANCELADA','SI SEM INTERESSE'].includes(a.situacao)).length;
-        const puxadas = data.filter(a => a.situacao === 'PUXADA').length;
-        const pendentes = data.filter(a => !a.situacao || a.situacao === '').length;
-        const reagendar = data.filter(a => a.situacao === 'REAGENDAR').length;
-        
+        const d = state.appointmentsHoje;
+        const conf = d.filter(a=>['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(a.situacao)).length;
+        const canc = d.filter(a=>['CANCELADA','SI SEM INTERESSE'].includes(a.situacao)).length;
+        const pux = d.filter(a=>a.situacao==='PUXADA').length;
+        const pend = d.filter(a=>!a.situacao||a.situacao==='').length;
+        const reag = d.filter(a=>a.situacao==='REAGENDAR').length;
         $('stats-dashboard').innerHTML = `
-            <div class="p-3 bg-slate-50 rounded-lg flex justify-between"><span class="font-medium">Total:</span><span class="font-bold">${data.length}</span></div>
-            <div class="p-3 bg-green-50 rounded-lg flex justify-between"><span class="font-medium text-green-800">Confirmados:</span><span class="font-bold text-green-600">${confirmadas}</span></div>
-            <div class="p-3 bg-red-50 rounded-lg flex justify-between"><span class="font-medium text-red-800">Cancelados:</span><span class="font-bold text-red-600">${canceladas}</span></div>
-            <div class="p-3 bg-amber-50 rounded-lg flex justify-between"><span class="font-medium text-amber-800">Puxadas:</span><span class="font-bold text-amber-600">${puxadas}</span></div>
-            <div class="p-3 bg-blue-50 rounded-lg flex justify-between"><span class="font-medium text-blue-800">Reagendar:</span><span class="font-bold text-blue-600">${reagendar}</span></div>
-            <div class="p-3 bg-slate-100 rounded-lg flex justify-between"><span class="font-medium">Pendentes:</span><span class="font-bold text-slate-600">${pendentes}</span></div>
-        `;
-        
+            <div class="p-3 bg-slate-50 rounded-lg flex justify-between"><span>Total:</span><span class="font-bold">${d.length}</span></div>
+            <div class="p-3 bg-green-50 rounded-lg flex justify-between"><span class="text-green-800">Confirmados:</span><span class="font-bold text-green-600">${conf}</span></div>
+            <div class="p-3 bg-red-50 rounded-lg flex justify-between"><span class="text-red-800">Cancelados:</span><span class="font-bold text-red-600">${canc}</span></div>
+            <div class="p-3 bg-amber-50 rounded-lg flex justify-between"><span class="text-amber-800">Puxadas:</span><span class="font-bold text-amber-600">${pux}</span></div>
+            <div class="p-3 bg-blue-50 rounded-lg flex justify-between"><span class="text-blue-800">Reagendar:</span><span class="font-bold text-blue-600">${reag}</span></div>
+            <div class="p-3 bg-slate-100 rounded-lg flex justify-between"><span>Pendentes:</span><span class="font-bold text-slate-600">${pend}</span></div>`;
         const ctx = $('chart-dashboard').getContext('2d');
         if (state.charts.dashboard) state.charts.dashboard.destroy();
         state.charts.dashboard = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Confirmados','Cancelados','Puxadas','Reagendar','Pendentes'],
-                datasets: [{
-                    data: [confirmadas, canceladas, puxadas, reagendar, pendentes],
-                    backgroundColor: ['#10b981','#ef4444','#f59e0b','#3b82f6','#cbd5e1'],
-                    borderWidth: 2,
-                    borderColor: '#fff'
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' }
-                }
-            }
+            type:'doughnut',
+            data:{labels:['Confirmados','Cancelados','Puxadas','Reagendar','Pendentes'],datasets:[{data:[conf,canc,pux,reag,pend],backgroundColor:['#10b981','#ef4444','#f59e0b','#3b82f6','#cbd5e1'],borderWidth:2,borderColor:'#fff'}]},
+            options:{responsive:true,plugins:{legend:{position:'bottom'}}}
         });
     });
 }
 
-function saveLocalData() {
-    try {
-        localStorage.setItem('agendadorCentro', JSON.stringify({
-            recipients: state.recipients,
-            timestamp: Date.now()
-        }));
-    } catch (e) {}
-}
-
-function loadLocalData() {
-    try {
-        const raw = localStorage.getItem('agendadorCentro');
-        if (raw) {
-            const data = JSON.parse(raw);
-            if (Date.now() - data.timestamp < 86400000) {
-                state.recipients = data.recipients || [];
-                renderRecipients();
-            }
-        }
-    } catch (e) {}
-}
-
-function maskDate(el) {
-    let v = el.value.replace(/\D/g, '');
-    if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
-    if (v.length > 5) v = v.slice(0,5) + '/' + v.slice(5,9);
-    el.value = v.slice(0,10);
-}
-
-function maskPhone(el) {
-    let v = el.value.replace(/\D/g, '');
-    if (v.startsWith('5555')) v = v.substring(2);
-    if (v.length > 0 && !v.startsWith('55')) v = '55' + v;
-    el.value = v.slice(0,13);
-}
-
-function maskTime(el) {
-    let v = el.value.replace(/\D/g, '');
-    if (v.length > 2) v = v.slice(0,2) + ':' + v.slice(2,4);
-    el.value = v.slice(0,5);
-}
-
-async function fetchAgendamentosAmanha() {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    if (tomorrow.getDay() === 0) tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    const dateStr = formatDateAPI(tomorrow);
-    $('stat-ag-amanha').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    
-    try {
-        let total = 0;
-        const targets = state.isSupervisor ? OPERADORES : [{ id: state.user }];
-        for (const op of targets) {
-            const r = await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${op.id}&date=${dateStr}`);
-            const j = await r.json();
-            if (j.status === 'success') total += j.data.length;
-        }
-        $('stat-ag-amanha').textContent = total;
-    } catch {
-        $('stat-ag-amanha').textContent = '?';
-    }
-}
-
-function updateStats() {
-    const total = state.recipients.length;
-    const completos = state.recipients.filter(r => r.jovem && r.data && r.horario && r.telefone_resp).length;
-    const puxadas = state.recipients.filter(r => r.tipo === 'PUXADA').length;
-    
-    $('stat-total').textContent = total;
-    $('stat-completo').textContent = completos;
-    $('stat-puxada').textContent = puxadas;
-}
-
-function loadMetas() {
-    try {
-        const saved = localStorage.getItem('agendadorCentroMetas');
-        if (saved) {
-            const metas = JSON.parse(saved);
-            state.meta = {
-                diaria: Number(metas.diaria || 0),
-                semanal: Number(metas.semanal || 0),
-                mensal: Number(metas.mensal || 0),
-                taxa: Number(metas.taxa || 0)
-            };
-        }
-    } catch (e) {}
-}
-
-function saveMetas() {
-    const metas = {
-        diaria: Number($('meta-diaria').value || 0),
-        semanal: Number($('meta-semanal').value || 0),
-        mensal: Number($('meta-mensal').value || 0),
-        taxa: Number($('meta-taxa').value || 0)
-    };
-    state.meta = metas;
-    localStorage.setItem('agendadorCentroMetas', JSON.stringify(metas));
-    $('metas-modal').style.display = 'none';
-    toast('Metas salvas!', 'success');
-}
-
-function exportAdminData() {
-    if (state.adminData.length === 0) {
-        toast('Sem dados para exportar', 'warning');
-        return;
-    }
-    
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state.adminData, null, 2));
-    const el = document.createElement('a');
-    el.setAttribute('href', dataStr);
-    el.setAttribute('download', `relatorio_equipe_${new Date().toISOString().split('T')[0]}.json`);
-    document.body.appendChild(el);
-    el.click();
-    el.remove();
-    toast('Relatório exportado!', 'success');
-}
-
-function sendQuickMessage() {
-    const num = $('quick-telefone').value.replace(/\D/g, '');
-    if (num.length < 10) {
-        toast('Telefone inválido', 'warning');
-        return;
-    }
-    
-    const jovem = $('quick-jovem').value;
-    const data = $('quick-data').value;
-    const hora = $('quick-horario').value;
-    const local = $('quick-local').value;
-    const assist = $('quick-assistente').value;
-    
-    const assistNome = assist === 'GABRIELA' 
-        ? (local === 'Centro' ? 'Sara Gabriela Silva' : 'Sophia Martins') 
-        : (OPERADORES.find(o => o.id === assist)?.nome || assist);
-    
-    const endereco = local === 'Eldorado' 
-        ? 'Av. João César de Oliveira, 953 no 2° andar - Eldorado' 
-        : 'Rua Curitiba, 656, 11° andar - Centro, Belo Horizonte';
-    const referencia = local === 'Eldorado' 
-        ? '(Em frente a Caixa Econômica Federal, ao lado da Oral Centter, próximo ao Big Shopping)' 
-        : '(Abaixo da Galeria do Ouvidor, em frente a Casa&Video)';
-    
-    let diaSemana = '';
-    if (data && data.length === 10) {
-        const parts = data.split('/');
-        const dataAgend = new Date(parts[2], parts[1] - 1, parts[0]);
-        const diasSemana = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
-        diaSemana = diasSemana[dataAgend.getDay()];
-    }
-    
-    let telClean = num;
-    if (telClean.startsWith('5555')) telClean = telClean.substring(2);
-    if (!telClean.startsWith('55')) telClean = '55' + telClean;
-    
-    const msg = `*${diaSemana}, ${data}, às ${hora}*, ${jovem} e responsável devem comparecer à *${endereco}*, para o *Teste Vocacional e Cadastramento Gratuito* ao Mercado De Trabalho. Apresentem *RG, comprovante de residência* e procurem por *${assistNome}*. A presença de ambos é indispensável: o não comparecimento implica no bloqueio de futuras oportunidades no projeto.\n\n${referencia}`;
-    
-    window.open(`https://wa.me/${telClean}?text=${encodeURIComponent(msg)}`, '_blank');
-    $('quick-modal').style.display = 'none';
-    toast('Abrindo WhatsApp...', 'success');
-}
-
+// ==================== ADMIN ====================
 async function loadAdminData(period) {
-    toast('Carregando dados administrativos...', 'info');
+    console.log('=== ADMIN: Iniciando busca ===', period);
+    toast('Carregando dados do período: ' + period + '...', 'info');
     
+    $('admin-total').innerHTML = $('admin-confirmados').innerHTML = $('admin-taxa').innerHTML = $('admin-equipe').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    $('admin-ranking').innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-indigo-500"></i><p class="text-slate-500 mt-2">Buscando dados de todos os operadores...</p><p class="text-xs text-slate-400 mt-1" id="admin-progress">Preparando...</p></div>';
+
     const today = new Date();
-    const todayStr = formatDateAPI(today);
-    
+    let dates = [];
+
+    if (period === 'hoje') {
+        dates = [formatDateAPI(today)];
+    } else if (period === 'semana') {
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+            dates.push(formatDateAPI(d));
+        }
+    } else if (period === 'mes') {
+        for (let i = 29; i >= 0; i--) {
+            const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+            dates.push(formatDateAPI(d));
+        }
+    }
+
+    console.log('Datas a buscar:', dates);
+
     try {
         let allData = [];
         
+        // Build all request tasks
+        const tasks = [];
         for (const op of OPERADORES) {
-            const resp = await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${op.id}&date=${todayStr}`);
-            const json = await resp.json();
-            
-            if (json.status === 'success' && json.data) {
-                allData = allData.concat(json.data.map(d => ({ ...d, operador: op.id })));
+            for (const dateStr of dates) {
+                tasks.push({ op, dateStr });
             }
         }
-        
-        state.adminData = allData;
-        
-        const total = allData.length;
-        const confirmados = allData.filter(a => ['CONFIRMADA', 'JÁ VEIO', 'MATRICULA'].includes(a.situacao)).length;
-        const taxa = total > 0 ? Math.round((confirmados / total) * 100) : 0;
-        const operadoresAtivos = new Set(allData.map(a => a.operador)).size;
-        
-        $('admin-total').textContent = total;
-        $('admin-confirmados').textContent = confirmados;
-        $('admin-taxa').textContent = `${taxa}%`;
-        $('admin-equipe').textContent = operadoresAtivos;
-        
-        const rankingMap = {};
-        allData.forEach(item => {
-            if (!rankingMap[item.operador]) {
-                rankingMap[item.operador] = {
-                    nome: OPERADORES.find(o => o.id === item.operador)?.nome || item.operador,
-                    cor: OPERADORES.find(o => o.id === item.operador)?.cor || '#666',
-                    total: 0,
-                    confirmados: 0
-                };
-            }
-            rankingMap[item.operador].total++;
-            if (['CONFIRMADA', 'JÁ VEIO', 'MATRICULA'].includes(item.situacao)) {
-                rankingMap[item.operador].confirmados++;
-            }
-        });
-        
-        const ranking = Object.entries(rankingMap)
-            .map(([id, data]) => ({
-                id,
-                ...data,
-                taxa: data.total > 0 ? Math.round((data.confirmados / data.total) * 100) : 0
-            }))
-            .sort((a, b) => b.confirmados - a.confirmados);
-        
-        const rankingHTML = ranking.map((item, idx) => {
-            const medalha = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}º`;
-            return `
-                <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                    <div class="text-2xl font-black w-12 text-center">${medalha}</div>
-                    <div class="flex-1">
-                        <div class="font-bold text-slate-800">${item.nome}</div>
-                        <div class="text-xs text-slate-500">
-                            ${item.confirmados} confirmados de ${item.total} agendamentos
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-xl font-black" style="color: ${item.cor}">${item.taxa}%</div>
-                        <div class="text-xs text-slate-400">Taxa</div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-        
-        $('admin-ranking').innerHTML = rankingHTML || '<p class="text-slate-400 text-center py-4">Sem dados</p>';
-        
-        const ctx = $('admin-chart')?.getContext('2d');
-        if (ctx) {
-            if (state.charts.admin) state.charts.admin.destroy();
+
+        const totalTasks = tasks.length;
+        let completedTasks = 0;
+
+        // Process in parallel batches of 6 for speed
+        const batchSize = 6;
+        for (let i = 0; i < tasks.length; i += batchSize) {
+            const batch = tasks.slice(i, i + batchSize);
             
-            state.charts.admin = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ranking.map(r => r.nome.split(' ')[0]),
-                    datasets: [{
-                        label: 'Confirmados',
-                        data: ranking.map(r => r.confirmados),
-                        backgroundColor: ranking.map(r => r.cor),
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: { beginAtZero: true }
+            const promises = batch.map(async ({ op, dateStr }) => {
+                try {
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), 10000);
+                    
+                    const r = await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${op.id}&date=${dateStr}`, {
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeout);
+                    
+                    const j = await r.json();
+                    if (j.status === 'success' && j.data && j.data.length > 0) {
+                        console.log(`✅ ${op.id} ${dateStr}: ${j.data.length} registros`);
+                        return j.data.map(d => ({...d, operador: op.id, operadorNome: op.nome, operadorCor: op.cor}));
                     }
+                    return [];
+                } catch(e) {
+                    console.warn(`⚠️ ${op.id} ${dateStr}: timeout/erro`);
+                    return [];
                 }
             });
+
+            const results = await Promise.all(promises);
+            results.forEach(arr => { allData = allData.concat(arr); });
+            
+            completedTasks += batch.length;
+            const pctDone = Math.round((completedTasks / totalTasks) * 100);
+            const progressEl = $('admin-progress');
+            if (progressEl) {
+                progressEl.textContent = `${pctDone}% concluído (${allData.length} registros encontrados)`;
+            }
         }
-        
-        const tableHTML = allData.slice(0, 50).map(item => `
-            <tr class="hover:bg-slate-50">
-                <td class="px-4 py-2 text-xs">${item.data || 'N/D'}</td>
-                <td class="px-4 py-2 text-xs font-bold">${item.operador}</td>
-                <td class="px-4 py-2 text-xs">${item.jovem}</td>
-                <td class="px-4 py-2">
-                    <span class="badge ${getStatusBadgeClass(item.situacao)}">${item.situacao || 'PENDENTE'}</span>
-                </td>
-            </tr>
-        `).join('');
-        
-        $('admin-table-body').innerHTML = tableHTML || '<tr><td colspan="4" class="text-center py-4 text-slate-400">Sem dados</td></tr>';
-        
-        toast('Dados carregados com sucesso!', 'success');
-        
-    } catch (error) {
-        toast('Erro ao carregar dados', 'error');
-        $('admin-total').textContent = '0';
-        $('admin-confirmados').textContent = '0';
-        $('admin-taxa').textContent = '0%';
-        $('admin-equipe').textContent = '0';
-        $('admin-ranking').innerHTML = '<p class="text-red-400 text-center py-4">Erro ao carregar dados</p>';
-        $('admin-table-body').innerHTML = '<tr><td colspan="4" class="text-center py-4 text-red-400">Erro ao carregar</td></tr>';
+
+        console.log(`=== ADMIN: Total ${allData.length} registros encontrados ===`);
+
+        state.adminData = allData;
+        renderAdminResults(allData);
+
+    } catch(error) {
+        console.error('Erro admin:', error);
+        toast('Erro ao carregar: ' + error.message, 'error');
+        $('admin-total').textContent = $('admin-confirmados').textContent = '0';
+        $('admin-taxa').textContent = '0%'; $('admin-equipe').textContent = '0';
+        $('admin-ranking').innerHTML = `<div class="text-center py-8"><i class="fas fa-exclamation-triangle text-4xl text-red-300 mb-3"></i><p class="text-red-500 font-medium">Erro ao carregar dados</p><p class="text-xs text-slate-400 mt-2">${error.message}</p><button onclick="loadAdminData('hoje')" class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold"><i class="fas fa-redo"></i> Tentar Novamente</button></div>`;
     }
 }
 
-function getStatusBadgeClass(status) {
-    if (status === 'CONFIRMADA' || status === 'JÁ VEIO' || status === 'MATRICULA') return 'bg-green-100 text-green-700';
-    if (status === 'CANCELADA' || status === 'SI SEM INTERESSE') return 'bg-red-100 text-red-700';
-    if (status === 'PUXADA') return 'bg-orange-100 text-orange-700';
-    if (status === 'REAGENDAR') return 'bg-blue-100 text-blue-700';
+function renderAdminResults(allData) {
+    const total = allData.length;
+    const conf = allData.filter(a => ['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(a.situacao)).length;
+    const canc = allData.filter(a => ['CANCELADA','SI SEM INTERESSE'].includes(a.situacao)).length;
+    const taxa = total > 0 ? Math.round((conf/total)*100) : 0;
+    const ativos = new Set(allData.map(a=>a.operador)).size;
+
+    $('admin-total').textContent = total;
+    $('admin-confirmados').textContent = conf;
+    $('admin-taxa').textContent = `${taxa}%`;
+    $('admin-equipe').textContent = ativos;
+
+    // Ranking
+    const rm = {};
+    OPERADORES.forEach(o => { rm[o.id] = {id:o.id, nome:o.nome, cor:o.cor, total:0, confirmados:0, cancelados:0}; });
+    allData.forEach(i => {
+        if(rm[i.operador]) {
+            rm[i.operador].total++;
+            if(['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(i.situacao)) rm[i.operador].confirmados++;
+            if(['CANCELADA','SI SEM INTERESSE'].includes(i.situacao)) rm[i.operador].cancelados++;
+        }
+    });
+    const ranking = Object.values(rm).filter(r=>r.total>0).map(r=>({...r, taxa:r.total>0?Math.round((r.confirmados/r.total)*100):0})).sort((a,b)=>b.confirmados-a.confirmados);
+
+    if (ranking.length > 0) {
+        $('admin-ranking').innerHTML = ranking.map((item, idx) => {
+            const medal = idx===0?'🥇':idx===1?'🥈':idx===2?'🥉':`${idx+1}º`;
+            const pct = item.total > 0 ? Math.round((item.confirmados/item.total)*100) : 0;
+            return `<div class="flex items-center gap-3 p-4 bg-gradient-to-r from-slate-50 to-white rounded-xl hover:shadow-md transition-all border border-slate-100">
+                <div class="text-3xl font-black w-14 text-center">${medal}</div>
+                <div class="w-3 h-12 rounded-full" style="background:${item.cor}"></div>
+                <div class="flex-1">
+                    <div class="font-bold text-slate-800 text-lg">${item.nome}</div>
+                    <div class="text-sm text-slate-500">
+                        <span class="text-green-600 font-bold">${item.confirmados}</span> confirmados •
+                        <span class="text-red-500 font-bold">${item.cancelados}</span> cancelados •
+                        <span class="font-bold">${item.total}</span> total
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-2 mt-1"><div class="h-2 rounded-full" style="width:${pct}%;background:${item.cor}"></div></div>
+                </div>
+                <div class="text-right"><div class="text-2xl font-black" style="color:${item.cor}">${item.taxa}%</div><div class="text-xs text-slate-400">Taxa</div></div>
+            </div>`;
+        }).join('');
+    } else {
+        $('admin-ranking').innerHTML = `<div class="text-center py-8">
+            <i class="fas fa-inbox text-4xl text-slate-300 mb-3"></i>
+            <p class="text-slate-400 font-medium">Nenhum dado encontrado neste período</p>
+            <p class="text-xs text-slate-300 mt-1">Tente outro período ou verifique se há agendamentos lançados</p>
+        </div>`;
+    }
+
+    // Chart
+    const ctx = $('admin-chart');
+    if (ctx) {
+        if (state.charts.admin) state.charts.admin.destroy();
+        if (ranking.length > 0) {
+            state.charts.admin = new Chart(ctx.getContext('2d'), {
+                type:'bar',
+                data:{
+                    labels:ranking.map(r=>r.nome.split(' ')[0]),
+                    datasets:[
+                        {label:'Confirmados',data:ranking.map(r=>r.confirmados),backgroundColor:ranking.map(r=>r.cor),borderWidth:0,borderRadius:8},
+                        {label:'Total',data:ranking.map(r=>r.total),backgroundColor:ranking.map(r=>r.cor+'40'),borderWidth:2,borderColor:ranking.map(r=>r.cor),borderRadius:8}
+                    ]
+                },
+                options:{responsive:true,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}}
+            });
+        }
+    }
+
+    // Table
+    if (allData.length > 0) {
+        const sorted = [...allData].sort((a,b) => (b.data||'').localeCompare(a.data||''));
+        $('admin-table-body').innerHTML = sorted.slice(0,100).map(i => `
+            <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 text-sm">${i.data||'N/D'}</td>
+                <td class="px-4 py-3"><span class="font-bold text-sm" style="color:${i.operadorCor||'#666'}">${i.operador}</span></td>
+                <td class="px-4 py-3 text-sm font-medium">${i.jovem||'N/D'}</td>
+                <td class="px-4 py-3"><span class="badge ${getStatusBadge(i.situacao)}">${i.situacao||'PENDENTE'}</span></td>
+            </tr>
+        `).join('');
+    } else {
+        $('admin-table-body').innerHTML = '<tr><td colspan="4" class="text-center py-8 text-slate-400">Nenhum registro encontrado</td></tr>';
+    }
+
+    if (total > 0) toast(`✅ ${total} registros de ${ativos} operadores carregados!`, 'success');
+    else toast('Nenhum dado encontrado neste período', 'warning');
+}
+
+// ==================== HELPERS ====================
+function getStatusColor(s) {
+    if (['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(s)) return 'border-green-500';
+    if (['CANCELADA','SI SEM INTERESSE'].includes(s)) return 'border-red-500';
+    if (s==='PUXADA') return 'border-orange-500';
+    if (s==='REAGENDAR') return 'border-blue-500';
+    return 'border-yellow-400';
+}
+
+function getStatusBadge(s) {
+    if (['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(s)) return 'bg-green-100 text-green-700';
+    if (['CANCELADA','SI SEM INTERESSE'].includes(s)) return 'bg-red-100 text-red-700';
+    if (s==='PUXADA') return 'bg-orange-100 text-orange-700';
+    if (s==='REAGENDAR') return 'bg-blue-100 text-blue-700';
     return 'bg-yellow-100 text-yellow-700';
 }
+
+function updateStats() {
+    const t = state.recipients.length;
+    $('stat-total').textContent = t;
+    $('stat-completo').textContent = state.recipients.filter(r=>r.jovem&&r.data&&r.horario&&r.telefone_resp).length;
+    $('stat-puxada').textContent = state.recipients.filter(r=>r.tipo==='PUXADA').length;
+}
+
+async function fetchAgendamentosAmanha() {
+    const tm = new Date(); tm.setDate(tm.getDate()+1);
+    if (tm.getDay()===0) tm.setDate(tm.getDate()+1);
+    $('stat-ag-amanha').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    try {
+        let total = 0;
+        const targets = state.isSupervisor ? OPERADORES : [{id:state.user}];
+        for (const op of targets) {
+            const r = await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${op.id}&date=${formatDateAPI(tm)}`);
+            const j = await r.json();
+            if (j.status==='success') total += j.data.length;
+        }
+        $('stat-ag-amanha').textContent = total;
+    } catch { $('stat-ag-amanha').textContent = '?'; }
+}
+
+function sendQuickMessage() {
+    const num = $('quick-telefone').value.replace(/\D/g,'');
+    if (num.length < 10) return toast('Telefone inválido', 'warning');
+    const jovem = $('quick-jovem').value, data = $('quick-data').value, hora = $('quick-horario').value;
+    const local = $('quick-local').value, assist = $('quick-assistente').value;
+    const nome = assist==='GABRIELA'?(local==='Centro'?'Sara Gabriela Silva':'Sophia Martins'):(OPERADORES.find(o=>o.id===assist)?.nome||assist);
+    const end = local==='Eldorado'?'Av. João César de Oliveira, 953 no 2° andar - Eldorado':'Rua Curitiba, 656, 11° andar - Centro, Belo Horizonte';
+    const ref = local==='Eldorado'?'(Em frente a Caixa Econômica Federal, ao lado da Oral Centter, próximo ao Big Shopping)':'(Abaixo da Galeria do Ouvidor, em frente a Casa&Video)';
+    let dia = '';
+    if (data&&data.length===10){ const p=data.split('/'); dia=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'][new Date(p[2],p[1]-1,p[0]).getDay()]; }
+    let tel = num; if(tel.startsWith('5555')) tel=tel.substring(2); if(!tel.startsWith('55')) tel='55'+tel;
+    const msg = `*${dia}, ${data}, às ${hora}*, ${jovem} e responsável devem comparecer à *${end}*, para o *Teste Vocacional e Cadastramento Gratuito* ao Mercado De Trabalho. Apresentem *RG, comprovante de residência* e procurem por *${nome}*. A presença de ambos é indispensável: o não comparecimento implica no bloqueio de futuras oportunidades no projeto.\n\n${ref}`;
+    window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`, '_blank');
+    hideModal('quick-modal'); toast('Abrindo WhatsApp...', 'success');
+}
+
+// ==================== LOCAL STORAGE ====================
+function saveLocalData() { try { localStorage.setItem('agCentro', JSON.stringify({recipients:state.recipients,ts:Date.now()})); } catch{} }
+function loadLocalData() { try { const r=localStorage.getItem('agCentro'); if(r){const d=JSON.parse(r); if(Date.now()-d.ts<86400000){state.recipients=d.recipients||[];renderRecipients();}} } catch{} }
+function loadMetas() { try { const s=localStorage.getItem('agCentroMetas'); if(s){const m=JSON.parse(s);state.meta={diaria:+m.diaria||0,semanal:+m.semanal||0,mensal:+m.mensal||0,taxa:+m.taxa||0};} } catch{} }
+function saveMetas() { state.meta={diaria:+$('meta-diaria').value||0,semanal:+$('meta-semanal').value||0,mensal:+$('meta-mensal').value||0,taxa:+$('meta-taxa').value||0}; localStorage.setItem('agCentroMetas',JSON.stringify(state.meta)); hideModal('metas-modal'); toast('Metas salvas!','success'); }
+function exportAdminData() { if(!state.adminData.length) return toast('Sem dados','warning'); const a=document.createElement('a'); a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(state.adminData,null,2)); a.download=`relatorio_${new Date().toISOString().split('T')[0]}.json`; a.click(); toast('Exportado!','success'); }
+
+// ==================== MASKS ====================
+function maskDate(el) { let v=el.value.replace(/\D/g,''); if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2); if(v.length>5)v=v.slice(0,5)+'/'+v.slice(5,9); el.value=v.slice(0,10); }
+function maskPhone(el) { let v=el.value.replace(/\D/g,''); if(v.startsWith('5555'))v=v.substring(2); if(v.length>0&&!v.startsWith('55'))v='55'+v; el.value=v.slice(0,13); }
+function maskTime(el) { let v=el.value.replace(/\D/g,''); if(v.length>2)v=v.slice(0,2)+':'+v.slice(2,4); el.value=v.slice(0,5); }
 </script>
 </body>
 </html>

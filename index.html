@@ -469,7 +469,80 @@ document.addEventListener('DOMContentLoaded', () => {
     updateClock(); setInterval(updateClock, 1000);
     loadTheme(); loadMetas(); loadLocalData(); loadSavedUser();
     setupAllEvents(); switchTab('agendar');
+    // Auto-sync operadores da planilha se for admin
+    setTimeout(() => { if (state.isSupervisor) autoSyncOperadores(); }, 1500);
 });
+
+// Auto-sincronizar operadores da planilha (silencioso)
+async function autoSyncOperadores() {
+    try {
+        console.log('🔄 Auto-sincronizando operadores da planilha...');
+        const r = await fetch(`${SCRIPT_URL}?action=getOperadores&unidade=Centro`);
+        const j = await r.json();
+        if (j.status === 'success' && j.data && j.data.length > 0) {
+            const sheetOps = j.data;
+            const merged = [];
+            const sheetIds = new Set();
+
+            sheetOps.forEach(sop => {
+                const opId = (sop.apelido || sop.id || '').toString().trim().toUpperCase();
+                if (!opId) return;
+                sheetIds.add(opId);
+                const local = OPERADORES.find(o => o.id === opId);
+                merged.push({
+                    id: opId,
+                    nome: sop.nome || local?.nome || opId,
+                    cor: sop.cor || local?.cor || '#6366f1',
+                    telefone: sop.telefone || local?.telefone || '',
+                    nascimento: sop.nascimento || local?.nascimento || '',
+                    email: sop.email || local?.email || '',
+                    endereco: sop.endereco || local?.endereco || '',
+                    cargo: sop.cargo || local?.cargo || 'Operador',
+                    foto: local?.foto || ''
+                });
+            });
+
+            // Mantém operadores locais que não estão na planilha
+            OPERADORES.forEach(op => {
+                if (!sheetIds.has(op.id)) merged.push(op);
+            });
+
+            OPERADORES = merged;
+            saveOperadores(); populateSelects();
+            console.log(`✅ Auto-sync: ${sheetOps.length} operadores da planilha`);
+        } else {
+            console.log('⚠️ Planilha sem dados de operadores, enviando locais...');
+            await pushAllOperadoresToSheet();
+        }
+    } catch(e) {
+        console.log('⚠️ Auto-sync falhou (usando dados locais): ' + e.message);
+    }
+}
+
+// Enviar todos operadores locais para a planilha
+async function pushAllOperadoresToSheet() {
+    let enviados = 0;
+    for (const op of OPERADORES) {
+        const payload = JSON.stringify({
+            action: 'saveOperador', apelido: op.id, nome: op.nome,
+            telefone: op.telefone || '', nascimento: op.nascimento || '',
+            email: op.email || '', endereco: op.endereco || '',
+            cargo: op.cargo || 'Operador', cor: op.cor || '#6366f1',
+            horario_cadastro: new Date().toLocaleString('pt-BR'), unidade: 'Centro'
+        });
+        try {
+            await fetch(SCRIPT_URL, { method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: payload });
+            enviados++;
+        } catch(e) {
+            try {
+                await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type':'application/json'}, body: payload });
+                enviados++;
+            } catch(e2) { console.error(`❌ Falha ao enviar ${op.id}:`, e2); }
+        }
+    }
+    console.log(`✅ ${enviados}/${OPERADORES.length} operadores enviados para a planilha`);
+    return enviados;
+}
 
 function updateClock() { $('live-clock').textContent = new Date().toLocaleTimeString('pt-BR'); }
 
@@ -553,25 +626,30 @@ function saveOperadorForm() {
 
     saveOperadores(); populateSelects(); renderOperadores(); hideModal('operador-modal');
 
-    // Salvar na planilha
-    try {
-        fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({
-                action: 'saveOperador',
-                apelido: data.id,
-                nome: data.nome,
-                telefone: data.telefone || '',
-                nascimento: data.nascimento || '',
-                email: data.email || '',
-                endereco: data.endereco || '',
-                cargo: data.cargo || 'Operador',
-                cor: data.cor || '#6366f1',
-                horario_cadastro: new Date().toLocaleString('pt-BR'),
-                unidade: 'Centro'
-            })
+    // Salvar na planilha (para persistência global entre dispositivos)
+    const payload = {
+        action: 'saveOperador',
+        apelido: data.id,
+        nome: data.nome,
+        telefone: data.telefone || '',
+        nascimento: data.nascimento || '',
+        email: data.email || '',
+        endereco: data.endereco || '',
+        cargo: data.cargo || 'Operador',
+        cor: data.cor || '#6366f1',
+        horario_cadastro: new Date().toLocaleString('pt-BR'),
+        unidade: 'Centro'
+    };
+    console.log('📤 Enviando operador para planilha:', payload);
+    // Tenta enviar com resposta primeiro, fallback para no-cors
+    fetch(SCRIPT_URL, { method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify(payload) })
+        .then(r => { console.log('✅ Operador enviado para planilha!'); toast('✅ Salvo na planilha! Todos os admins verão.', 'success'); })
+        .catch(err => {
+            console.log('⚠️ Tentando no-cors...');
+            fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+                .then(() => { toast('✅ Salvo na planilha!', 'success'); })
+                .catch(e2 => { console.error('❌ Erro:', e2); toast('⚠️ Salvo localmente. Clique Sincronizar depois.', 'warning'); });
         });
-        toast('Dados enviados para a planilha!', 'info');
-    } catch(e) { toast('Salvo localmente (erro ao enviar para planilha)', 'warning'); }
 }
 
 function confirmDeleteOperador(opId) {
@@ -590,34 +668,41 @@ function deleteOperador() {
     hideModal('confirm-delete-modal');
     toast('Operador excluído!', 'success');
 
-    // Notificar planilha da exclusão
-    try {
-        fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({ action: 'deleteOperador', apelido: opId, unidade: 'Centro' })
+    // Notificar planilha da exclusão (marca como INATIVO para segurança)
+    const payload = JSON.stringify({ action: 'deleteOperador', apelido: opId, unidade: 'Centro' });
+    console.log('🗑️ Excluindo operador da planilha:', opId);
+    fetch(SCRIPT_URL, { method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: payload })
+        .then(() => { console.log('✅ Operador excluído da planilha'); toast('✅ Excluído da planilha!', 'info'); })
+        .catch(() => {
+            fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type':'application/json'}, body: payload })
+                .then(() => toast('✅ Excluído da planilha!', 'info'))
+                .catch(e => console.error('❌ Erro:', e));
         });
-    } catch(e) {}
 
     state.deletingOperadorId = null;
 }
 
-// Sincronizar operadores da planilha
+// Sincronizar operadores da planilha (botão manual - com feedback completo)
 async function syncOperadoresFromSheet() {
-    toast('Sincronizando com a planilha...', 'info');
+    toast('🔄 Sincronizando com a planilha...', 'info');
     try {
         const r = await fetch(`${SCRIPT_URL}?action=getOperadores&unidade=Centro`);
         const j = await r.json();
+        console.log('📥 Resposta getOperadores:', j);
+
         if (j.status === 'success' && j.data && j.data.length > 0) {
-            // Merge: planilha tem prioridade, mas mantém dados locais extras
             const sheetOps = j.data;
             const merged = [];
             const sheetIds = new Set();
 
             sheetOps.forEach(sop => {
-                sheetIds.add(sop.apelido || sop.id);
-                const local = OPERADORES.find(o => o.id === (sop.apelido || sop.id));
+                const opId = (sop.apelido || sop.id || '').toString().trim().toUpperCase();
+                if (!opId) return;
+                sheetIds.add(opId);
+                const local = OPERADORES.find(o => o.id === opId);
                 merged.push({
-                    id: sop.apelido || sop.id,
-                    nome: sop.nome || local?.nome || '',
+                    id: opId,
+                    nome: sop.nome || local?.nome || opId,
                     cor: sop.cor || local?.cor || '#6366f1',
                     telefone: sop.telefone || local?.telefone || '',
                     nascimento: sop.nascimento || local?.nascimento || '',
@@ -637,25 +722,58 @@ async function syncOperadoresFromSheet() {
             saveOperadores(); populateSelects(); renderOperadores();
             toast(`✅ Sincronizado! ${sheetOps.length} operadores da planilha`, 'success');
         } else {
-            toast('Nenhum operador encontrado na planilha. Enviando dados locais...', 'warning');
-            // Enviar todos os operadores locais para a planilha
+            toast('📤 Planilha vazia! Enviando todos os operadores...', 'warning');
+            let enviados = 0;
             for (const op of OPERADORES) {
                 try {
-                    await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type':'application/json'},
+                    console.log(`📤 Enviando ${op.id}...`);
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'text/plain;charset=utf-8'},
                         body: JSON.stringify({
-                            action: 'saveOperador', apelido: op.id, nome: op.nome,
-                            telefone: op.telefone || '', nascimento: op.nascimento || '',
-                            email: op.email || '', endereco: op.endereco || '',
-                            cargo: op.cargo || 'Operador', cor: op.cor || '#6366f1',
-                            horario_cadastro: new Date().toLocaleString('pt-BR'), unidade: 'Centro'
+                            action: 'saveOperador',
+                            apelido: op.id,
+                            nome: op.nome,
+                            telefone: op.telefone || '',
+                            nascimento: op.nascimento || '',
+                            email: op.email || '',
+                            endereco: op.endereco || '',
+                            cargo: op.cargo || 'Operador',
+                            cor: op.cor || '#6366f1',
+                            horario_cadastro: new Date().toLocaleString('pt-BR'),
+                            unidade: 'Centro'
                         })
                     });
-                } catch(e) {}
+                    enviados++;
+                    console.log(`✅ ${op.id} enviado!`);
+                } catch(err) {
+                    console.log(`⚠️ Erro ao enviar ${op.id}:`, err.message);
+                    // Tenta com mode no-cors como fallback
+                    try {
+                        await fetch(SCRIPT_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                action: 'saveOperador',
+                                apelido: op.id, nome: op.nome,
+                                telefone: op.telefone || '', nascimento: op.nascimento || '',
+                                email: op.email || '', endereco: op.endereco || '',
+                                cargo: op.cargo || 'Operador', cor: op.cor || '#6366f1',
+                                horario_cadastro: new Date().toLocaleString('pt-BR'), unidade: 'Centro'
+                            })
+                        });
+                        enviados++;
+                        console.log(`✅ ${op.id} enviado (no-cors)!`);
+                    } catch(e2) { console.error(`❌ Falha total ${op.id}:`, e2); }
+                }
             }
-            toast(`✅ ${OPERADORES.length} operadores enviados para a planilha!`, 'success');
+            toast(`✅ ${enviados} operadores enviados para a planilha! Clique em Sincronizar novamente para confirmar.`, 'success');
+            renderOperadores();
         }
     } catch(e) {
-        toast('Erro ao sincronizar: ' + e.message, 'error');
+        console.error('❌ Erro sync:', e);
+        toast('⚠️ Erro de conexão. Verifique se o Apps Script foi atualizado e reimplantado. Erro: ' + e.message, 'error');
     }
 }
 
@@ -764,8 +882,18 @@ function loadSavedUser() {
 function saveUser() { try { localStorage.setItem('agCentroUser', state.user); localStorage.setItem('agCentroSuper', state.isSupervisor.toString()); localStorage.setItem('agCentroAuth', 'true'); } catch(e) {} }
 function checkPassword() {
     const pwd = $('supervisor-password').value;
-    if (state.user === 'RAIANE' && pwd === SUPERVISOR_PASS) { state.isSupervisor = true; applySupervisorMode(true); hideModal('password-modal'); toast('Bem-vinda, Gerente Raiane! 👑', 'success'); saveUser(); updateStats(); fetchAgendamentosAmanha(); }
-    else if (state.user === 'WELKER' && pwd === WELKER_PASS) { state.isSupervisor = true; applySupervisorMode(true); hideModal('password-modal'); toast('Bem-vindo, Supervisor Welker! 🛡️', 'success'); saveUser(); updateStats(); fetchAgendamentosAmanha(); }
+    if (state.user === 'RAIANE' && pwd === SUPERVISOR_PASS) {
+        state.isSupervisor = true; applySupervisorMode(true); hideModal('password-modal');
+        toast('Bem-vinda, Gerente Raiane! 👑', 'success'); saveUser(); updateStats(); fetchAgendamentosAmanha();
+        // Auto-sync operadores ao logar como admin
+        setTimeout(() => autoSyncOperadores(), 500);
+    }
+    else if (state.user === 'WELKER' && pwd === WELKER_PASS) {
+        state.isSupervisor = true; applySupervisorMode(true); hideModal('password-modal');
+        toast('Bem-vindo, Supervisor Welker! 🛡️', 'success'); saveUser(); updateStats(); fetchAgendamentosAmanha();
+        // Auto-sync operadores ao logar como admin
+        setTimeout(() => autoSyncOperadores(), 500);
+    }
     else if (state.user === 'ALANA' && pwd === ALANA_PASS) { state.isSupervisor = false; applySupervisorMode(false); hideModal('password-modal'); toast('Bem-vinda, Alana! ✨', 'success'); saveUser(); updateStats(); }
     else { toast('Senha incorreta!', 'error'); $('supervisor-password').value = ''; }
 }
@@ -789,7 +917,7 @@ function switchTab(target) {
     if (btn) { btn.classList.remove('text-slate-600','hover:bg-slate-50'); btn.classList.add('bg-indigo-600','text-white','shadow-lg'); }
     if (target === 'agendamentos') fetchAppointmentsHoje();
     if (target === 'dashboard') updateDashboard();
-    if (target === 'admin' && state.isSupervisor) { loadAdminData('hoje'); }
+    if (target === 'admin' && state.isSupervisor) { autoSyncOperadores().then(() => { populateSelects(); loadAdminData('hoje'); }); }
 }
 
 function switchAdminTab(tab) {

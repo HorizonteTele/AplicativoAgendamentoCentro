@@ -3,28 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agendador PRO 3.1 - Unidade Centro</title>
+    <title>Agendador PRO 3.2 - Unidade Centro</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #6366f1; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; }
+        :root { --primary: #6366f1; --primary-dark: #4f46e5; --secondary: #8b5cf6; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; }
         body { font-family: 'Inter', sans-serif; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         .fade-in { animation: fadeIn 0.4s ease-out; }
         .slide-in { animation: slideIn 0.3s ease-out; }
         .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { padding: 16px 20px; border-radius: 12px; color: white; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: fadeIn 0.3s; display: flex; align-items: center; gap: 10px; min-width: 300px; }
+        .toast { padding: 16px 20px; border-radius: 12px; color: white; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: fadeIn 0.3s; display: flex; align-items: center; gap: 10px; min-width: 300px; max-width: 420px; }
         .toast-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
         .toast-error { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
         .toast-info { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
         .toast-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
         .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
-        .stat-card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; transition: transform 0.2s; }
-        .stat-card:hover { transform: translateY(-2px); }
+        .stat-card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; transition: all 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 15px -3px rgba(0,0,0,0.1); }
         .filter-chip { padding: 6px 12px; border-radius: 20px; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
         .filter-chip:hover { transform: scale(1.05); }
         .filter-chip.active { border-color: currentColor; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
@@ -34,20 +35,33 @@
         .collapsible-content.expanded { max-height: 2000px; }
         .modal-overlay { display: none; }
         .modal-overlay.active { display: flex; }
+        .progress-bar { height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #6366f1, #8b5cf6); transition: width 0.3s; border-radius: 2px; }
+        .op-card { transition: all 0.3s ease; cursor: pointer; }
+        .op-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -4px rgba(0,0,0,0.15); }
+        .op-avatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .op-avatar-placeholder { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 900; color: white; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         body.dark-mode { background: #0f172a; color: #e2e8f0; }
         body.dark-mode .bg-white { background: #1e293b !important; border-color: #334155 !important; }
-        body.dark-mode .bg-slate-50 { background: #0b1220 !important; }
+        body.dark-mode .bg-slate-50, body.dark-mode .bg-slate-100 { background: #0f172a !important; }
+        body.dark-mode .bg-slate-200 { background: #1f2937 !important; }
         body.dark-mode .text-slate-800, body.dark-mode .text-slate-700 { color: #e2e8f0 !important; }
         body.dark-mode .text-slate-600, body.dark-mode .text-slate-500, body.dark-mode .text-slate-400 { color: #cbd5e1 !important; }
+        body.dark-mode .border-slate-200, body.dark-mode .border-slate-100 { border-color: #334155 !important; }
         body.dark-mode .stat-card { background: #1e293b !important; border-color: #334155 !important; }
         body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background: #0f172a !important; color: #e2e8f0 !important; border-color: #334155 !important; }
+        body.dark-mode .badge { border-color: #334155 !important; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800">
     <div id="toast-container" class="toast-container"></div>
 
-    <!-- Password Modal -->
-    <div id="password-modal" class="modal-overlay fixed inset-0 bg-black/80 z-50 items-center justify-center">
+    <!-- ========== PASSWORD MODAL ========== -->
+    <div id="password-modal" class="modal-overlay fixed inset-0 bg-black/80 z-50 items-center justify-center backdrop-blur-sm">
         <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl m-4">
             <div class="text-center mb-6">
                 <div class="w-16 h-16 bg-gradient-to-br from-purple-600 to-purple-700 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
@@ -58,467 +72,359 @@
             </div>
             <input type="password" id="supervisor-password" class="w-full p-4 text-center text-xl font-bold border-2 border-slate-200 rounded-xl focus:border-purple-600 focus:ring-0 outline-none mb-4" placeholder="Senha...">
             <div class="flex gap-3">
-                <button id="btn-cancel-auth" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300">Cancelar</button>
-                <button id="btn-confirm-auth" class="flex-1 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold rounded-xl hover:from-purple-700 hover:to-purple-800 shadow-lg">Entrar</button>
+                <button id="btn-cancel-auth" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 transition-colors">Cancelar</button>
+                <button id="btn-confirm-auth" class="flex-1 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold rounded-xl hover:from-purple-700 hover:to-purple-800 shadow-lg transition-all">Entrar</button>
             </div>
         </div>
     </div>
 
-    <!-- Gerar Mensagens Modal -->
-    <div id="mensagens-modal" class="modal-overlay fixed inset-0 bg-black/80 z-50 items-center justify-center">
+    <!-- ========== GERAR MENSAGENS MODAL ========== -->
+    <div id="mensagens-modal" class="modal-overlay fixed inset-0 bg-black/80 z-50 items-center justify-center backdrop-blur-sm">
         <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl m-4">
             <h3 class="text-2xl font-black text-slate-800 mb-6 flex items-center gap-2">
                 <i class="fas fa-comments text-indigo-600"></i> Gerar Mensagens
             </h3>
             <p class="text-slate-600 mb-4">Escolha o tipo de mensagem:</p>
             <div class="space-y-3">
-                <button id="btn-gen-rapida" class="w-full py-4 bg-gradient-to-r from-slate-700 to-slate-800 text-white font-bold rounded-xl hover:from-slate-800 hover:to-slate-900 shadow-lg flex items-center justify-center gap-2">
+                <button id="btn-gen-rapida" class="w-full py-4 bg-gradient-to-r from-slate-700 to-slate-800 text-white font-bold rounded-xl hover:from-slate-800 hover:to-slate-900 shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95">
                     <i class="fas fa-paper-plane"></i> Mensagem Rápida
                 </button>
-                <button id="btn-gen-projeto" class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg flex items-center justify-center gap-2">
+                <button id="btn-gen-projeto" class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95">
                     <i class="fas fa-users"></i> Projeto Conecta Jovem
                 </button>
-                <button id="btn-gen-instituto" class="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold rounded-xl hover:from-purple-700 hover:to-purple-800 shadow-lg flex items-center justify-center gap-2">
+                <button id="btn-gen-instituto" class="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold rounded-xl hover:from-purple-700 hover:to-purple-800 shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95">
                     <i class="fas fa-university"></i> Instituto Conecta Jovem
                 </button>
             </div>
-            <button id="btn-close-mensagens" class="w-full mt-4 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200">Fechar</button>
+            <button id="btn-close-mensagens" class="w-full mt-4 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors">Fechar</button>
         </div>
     </div>
 
-    <!-- Quick Message Modal -->
-    <div id="quick-modal" class="modal-overlay fixed inset-0 bg-black/80 z-50 items-center justify-center">
+    <!-- ========== QUICK MESSAGE MODAL ========== -->
+    <div id="quick-modal" class="modal-overlay fixed inset-0 bg-black/80 z-50 items-center justify-center backdrop-blur-sm">
         <div class="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl m-4">
             <h3 class="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
                 <i class="fas fa-paper-plane text-blue-500"></i> Mensagem Rápida
             </h3>
             <div class="space-y-3">
-                <input type="text" id="quick-jovem" placeholder="Nome do Jovem" class="w-full p-3 border-2 border-slate-200 rounded-xl">
+                <input type="text" id="quick-jovem" placeholder="Nome do Jovem" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none">
                 <div class="grid grid-cols-2 gap-3">
-                    <input type="text" id="quick-data" placeholder="Data (DD/MM/AAAA)" class="w-full p-3 border-2 border-slate-200 rounded-xl date-mask">
-                    <input type="text" id="quick-horario" placeholder="Hora (HH:MM)" class="w-full p-3 border-2 border-slate-200 rounded-xl time-mask">
+                    <input type="text" id="quick-data" placeholder="Data (DD/MM/AAAA)" class="w-full p-3 border-2 border-slate-200 rounded-xl date-mask focus:border-indigo-500 outline-none">
+                    <input type="text" id="quick-horario" placeholder="Hora (HH:MM)" class="w-full p-3 border-2 border-slate-200 rounded-xl time-mask focus:border-indigo-500 outline-none">
                 </div>
                 <select id="quick-local" class="w-full p-3 border-2 border-slate-200 rounded-xl bg-white">
                     <option value="Centro" selected>Centro</option>
                     <option value="Eldorado">Eldorado</option>
                 </select>
-                <select id="quick-assistente" class="w-full p-3 border-2 border-slate-200 rounded-xl bg-white">
-                    <option value="ALANA">ALANA</option>
-                    <option value="BARBÁRA">BARBÁRA</option>
-                    <option value="GABRIELA">GABRIELA</option>
-                    <option value="IGOR">IGOR</option>
-                    <option value="NAIARA">NAIARA</option>
-                    <option value="NOEMY">NOEMY</option>
-                    <option value="RAIANE">RAIANE</option>
-                    <option value="SHEILA">SHEILA</option>
-                    <option value="THAIS">THAIS</option>
-                    <option value="TREINAMENTO">TREINAMENTO</option>
-                    <option value="WELKER">WELKER</option>
-                </select>
-                <input type="text" id="quick-telefone" placeholder="Telefone (com DDD)" class="w-full p-3 border-2 border-slate-200 rounded-xl phone-mask">
+                <select id="quick-assistente" class="w-full p-3 border-2 border-slate-200 rounded-xl bg-white"></select>
+                <input type="text" id="quick-telefone" placeholder="Telefone (com DDD)" class="w-full p-3 border-2 border-slate-200 rounded-xl phone-mask focus:border-indigo-500 outline-none">
             </div>
             <div class="flex gap-3 mt-6">
-                <button id="btn-cancel-quick" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300">Fechar</button>
-                <button id="btn-send-quick" class="flex-1 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold rounded-xl hover:from-green-700 hover:to-green-800 shadow-lg">
+                <button id="btn-cancel-quick" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 transition-colors">Fechar</button>
+                <button id="btn-send-quick" class="flex-1 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold rounded-xl hover:from-green-700 hover:to-green-800 shadow-lg transition-all">
                     <i class="fab fa-whatsapp"></i> Enviar
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Metas Modal -->
-    <div id="metas-modal" class="modal-overlay fixed inset-0 bg-black/80 z-50 items-center justify-center">
+    <!-- ========== METAS MODAL ========== -->
+    <div id="metas-modal" class="modal-overlay fixed inset-0 bg-black/80 z-50 items-center justify-center backdrop-blur-sm">
         <div class="bg-white rounded-2xl p-8 max-w-lg w-full shadow-2xl m-4">
             <h3 class="text-2xl font-black text-slate-800 mb-6 flex items-center gap-2">
                 <i class="fas fa-bullseye text-red-500"></i> Definir Metas
             </h3>
             <div class="space-y-4">
-                <div>
-                    <label class="block font-bold text-sm text-slate-600 mb-1">Meta Diária (por operador)</label>
-                    <input type="number" id="meta-diaria" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold">
-                </div>
-                <div>
-                    <label class="block font-bold text-sm text-slate-600 mb-1">Meta Semanal (por operador)</label>
-                    <input type="number" id="meta-semanal" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold">
-                </div>
-                <div>
-                    <label class="block font-bold text-sm text-slate-600 mb-1">Meta Mensal (por operador)</label>
-                    <input type="number" id="meta-mensal" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold">
-                </div>
-                <div>
-                    <label class="block font-bold text-sm text-slate-600 mb-1">Taxa Mínima (%)</label>
-                    <input type="number" id="meta-taxa" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold">
-                </div>
+                <div><label class="block font-bold text-sm text-slate-600 mb-1">Meta Diária (por operador)</label><input type="number" id="meta-diaria" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold focus:border-indigo-500 outline-none"></div>
+                <div><label class="block font-bold text-sm text-slate-600 mb-1">Meta Semanal (por operador)</label><input type="number" id="meta-semanal" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold focus:border-indigo-500 outline-none"></div>
+                <div><label class="block font-bold text-sm text-slate-600 mb-1">Meta Mensal (por operador)</label><input type="number" id="meta-mensal" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold focus:border-indigo-500 outline-none"></div>
+                <div><label class="block font-bold text-sm text-slate-600 mb-1">Taxa Mínima de Sucesso (%)</label><input type="number" id="meta-taxa" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold focus:border-indigo-500 outline-none"></div>
             </div>
             <div class="flex gap-3 mt-8">
-                <button id="btn-cancel-metas" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300">Cancelar</button>
-                <button id="btn-save-metas" class="flex-1 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold rounded-xl hover:from-green-700 hover:to-green-800 shadow-lg">Salvar Metas</button>
+                <button id="btn-cancel-metas" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 transition-colors">Cancelar</button>
+                <button id="btn-save-metas" class="flex-1 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold rounded-xl hover:from-green-700 hover:to-green-800 shadow-lg transition-all">Salvar Metas</button>
             </div>
         </div>
     </div>
 
-    <!-- Edit Modal -->
-    <div id="edit-modal" class="modal-overlay fixed inset-0 bg-black/80 z-50 items-center justify-center">
+    <!-- ========== EDIT MODAL ========== -->
+    <div id="edit-modal" class="modal-overlay fixed inset-0 bg-black/80 z-50 items-center justify-center backdrop-blur-sm">
         <div class="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl m-4 max-h-[90vh] overflow-y-auto">
-            <h3 class="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
-                <i class="fas fa-edit text-indigo-600"></i> Editar Agendamento
-            </h3>
+            <h3 class="text-xl font-black text-slate-800 mb-4 flex items-center gap-2"><i class="fas fa-edit text-indigo-600"></i> Editar Agendamento</h3>
             <div class="space-y-3">
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nome do Jovem</label>
-                    <input type="text" id="edit-jovem" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Responsável</label>
-                    <input type="text" id="edit-responsavel" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold">
+                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nome do Jovem</label><input type="text" id="edit-jovem" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold focus:border-indigo-500 outline-none"></div>
+                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Responsável</label><input type="text" id="edit-responsavel" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold focus:border-indigo-500 outline-none"></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Data</label><input type="text" id="edit-data" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold date-mask focus:border-indigo-500 outline-none"></div>
+                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Horário</label><input type="text" id="edit-horario" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold time-mask focus:border-indigo-500 outline-none"></div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Data</label>
-                        <input type="text" id="edit-data" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold date-mask">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Horário</label>
-                        <input type="text" id="edit-horario" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold time-mask">
+                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tel. Responsável</label><input type="text" id="edit-tel-resp" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold phone-mask focus:border-indigo-500 outline-none"></div>
+                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tel. Jovem</label><input type="text" id="edit-tel-jovem" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold phone-mask focus:border-indigo-500 outline-none"></div>
+                </div>
+                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Local</label><select id="edit-local" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold bg-white"><option value="Centro">Centro</option><option value="Eldorado">Eldorado</option></select></div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button id="btn-cancel-edit" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 transition-colors">Cancelar</button>
+                <button id="btn-save-edit" class="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-bold rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-lg transition-all"><i class="fas fa-save"></i> Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== OPERADOR MODAL (CADASTRO/EDIÇÃO) ========== -->
+    <div id="operador-modal" class="modal-overlay fixed inset-0 bg-black/80 z-50 items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl m-4 max-h-[90vh] overflow-y-auto">
+            <h3 id="operador-modal-title" class="text-xl font-black text-slate-800 mb-4 flex items-center gap-2"><i class="fas fa-user-plus text-indigo-600"></i> Novo Operador</h3>
+            <div class="space-y-3">
+                <div class="flex justify-center mb-2">
+                    <div class="relative">
+                        <div id="op-foto-preview" class="w-24 h-24 rounded-full bg-slate-200 flex items-center justify-center text-slate-400 text-3xl border-4 border-slate-300 overflow-hidden">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                        <label class="absolute bottom-0 right-0 w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center cursor-pointer text-white text-xs hover:bg-indigo-700 transition-colors shadow-lg">
+                            <i class="fas fa-pencil-alt"></i>
+                            <input type="file" id="op-foto-input" accept="image/*" class="hidden">
+                        </label>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tel. Responsável</label>
-                        <input type="text" id="edit-tel-resp" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold phone-mask">
+                    <div class="col-span-2"><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Apelido / ID do Sistema *</label><input type="text" id="op-apelido" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold focus:border-indigo-500 outline-none uppercase" placeholder="Ex: MARIA"></div>
+                    <div class="col-span-2"><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nome Completo *</label><input type="text" id="op-nome" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold focus:border-indigo-500 outline-none" placeholder="Ex: Maria da Silva Santos"></div>
+                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Telefone</label><input type="text" id="op-telefone" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold phone-mask focus:border-indigo-500 outline-none" placeholder="5531999999999"></div>
+                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Data de Nascimento</label><input type="text" id="op-nascimento" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold date-mask focus:border-indigo-500 outline-none" placeholder="DD/MM/AAAA"></div>
+                    <div class="col-span-2"><label class="block text-xs font-bold text-slate-500 uppercase mb-1">E-mail</label><input type="email" id="op-email" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold focus:border-indigo-500 outline-none" placeholder="email@exemplo.com"></div>
+                    <div class="col-span-2"><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Endereço</label><input type="text" id="op-endereco" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold focus:border-indigo-500 outline-none" placeholder="Rua, Nº, Bairro, Cidade"></div>
+                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Cargo</label>
+                        <select id="op-cargo" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold bg-white">
+                            <option value="Operador">Operador</option>
+                            <option value="Gerente">Gerente</option>
+                            <option value="Supervisor">Supervisor</option>
+                            <option value="Coordenação">Coordenação</option>
+                        </select>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tel. Jovem</label>
-                        <input type="text" id="edit-tel-jovem" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold phone-mask">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Local</label>
-                    <select id="edit-local" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold bg-white">
-                        <option value="Centro">Centro</option>
-                        <option value="Eldorado">Eldorado</option>
-                    </select>
+                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Cor do Perfil</label><input type="color" id="op-cor" class="w-full p-2 h-12 border-2 border-slate-200 rounded-xl cursor-pointer" value="#6366f1"></div>
                 </div>
             </div>
             <div class="flex gap-3 mt-6">
-                <button id="btn-cancel-edit" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300">Cancelar</button>
-                <button id="btn-save-edit" class="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-bold rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-lg">
-                    <i class="fas fa-save"></i> Salvar
-                </button>
+                <button id="btn-cancel-operador" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 transition-colors">Cancelar</button>
+                <button id="btn-save-operador" class="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-bold rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-lg transition-all"><i class="fas fa-save"></i> Salvar</button>
             </div>
         </div>
     </div>
 
+    <!-- ========== OPERADOR DETALHES MODAL ========== -->
+    <div id="operador-detalhe-modal" class="modal-overlay fixed inset-0 bg-black/80 z-50 items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl m-4 max-h-[90vh] overflow-y-auto">
+            <div id="operador-detalhe-content"></div>
+            <div class="flex gap-3 mt-6">
+                <button id="btn-close-detalhe" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 transition-colors">Fechar</button>
+                <button id="btn-edit-from-detalhe" class="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-bold rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-lg transition-all"><i class="fas fa-edit"></i> Editar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== CONFIRMAR EXCLUSÃO MODAL ========== -->
+    <div id="confirm-delete-modal" class="modal-overlay fixed inset-0 bg-black/80 z-50 items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl m-4 text-center">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-exclamation-triangle text-3xl text-red-500"></i></div>
+            <h3 class="text-xl font-black text-slate-800 mb-2">Confirmar Exclusão</h3>
+            <p class="text-slate-500 mb-6" id="confirm-delete-text">Deseja realmente excluir este operador?</p>
+            <div class="flex gap-3">
+                <button id="btn-cancel-delete" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 transition-colors">Cancelar</button>
+                <button id="btn-confirm-delete" class="flex-1 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white font-bold rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg transition-all"><i class="fas fa-trash"></i> Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== MAIN CONTAINER ========== -->
     <div class="container mx-auto p-4 max-w-7xl">
-        <!-- Header -->
+
+        <!-- HEADER -->
         <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg">
-                    <i class="fas fa-calendar-check text-2xl text-white"></i>
-                </div>
-                <div>
-                    <h1 class="text-2xl md:text-3xl font-black text-slate-800">Agendador PRO</h1>
-                    <p class="text-slate-500 font-medium">Unidade Centro • v3.1</p>
-                </div>
+                <div class="w-14 h-14 bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200"><i class="fas fa-calendar-check text-2xl text-white"></i></div>
+                <div><h1 class="text-2xl md:text-3xl font-black text-slate-800">Agendador PRO</h1><p class="text-slate-500 font-medium">Unidade Centro • v3.2</p></div>
             </div>
-            <div class="flex items-center gap-3">
-                <button id="btn-toggle-dark" class="px-3 py-2 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">
-                    <i class="fas fa-moon"></i>
-                </button>
-                <div class="px-4 py-2 bg-slate-100 rounded-full font-mono text-sm font-bold text-slate-600">
-                    <i class="far fa-clock"></i> <span id="live-clock">--:--:--</span>
-                </div>
-                <div id="supervisor-badge" class="hidden px-4 py-2 bg-purple-100 text-purple-700 rounded-full font-bold text-sm border border-purple-200">
-                    <i class="fas fa-crown"></i> Modo Gerente
-                </div>
+            <div class="flex items-center gap-3 flex-wrap justify-center">
+                <button id="btn-toggle-dark" class="px-3 py-2 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors" title="Alternar tema"><i class="fas fa-moon"></i></button>
+                <div class="px-4 py-2 bg-slate-100 rounded-full font-mono text-sm font-bold text-slate-600"><i class="far fa-clock"></i> <span id="live-clock">--:--:--</span></div>
+                <div id="supervisor-badge" class="hidden px-4 py-2 bg-purple-100 text-purple-700 rounded-full font-bold text-sm border border-purple-200"><i class="fas fa-crown"></i> Modo Gerente</div>
             </div>
         </header>
 
-        <!-- Navigation -->
+        <!-- NAVIGATION -->
         <nav class="flex flex-wrap gap-2 mb-6 p-2 bg-white rounded-2xl shadow-sm border border-slate-200">
-            <button class="nav-btn flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2" data-target="agendar">
-                <i class="fas fa-plus-circle"></i> Agendar
-            </button>
-            <button class="nav-btn flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2" data-target="agendamentos">
-                <i class="fas fa-list"></i> Meus Agendamentos
-            </button>
-            <button class="nav-btn flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2" data-target="dashboard">
-                <i class="fas fa-chart-pie"></i> Dashboard
-            </button>
-            <button id="nav-admin" class="nav-btn py-3 px-4 rounded-xl font-bold text-sm transition-all items-center justify-center gap-2" data-target="admin" style="display:none;">
-                <i class="fas fa-crown"></i> Admin
-            </button>
+            <button class="nav-btn flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2" data-target="agendar"><i class="fas fa-plus-circle"></i> <span class="hidden sm:inline">Agendar</span></button>
+            <button class="nav-btn flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2" data-target="agendamentos"><i class="fas fa-list"></i> <span class="hidden sm:inline">Meus Agendamentos</span></button>
+            <button class="nav-btn flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2" data-target="dashboard"><i class="fas fa-chart-pie"></i> <span class="hidden sm:inline">Dashboard</span></button>
+            <button id="nav-admin" class="nav-btn py-3 px-4 rounded-xl font-bold text-sm transition-all items-center justify-center gap-2 text-purple-600" data-target="admin" style="display:none;"><i class="fas fa-crown"></i> <span class="hidden sm:inline">Admin</span></button>
         </nav>
 
         <main>
-            <!-- ==================== AGENDAR PAGE ==================== -->
+            <!-- ==================== PAGE: AGENDAR ==================== -->
             <section id="page-agendar" class="page-content fade-in space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Seu Nome</label>
-                            <select id="select-assistente" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold text-slate-700 focus:border-indigo-500 outline-none">
-                                <option value="">-- Selecione --</option>
-                                <option value="ALANA">ALANA</option>
-                                <option value="BARBÁRA">BARBÁRA</option>
-                                <option value="GABRIELA">GABRIELA</option>
-                                <option value="IGOR">IGOR</option>
-                                <option value="NAIARA">NAIARA</option>
-                                <option value="NOEMY">NOEMY</option>
-                                <option value="RAIANE">RAIANE (Gerente)</option>
-                                <option value="SHEILA">SHEILA</option>
-                                <option value="THAIS">THAIS</option>
-                                <option value="TREINAMENTO">TREINAMENTO</option>
-                                <option value="WELKER">WELKER (Supervisor)</option>
-                            </select>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Seu Nome</label>
+                            <select id="select-assistente" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold text-slate-700 focus:border-indigo-500 outline-none transition-colors"><option value="">-- Selecione --</option></select>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Unidade</label>
-                            <select id="select-local" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold text-slate-700 bg-slate-50">
-                                <option value="Centro" selected>Centro</option>
-                                <option value="Eldorado">Eldorado</option>
-                            </select>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Unidade</label>
+                            <select id="select-local" class="w-full p-3 border-2 border-slate-200 rounded-xl font-bold text-slate-700 bg-slate-50"><option value="Centro" selected>Centro</option><option value="Eldorado">Eldorado</option></select>
                         </div>
                     </div>
                 </div>
-
-                <!-- Stats Collapsible -->
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
                     <button id="btn-toggle-stats" class="w-full flex items-center justify-between text-left font-bold text-slate-700 hover:text-indigo-600 transition-colors">
-                        <span class="flex items-center gap-2"><i class="fas fa-chart-bar"></i> Estatísticas Rápidas</span>
-                        <i class="fas fa-chevron-down transition-transform" id="stats-icon"></i>
+                        <span class="flex items-center gap-2"><i class="fas fa-chart-bar text-indigo-500"></i> Estatísticas Rápidas</span><i class="fas fa-chevron-down transition-transform" id="stats-icon"></i>
                     </button>
                     <div id="stats-container" class="collapsible-content mt-4">
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            <div class="stat-card text-center">
-                                <div class="text-3xl font-black text-indigo-600" id="stat-total">0</div>
-                                <div class="text-xs font-bold text-slate-400 uppercase">Total</div>
-                            </div>
-                            <div class="stat-card text-center">
-                                <div class="text-3xl font-black text-green-600" id="stat-completo">0</div>
-                                <div class="text-xs font-bold text-slate-400 uppercase">Prontos</div>
-                            </div>
-                            <div class="stat-card text-center">
-                                <div class="text-3xl font-black text-amber-500" id="stat-puxada">0</div>
-                                <div class="text-xs font-bold text-slate-400 uppercase">Puxadas</div>
-                            </div>
-                            <div class="stat-card text-center cursor-pointer hover:bg-purple-50 transition-colors" id="btn-update-ag-amanha">
-                                <div class="text-3xl font-black text-purple-600" id="stat-ag-amanha">-</div>
-                                <div class="text-xs font-bold text-slate-400 uppercase">Ag. Amanhã ↻</div>
-                            </div>
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                            <div class="stat-card text-center"><div class="text-3xl font-black text-indigo-600" id="stat-total">0</div><div class="text-xs font-bold text-slate-400 uppercase">Total</div></div>
+                            <div class="stat-card text-center"><div class="text-3xl font-black text-green-600" id="stat-completo">0</div><div class="text-xs font-bold text-slate-400 uppercase">Prontos</div></div>
+                            <div class="stat-card text-center"><div class="text-3xl font-black text-amber-500" id="stat-puxada">0</div><div class="text-xs font-bold text-slate-400 uppercase">Puxadas</div></div>
+                            <div class="stat-card text-center"><div class="text-3xl font-black text-blue-500" id="stat-amanha">0</div><div class="text-xs font-bold text-slate-400 uppercase">Amanhã</div></div>
+                            <div class="stat-card text-center cursor-pointer hover:bg-purple-50 transition-colors" id="btn-update-ag-amanha" title="Clique para atualizar"><div class="text-3xl font-black text-purple-600" id="stat-ag-amanha">-</div><div class="text-xs font-bold text-slate-400 uppercase">Ag. Amanhã ↻</div></div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Destinatários -->
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                        <h2 class="text-xl font-bold text-slate-700">Destinatários</h2>
+                        <h2 class="text-xl font-bold text-slate-700 flex items-center gap-2"><i class="fas fa-users text-indigo-500"></i> Destinatários</h2>
                         <div class="flex gap-2">
-                            <button id="btn-add-amanha" class="py-2 px-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-bold rounded-lg hover:from-indigo-700 hover:to-indigo-800 shadow-lg transition-all active:scale-95">
-                                <i class="fas fa-plus"></i> Amanhã
-                            </button>
-                            <button id="btn-add-hoje" class="py-2 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold rounded-lg hover:from-amber-600 hover:to-amber-700 shadow-lg transition-all active:scale-95">
-                                <i class="fas fa-bolt"></i> Hoje
-                            </button>
+                            <button id="btn-add-amanha" class="py-2 px-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-bold rounded-lg hover:from-indigo-700 hover:to-indigo-800 shadow-lg transition-all active:scale-95"><i class="fas fa-plus"></i> Amanhã</button>
+                            <button id="btn-add-hoje" class="py-2 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold rounded-lg hover:from-amber-600 hover:to-amber-700 shadow-lg transition-all active:scale-95"><i class="fas fa-bolt"></i> Hoje</button>
                         </div>
                     </div>
                     <div id="lista-destinatarios" class="space-y-4">
-                        <div id="empty-state" class="text-center py-12 border-2 border-dashed border-slate-200 rounded-xl">
-                            <i class="fas fa-user-plus text-4xl text-slate-300 mb-3"></i>
-                            <p class="text-slate-400 font-medium">Adicione um destinatário para começar</p>
-                        </div>
+                        <div id="empty-state" class="text-center py-12 border-2 border-dashed border-slate-200 rounded-xl"><i class="fas fa-user-plus text-4xl text-slate-300 mb-3"></i><p class="text-slate-400 font-medium">Adicione um destinatário para começar</p><p class="text-slate-300 text-sm mt-1">Use os botões "Amanhã" ou "Hoje" acima</p></div>
                     </div>
                 </div>
-
-                <div class="flex justify-end">
-                    <button id="btn-open-mensagens" class="py-3 px-8 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-bold rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-lg transition-all flex items-center gap-2">
-                        <i class="fas fa-comments"></i> Gerar Mensagens
-                    </button>
-                </div>
-
+                <div class="flex justify-end"><button id="btn-open-mensagens" class="py-3 px-8 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-bold rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-lg transition-all flex items-center gap-2 active:scale-95"><i class="fas fa-comments"></i> Gerar Mensagens</button></div>
                 <div id="area-mensagens" class="hidden space-y-4">
-                    <div class="flex justify-between items-center">
-                        <h3 class="text-lg font-bold text-slate-700">Mensagens Geradas</h3>
-                        <button id="btn-clear-msgs" class="text-red-500 font-bold text-sm hover:underline">Limpar Tudo</button>
-                    </div>
+                    <div class="flex justify-between items-center"><h3 class="text-lg font-bold text-slate-700 flex items-center gap-2"><i class="fas fa-envelope-open-text text-green-500"></i> Mensagens Geradas</h3><button id="btn-clear-msgs" class="text-red-500 font-bold text-sm hover:underline"><i class="fas fa-trash-alt"></i> Limpar Tudo</button></div>
                     <div id="lista-mensagens" class="space-y-4"></div>
                 </div>
             </section>
 
-            <!-- ==================== MEUS AGENDAMENTOS PAGE ==================== -->
+            <!-- ==================== PAGE: MEUS AGENDAMENTOS ==================== -->
             <section id="page-agendamentos" class="page-content hidden fade-in space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-                        <h2 class="text-xl font-bold text-slate-700 flex items-center gap-2">
-                            <i class="fas fa-list text-indigo-600"></i> Meus Agendamentos
-                        </h2>
+                        <h2 class="text-xl font-bold text-slate-700 flex items-center gap-2"><i class="fas fa-list text-indigo-600"></i> Meus Agendamentos</h2>
                         <div class="flex gap-2">
-                            <button class="view-toggle px-4 py-2 rounded-lg font-bold text-sm bg-indigo-600 text-white" data-view="hoje">Hoje</button>
-                            <button class="view-toggle px-4 py-2 rounded-lg font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200" data-view="outras">Outras Datas</button>
+                            <button class="view-toggle px-4 py-2 rounded-lg font-bold text-sm bg-indigo-600 text-white transition-all" data-view="hoje">Hoje</button>
+                            <button class="view-toggle px-4 py-2 rounded-lg font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all" data-view="outras">Outras Datas</button>
+                            <button id="btn-refresh-hoje" class="px-3 py-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors" title="Atualizar"><i class="fas fa-sync-alt"></i></button>
                         </div>
                     </div>
-
-                    <!-- View: Hoje -->
                     <div id="view-hoje">
                         <div class="mb-6 space-y-4">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <input type="text" id="search-hoje" placeholder="🔍 Buscar por nome, telefone ou responsável..." class="w-full p-3 border-2 border-slate-200 rounded-xl">
-                                <select id="filter-status" class="w-full p-3 border-2 border-slate-200 rounded-xl">
-                                    <option value="">Todos os Status</option>
-                                    <option value="CONFIRMADA">✅ Confirmada</option>
-                                    <option value="CANCELADA">❌ Cancelada</option>
-                                    <option value="PENDENTE">⏳ Pendente</option>
-                                    <option value="PUXADA">⚡ Puxada</option>
-                                    <option value="REAGENDAR">🔄 Reagendar</option>
-                                    <option value="JÁ VEIO">✔️ Já Veio</option>
-                                    <option value="MATRICULA">📝 Matrícula</option>
+                                <input type="text" id="search-hoje" placeholder="🔍 Buscar por nome, telefone ou responsável..." class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none transition-colors">
+                                <select id="filter-status" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none">
+                                    <option value="">Todos os Status</option><option value="CONFIRMADA">✅ Confirmada</option><option value="CANCELADA">❌ Cancelada</option><option value="PENDENTE">⏳ Pendente</option><option value="PUXADA">⚡ Puxada</option><option value="REAGENDAR">🔄 Reagendar</option><option value="JÁ VEIO">✔️ Já Veio</option><option value="MATRICULA">📝 Matrícula</option>
                                 </select>
                             </div>
                             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                                <div class="filter-chip bg-slate-100 text-slate-700 text-center" data-status="">
-                                    <div class="text-lg font-black" id="count-total">0</div>
-                                    <div class="text-xs">Total</div>
-                                </div>
-                                <div class="filter-chip bg-green-100 text-green-700 text-center" data-status="CONFIRMADA">
-                                    <div class="text-lg font-black" id="count-confirmada">0</div>
-                                    <div class="text-xs">Confirmadas</div>
-                                </div>
-                                <div class="filter-chip bg-yellow-100 text-yellow-700 text-center" data-status="PENDENTE">
-                                    <div class="text-lg font-black" id="count-pendente">0</div>
-                                    <div class="text-xs">Pendentes</div>
-                                </div>
-                                <div class="filter-chip bg-red-100 text-red-700 text-center" data-status="CANCELADA">
-                                    <div class="text-lg font-black" id="count-cancelada">0</div>
-                                    <div class="text-xs">Canceladas</div>
-                                </div>
-                                <div class="filter-chip bg-orange-100 text-orange-700 text-center" data-status="PUXADA">
-                                    <div class="text-lg font-black" id="count-puxada">0</div>
-                                    <div class="text-xs">Puxadas</div>
-                                </div>
-                                <div class="filter-chip bg-blue-100 text-blue-700 text-center" data-status="REAGENDAR">
-                                    <div class="text-lg font-black" id="count-reagendar">0</div>
-                                    <div class="text-xs">Reagendar</div>
-                                </div>
+                                <div class="filter-chip bg-slate-100 text-slate-700 text-center" data-status=""><div class="text-lg font-black" id="count-total">0</div><div class="text-xs">Total</div></div>
+                                <div class="filter-chip bg-green-100 text-green-700 text-center" data-status="CONFIRMADA"><div class="text-lg font-black" id="count-confirmada">0</div><div class="text-xs">Confirmadas</div></div>
+                                <div class="filter-chip bg-yellow-100 text-yellow-700 text-center" data-status="PENDENTE"><div class="text-lg font-black" id="count-pendente">0</div><div class="text-xs">Pendentes</div></div>
+                                <div class="filter-chip bg-red-100 text-red-700 text-center" data-status="CANCELADA"><div class="text-lg font-black" id="count-cancelada">0</div><div class="text-xs">Canceladas</div></div>
+                                <div class="filter-chip bg-orange-100 text-orange-700 text-center" data-status="PUXADA"><div class="text-lg font-black" id="count-puxada">0</div><div class="text-xs">Puxadas</div></div>
+                                <div class="filter-chip bg-blue-100 text-blue-700 text-center" data-status="REAGENDAR"><div class="text-lg font-black" id="count-reagendar">0</div><div class="text-xs">Reagendar</div></div>
                             </div>
                         </div>
-                        <div id="lista-hoje" class="space-y-3">
-                            <p class="text-center text-slate-400 py-8">Selecione um usuário e clique em "Meus Agendamentos"</p>
-                        </div>
+                        <div id="lista-hoje" class="space-y-3"><p class="text-center text-slate-400 py-8">Selecione um usuário e clique em "Meus Agendamentos"</p></div>
                     </div>
-
-                    <!-- View: Outras Datas -->
                     <div id="view-outras" class="hidden">
                         <div class="flex flex-wrap gap-2 mb-6">
-                            <button class="date-preset px-4 py-2 bg-slate-100 rounded-lg font-bold text-slate-600 hover:bg-slate-200" data-days="-1">Ontem</button>
+                            <button class="date-preset px-4 py-2 bg-slate-100 rounded-lg font-bold text-slate-600 hover:bg-slate-200 transition-colors" data-days="-1">Ontem</button>
                             <button class="date-preset px-4 py-2 bg-indigo-100 rounded-lg font-bold text-indigo-600" data-days="0">Hoje</button>
-                            <button class="date-preset px-4 py-2 bg-slate-100 rounded-lg font-bold text-slate-600 hover:bg-slate-200" data-days="1">Amanhã</button>
-                            <button class="date-preset px-4 py-2 bg-slate-100 rounded-lg font-bold text-slate-600 hover:bg-slate-200" data-days="7">Próx. Semana</button>
-                            <div class="flex items-center gap-2 ml-auto">
-                                <input type="date" id="consulta-date" class="p-2 border-2 border-slate-200 rounded-lg font-bold text-slate-700">
-                                <button id="btn-consulta-go" class="p-2 px-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-800 font-bold">
-                                    <i class="fas fa-search"></i> Buscar
-                                </button>
-                            </div>
+                            <button class="date-preset px-4 py-2 bg-slate-100 rounded-lg font-bold text-slate-600 hover:bg-slate-200 transition-colors" data-days="1">Amanhã</button>
+                            <button class="date-preset px-4 py-2 bg-slate-100 rounded-lg font-bold text-slate-600 hover:bg-slate-200 transition-colors" data-days="7">Próx. Semana</button>
+                            <div class="flex items-center gap-2 ml-auto"><input type="date" id="consulta-date" class="p-2 border-2 border-slate-200 rounded-lg font-bold text-slate-700 focus:border-indigo-500 outline-none"><button id="btn-consulta-go" class="p-2 px-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-800 font-bold transition-all"><i class="fas fa-search"></i> Buscar</button></div>
                         </div>
                         <div class="flex justify-between items-center mb-4 p-4 bg-gradient-to-r from-slate-50 to-indigo-50 rounded-xl border border-slate-200">
-                            <div>
-                                <p class="text-xs font-bold text-slate-400 uppercase">Data Selecionada</p>
-                                <h3 class="text-xl font-black text-slate-800" id="consulta-display-date">--/--/----</h3>
-                            </div>
+                            <div><p class="text-xs font-bold text-slate-400 uppercase">Data Selecionada</p><h3 class="text-xl font-black text-slate-800" id="consulta-display-date">--/--/----</h3></div>
                             <div id="consulta-status-badge"></div>
                         </div>
-                        <div class="mb-4">
-                            <input type="text" id="search-consulta" placeholder="🔍 Buscar na consulta..." class="w-full p-3 border-2 border-slate-200 rounded-xl">
-                        </div>
-                        <div id="lista-consulta" class="space-y-3">
-                            <p class="text-center text-slate-400 py-8">Selecione uma data para consultar</p>
-                        </div>
+                        <div class="mb-4"><input type="text" id="search-consulta" placeholder="🔍 Buscar na consulta..." class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none transition-colors"></div>
+                        <div id="lista-consulta" class="space-y-3"><p class="text-center text-slate-400 py-8">Selecione uma data para consultar</p></div>
                     </div>
                 </div>
             </section>
 
-            <!-- ==================== DASHBOARD PAGE ==================== -->
+            <!-- ==================== PAGE: DASHBOARD ==================== -->
             <section id="page-dashboard" class="page-content hidden fade-in">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <h2 class="text-xl font-bold text-slate-700 mb-6 flex items-center gap-2">
-                        <i class="fas fa-chart-pie text-indigo-600"></i> Dashboard Pessoal (Hoje)
-                    </h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div><canvas id="chart-dashboard"></canvas></div>
-                        <div id="stats-dashboard" class="space-y-4"></div>
-                    </div>
+                    <h2 class="text-xl font-bold text-slate-700 mb-6 flex items-center gap-2"><i class="fas fa-chart-pie text-indigo-600"></i> Dashboard Pessoal (Hoje)</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8"><div><canvas id="chart-dashboard"></canvas></div><div id="stats-dashboard" class="space-y-4"></div></div>
                 </div>
             </section>
 
-            <!-- ==================== ADMIN PAGE ==================== -->
+            <!-- ==================== PAGE: ADMIN ==================== -->
             <section id="page-admin" class="page-content hidden fade-in space-y-6">
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex flex-wrap gap-2 items-center justify-between mb-4">
-                        <div class="flex gap-2">
-                            <button class="admin-period px-4 py-2 rounded-lg font-bold text-sm bg-indigo-600 text-white" data-period="hoje">Hoje</button>
-                            <button class="admin-period px-4 py-2 rounded-lg font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200" data-period="semana">Esta Semana</button>
-                            <button class="admin-period px-4 py-2 rounded-lg font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200" data-period="mes">Este Mês</button>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="admin-period px-4 py-2 rounded-lg font-bold text-sm bg-indigo-600 text-white transition-all" data-period="hoje">Hoje</button>
+                            <button class="admin-period px-4 py-2 rounded-lg font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all" data-period="semana">Esta Semana</button>
+                            <button class="admin-period px-4 py-2 rounded-lg font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all" data-period="mes">Este Mês</button>
                         </div>
-                        <div class="flex gap-2">
-                            <button id="btn-metas" class="px-4 py-2 bg-amber-100 text-amber-700 rounded-lg font-bold hover:bg-amber-200"><i class="fas fa-bullseye"></i> Metas</button>
-                            <button id="btn-export" class="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-bold hover:bg-green-200"><i class="fas fa-download"></i> Exportar</button>
+                        <div class="flex flex-wrap gap-2 items-center">
+                            <div class="flex items-center gap-1 border-l pl-2 ml-1 border-slate-200">
+                                <input type="date" id="admin-start" class="p-1.5 border-2 border-slate-200 rounded-lg text-sm font-bold focus:border-indigo-500 outline-none">
+                                <span class="text-slate-400 text-sm">até</span>
+                                <input type="date" id="admin-end" class="p-1.5 border-2 border-slate-200 rounded-lg text-sm font-bold focus:border-indigo-500 outline-none">
+                                <button id="btn-admin-custom" class="p-1.5 px-3 bg-slate-700 text-white rounded-lg hover:bg-slate-800 font-bold text-sm transition-all"><i class="fas fa-search"></i></button>
+                            </div>
+                            <button id="btn-metas" class="px-4 py-2 bg-amber-100 text-amber-700 rounded-lg font-bold hover:bg-amber-200 transition-colors"><i class="fas fa-bullseye"></i> Metas</button>
+                            <button id="btn-export" class="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-bold hover:bg-green-200 transition-colors"><i class="fas fa-download"></i> Exportar</button>
                         </div>
                     </div>
                     <div class="flex gap-2">
-                        <button class="admin-tab px-4 py-2 rounded-lg font-bold text-sm bg-indigo-600 text-white" data-tab="visao">Visão Geral</button>
-                        <button class="admin-tab px-4 py-2 rounded-lg font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200" data-tab="relatorios">Relatórios</button>
+                        <button class="admin-tab px-4 py-2 rounded-lg font-bold text-sm bg-indigo-600 text-white transition-all" data-tab="visao">Visão Geral</button>
+                        <button class="admin-tab px-4 py-2 rounded-lg font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all" data-tab="operadores">Operadores</button>
+                        <button class="admin-tab px-4 py-2 rounded-lg font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all" data-tab="relatorios">Relatórios</button>
                     </div>
+                    <div id="admin-progress-bar" class="progress-bar mt-3 hidden"><div id="admin-progress-fill" class="progress-bar-fill" style="width:0%"></div></div>
                 </div>
 
                 <!-- Tab: Visão Geral -->
                 <div id="admin-tab-visao">
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                        <div class="bg-white border-l-4 border-indigo-500 p-6 rounded-2xl shadow-sm text-center">
-                            <div class="text-3xl font-black text-indigo-600" id="admin-total">0</div>
-                            <div class="text-xs font-bold text-slate-400 uppercase">Total Período</div>
-                        </div>
-                        <div class="bg-white border-l-4 border-green-500 p-6 rounded-2xl shadow-sm text-center">
-                            <div class="text-3xl font-black text-green-600" id="admin-confirmados">0</div>
-                            <div class="text-xs font-bold text-slate-400 uppercase">Confirmados</div>
-                        </div>
-                        <div class="bg-white border-l-4 border-purple-500 p-6 rounded-2xl shadow-sm text-center">
-                            <div class="text-3xl font-black text-purple-600" id="admin-taxa">0%</div>
-                            <div class="text-xs font-bold text-slate-400 uppercase">Taxa Sucesso</div>
-                        </div>
-                        <div class="bg-white border-l-4 border-blue-500 p-6 rounded-2xl shadow-sm text-center">
-                            <div class="text-3xl font-black text-blue-600" id="admin-equipe">0</div>
-                            <div class="text-xs font-bold text-slate-400 uppercase">Ativos</div>
-                        </div>
+                        <div class="bg-white border-l-4 border-indigo-500 p-6 rounded-2xl shadow-sm text-center"><div class="text-3xl font-black text-indigo-600" id="admin-total">0</div><div class="text-xs font-bold text-slate-400 uppercase">Total Período</div></div>
+                        <div class="bg-white border-l-4 border-green-500 p-6 rounded-2xl shadow-sm text-center"><div class="text-3xl font-black text-green-600" id="admin-confirmados">0</div><div class="text-xs font-bold text-slate-400 uppercase">Confirmados</div></div>
+                        <div class="bg-white border-l-4 border-purple-500 p-6 rounded-2xl shadow-sm text-center"><div class="text-3xl font-black text-purple-600" id="admin-taxa">0%</div><div class="text-xs font-bold text-slate-400 uppercase">Taxa Sucesso</div></div>
+                        <div class="bg-white border-l-4 border-blue-500 p-6 rounded-2xl shadow-sm text-center cursor-pointer hover:shadow-md transition-all" id="card-ativos" title="Clique para gerenciar operadores"><div class="text-3xl font-black text-blue-600" id="admin-equipe">0</div><div class="text-xs font-bold text-slate-400 uppercase">Ativos <i class="fas fa-external-link-alt text-blue-400 ml-1"></i></div></div>
                     </div>
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <h3 class="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2">
-                            <i class="fas fa-trophy text-amber-500"></i> Ranking do Período
-                        </h3>
-                        <div id="admin-ranking" class="space-y-3 max-h-[500px] overflow-y-auto"></div>
+                        <h3 class="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-trophy text-amber-500"></i> Ranking do Período</h3>
+                        <div id="admin-ranking" class="space-y-3 max-h-[500px] overflow-y-auto pr-1"></div>
+                    </div>
+                </div>
+
+                <!-- Tab: Operadores -->
+                <div id="admin-tab-operadores" class="hidden space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+                            <h3 class="text-lg font-bold text-slate-700 flex items-center gap-2"><i class="fas fa-users-cog text-indigo-600"></i> Gestão de Operadores</h3>
+                            <div class="flex gap-2">
+                                <button id="btn-sync-operadores" class="py-2 px-4 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold rounded-xl hover:from-green-700 hover:to-green-800 shadow-lg transition-all active:scale-95 flex items-center gap-2" title="Sincronizar com planilha"><i class="fas fa-sync-alt"></i> Sincronizar</button>
+                                <button id="btn-add-operador" class="py-2 px-5 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-bold rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-lg transition-all active:scale-95 flex items-center gap-2"><i class="fas fa-user-plus"></i> Novo Operador</button>
+                            </div>
+                        </div>
+                        <div id="lista-operadores" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
                     </div>
                 </div>
 
                 <!-- Tab: Relatórios -->
                 <div id="admin-tab-relatorios" class="hidden space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200"><h3 class="text-lg font-bold text-slate-700 mb-4"><i class="fas fa-chart-bar text-indigo-500"></i> Comparativo por Operador</h3><canvas id="admin-chart"></canvas></div>
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <h3 class="text-lg font-bold text-slate-700 mb-4"><i class="fas fa-chart-bar text-indigo-500"></i> Comparativo</h3>
-                        <canvas id="admin-chart"></canvas>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <h3 class="text-lg font-bold text-slate-700 mb-4"><i class="fas fa-table text-indigo-500"></i> Detalhamento Completo</h3>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm text-left">
-                                <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b">
-                                    <tr>
-                                        <th class="px-4 py-3">Data</th>
-                                        <th class="px-4 py-3">Operador</th>
-                                        <th class="px-4 py-3">Jovem</th>
-                                        <th class="px-4 py-3">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="admin-table-body" class="divide-y divide-slate-100"></tbody>
-                            </table>
+                        <h3 class="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-table text-indigo-500"></i> Detalhamento Completo <span class="text-xs text-slate-400 font-normal ml-2" id="admin-table-count"></span></h3>
+                        <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
+                            <table class="w-full text-sm text-left"><thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b sticky top-0"><tr><th class="px-4 py-3">Data</th><th class="px-4 py-3">Operador</th><th class="px-4 py-3">Jovem</th><th class="px-4 py-3">Horário</th><th class="px-4 py-3">Status</th></tr></thead><tbody id="admin-table-body" class="divide-y divide-slate-100"></tbody></table>
                         </div>
                     </div>
                 </div>
@@ -527,76 +433,318 @@
     </div>
 
 <script>
-// ==================== CONFIGURAÇÕES ====================
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyjKPgtDS1mRK0aNsbGEjv1m93JCmcaHqqfHoE6b3aIJCJ4T52X0VUDa7ztuUnq_1pG/exec';
 const SUPERVISOR_PASS = 'horizonte123';
 const WELKER_PASS = 'vilavelha';
 const ALANA_PASS = 'Alana1234@';
 
-const OPERADORES = [
-    { id: 'ALANA', nome: 'Amanda Rodrigues', cor: '#3b82f6' },
-    { id: 'BARBÁRA', nome: 'Barbára', cor: '#f472b6' },
-    { id: 'GABRIELA', nome: 'Sophia Martins', cor: '#10b981' },
-    { id: 'IGOR', nome: 'Igor Araujo da Silva', cor: '#14b8a6' },
-    { id: 'NAIARA', nome: 'Naiara Oliveira', cor: '#8b5cf6' },
-    { id: 'NOEMY', nome: 'Noemy Ferreira', cor: '#ec4899' },
-    { id: 'RAIANE', nome: 'Raiane Santos', cor: '#f97316' },
-    { id: 'SHEILA', nome: 'Cristina Almeida', cor: '#ef4444' },
-    { id: 'THAIS', nome: 'Thais Carvalho', cor: '#06b6d4' },
-    { id: 'TREINAMENTO', nome: 'Coordenação', cor: '#64748b' },
-    { id: 'WELKER', nome: 'Welker Supervisor', cor: '#a855f7' }
+const OPERADORES_DEFAULT = [
+    { id: 'ALANA', nome: 'Amanda Rodrigues', cor: '#3b82f6', telefone: '', nascimento: '', email: '', endereco: '', cargo: 'Operador', foto: '' },
+    { id: 'BARBÁRA', nome: 'Barbára', cor: '#f472b6', telefone: '', nascimento: '', email: '', endereco: '', cargo: 'Operador', foto: '' },
+    { id: 'GABRIELA', nome: 'Sophia Martins', cor: '#10b981', telefone: '', nascimento: '', email: '', endereco: '', cargo: 'Operador', foto: '' },
+    { id: 'IGOR', nome: 'Igor Araujo da Silva', cor: '#14b8a6', telefone: '', nascimento: '', email: '', endereco: '', cargo: 'Operador', foto: '' },
+    { id: 'NAIARA', nome: 'Naiara Oliveira', cor: '#8b5cf6', telefone: '', nascimento: '', email: '', endereco: '', cargo: 'Operador', foto: '' },
+    { id: 'NOEMY', nome: 'Noemy Ferreira', cor: '#ec4899', telefone: '', nascimento: '', email: '', endereco: '', cargo: 'Operador', foto: '' },
+    { id: 'RAIANE', nome: 'Raiane Santos', cor: '#f97316', telefone: '', nascimento: '', email: '', endereco: '', cargo: 'Gerente', foto: '' },
+    { id: 'SHEILA', nome: 'Cristina Almeida', cor: '#ef4444', telefone: '', nascimento: '', email: '', endereco: '', cargo: 'Operador', foto: '' },
+    { id: 'THAIS', nome: 'Thais Carvalho', cor: '#06b6d4', telefone: '', nascimento: '', email: '', endereco: '', cargo: 'Operador', foto: '' },
+    { id: 'TREINAMENTO', nome: 'Coordenação', cor: '#64748b', telefone: '', nascimento: '', email: '', endereco: '', cargo: 'Coordenação', foto: '' },
+    { id: 'WELKER', nome: 'Welker Supervisor', cor: '#a855f7', telefone: '', nascimento: '', email: '', endereco: '', cargo: 'Supervisor', foto: '' }
 ];
 
-// ==================== STATE ====================
-let state = {
-    user: '',
-    isSupervisor: false,
-    recipients: [],
-    appointmentsHoje: [],
-    appointmentsConsulta: [],
-    adminData: [],
-    charts: {},
-    meta: { diaria: 0, semanal: 0, mensal: 0, taxa: 0 },
-    filters: { status: '', search: '' },
-    editingItem: null
-};
+let OPERADORES = [];
+let state = { user: '', isSupervisor: false, recipients: [], appointmentsHoje: [], appointmentsConsulta: [], adminData: [], charts: {}, meta: { diaria: 0, semanal: 0, mensal: 0, taxa: 0 }, filters: { status: '', search: '' }, editingItem: null, editingOperador: null, deletingOperadorId: null };
 
-// ==================== UTILS ====================
-const $ = (id) => document.getElementById(id);
-const formatDateBR = (d) => d.toLocaleDateString('pt-BR');
-const formatDateAPI = (d) => {
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-};
-const showModal = (id) => $(id).classList.add('active');
-const hideModal = (id) => $(id).classList.remove('active');
-
-const toast = (msg, type = 'info') => {
-    const icons = { success:'fa-check-circle', error:'fa-exclamation-circle', warning:'fa-exclamation-triangle', info:'fa-info-circle' };
-    const el = document.createElement('div');
-    el.className = `toast toast-${type}`;
-    el.innerHTML = `<i class="fas ${icons[type]}"></i> <span>${msg}</span>`;
-    $('toast-container').appendChild(el);
-    setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 3500);
-};
+const $ = id => document.getElementById(id);
+const formatDateBR = d => d.toLocaleDateString('pt-BR');
+const formatDateAPI = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const showModal = id => $(id).classList.add('active');
+const hideModal = id => $(id).classList.remove('active');
+const toast = (msg, type='info') => { const icons={success:'fa-check-circle',error:'fa-exclamation-circle',warning:'fa-exclamation-triangle',info:'fa-info-circle'}; const el=document.createElement('div'); el.className=`toast toast-${type}`; el.innerHTML=`<i class="fas ${icons[type]}"></i> <span>${msg}</span>`; $('toast-container').appendChild(el); setTimeout(()=>{el.style.opacity='0';setTimeout(()=>el.remove(),300);},3500); };
 
 // ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', () => {
-    updateClock();
-    setInterval(updateClock, 1000);
-    loadTheme();
-    loadMetas();
-    loadLocalData();
-    loadSavedUser();
-    setupAllEvents();
-    switchTab('agendar');
+    loadOperadores();
+    populateSelects();
+    updateClock(); setInterval(updateClock, 1000);
+    loadTheme(); loadMetas(); loadLocalData(); loadSavedUser();
+    setupAllEvents(); switchTab('agendar');
 });
 
-function updateClock() {
-    const now = new Date();
-    const h = String(now.getHours()).padStart(2, '0');
-    const m = String(now.getMinutes()).padStart(2, '0');
-    const s = String(now.getSeconds()).padStart(2, '0');
-    $('live-clock').textContent = `${h}:${m}:${s}`;
+function updateClock() { $('live-clock').textContent = new Date().toLocaleTimeString('pt-BR'); }
+
+// ==================== OPERADORES CRUD ====================
+function loadOperadores() {
+    try {
+        const saved = localStorage.getItem('agCentroOperadores');
+        if (saved) { OPERADORES = JSON.parse(saved); }
+        else { OPERADORES = JSON.parse(JSON.stringify(OPERADORES_DEFAULT)); saveOperadores(); }
+    } catch(e) { OPERADORES = JSON.parse(JSON.stringify(OPERADORES_DEFAULT)); }
+}
+
+function saveOperadores() {
+    try { localStorage.setItem('agCentroOperadores', JSON.stringify(OPERADORES)); } catch(e) {}
+}
+
+function populateSelects() {
+    const sel = $('select-assistente');
+    const quickSel = $('quick-assistente');
+    const currentVal = sel.value;
+    sel.innerHTML = '<option value="">-- Selecione --</option>';
+    quickSel.innerHTML = '';
+    OPERADORES.forEach(op => {
+        const label = op.cargo === 'Gerente' ? `${op.id} (Gerente)` : op.cargo === 'Supervisor' ? `${op.id} (Supervisor)` : op.id;
+        sel.innerHTML += `<option value="${op.id}">${label}</option>`;
+        quickSel.innerHTML += `<option value="${op.id}">${op.id}</option>`;
+    });
+    if (currentVal) sel.value = currentVal;
+}
+
+function openAddOperador() {
+    state.editingOperador = null;
+    $('operador-modal-title').innerHTML = '<i class="fas fa-user-plus text-indigo-600"></i> Novo Operador';
+    $('op-apelido').value = ''; $('op-nome').value = ''; $('op-telefone').value = '';
+    $('op-nascimento').value = ''; $('op-email').value = ''; $('op-endereco').value = '';
+    $('op-cargo').value = 'Operador'; $('op-cor').value = '#6366f1';
+    $('op-foto-preview').innerHTML = '<i class="fas fa-camera"></i>';
+    $('op-apelido').disabled = false;
+    showModal('operador-modal');
+}
+
+function openEditOperador(opId) {
+    const op = OPERADORES.find(o => o.id === opId);
+    if (!op) return;
+    state.editingOperador = opId;
+    $('operador-modal-title').innerHTML = '<i class="fas fa-user-edit text-indigo-600"></i> Editar Operador';
+    $('op-apelido').value = op.id; $('op-apelido').disabled = true;
+    $('op-nome').value = op.nome; $('op-telefone').value = op.telefone || '';
+    $('op-nascimento').value = op.nascimento || ''; $('op-email').value = op.email || '';
+    $('op-endereco').value = op.endereco || ''; $('op-cargo').value = op.cargo || 'Operador';
+    $('op-cor').value = op.cor || '#6366f1';
+    if (op.foto) { $('op-foto-preview').innerHTML = `<img src="${op.foto}" class="w-full h-full object-cover">`; }
+    else { $('op-foto-preview').innerHTML = '<i class="fas fa-camera"></i>'; }
+    showModal('operador-modal');
+}
+
+function saveOperadorForm() {
+    const apelido = $('op-apelido').value.trim().toUpperCase();
+    const nome = $('op-nome').value.trim();
+    if (!apelido || !nome) return toast('Preencha apelido e nome completo', 'warning');
+
+    const data = {
+        id: apelido, nome, cor: $('op-cor').value,
+        telefone: $('op-telefone').value, nascimento: $('op-nascimento').value,
+        email: $('op-email').value, endereco: $('op-endereco').value,
+        cargo: $('op-cargo').value, foto: ''
+    };
+
+    const preview = $('op-foto-preview').querySelector('img');
+    if (preview) data.foto = preview.src;
+
+    if (state.editingOperador) {
+        const idx = OPERADORES.findIndex(o => o.id === state.editingOperador);
+        if (idx >= 0) { OPERADORES[idx] = { ...OPERADORES[idx], ...data, id: state.editingOperador }; }
+        toast('Operador atualizado!', 'success');
+    } else {
+        if (OPERADORES.find(o => o.id === apelido)) return toast('Já existe um operador com esse apelido', 'error');
+        OPERADORES.push(data);
+        toast('Operador cadastrado!', 'success');
+    }
+
+    saveOperadores(); populateSelects(); renderOperadores(); hideModal('operador-modal');
+
+    // Salvar na planilha
+    try {
+        fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({
+                action: 'saveOperador',
+                apelido: data.id,
+                nome: data.nome,
+                telefone: data.telefone || '',
+                nascimento: data.nascimento || '',
+                email: data.email || '',
+                endereco: data.endereco || '',
+                cargo: data.cargo || 'Operador',
+                cor: data.cor || '#6366f1',
+                horario_cadastro: new Date().toLocaleString('pt-BR'),
+                unidade: 'Centro'
+            })
+        });
+        toast('Dados enviados para a planilha!', 'info');
+    } catch(e) { toast('Salvo localmente (erro ao enviar para planilha)', 'warning'); }
+}
+
+function confirmDeleteOperador(opId) {
+    const op = OPERADORES.find(o => o.id === opId);
+    if (!op) return;
+    state.deletingOperadorId = opId;
+    $('confirm-delete-text').textContent = `Deseja realmente excluir o operador "${op.nome}" (${op.id})?`;
+    showModal('confirm-delete-modal');
+}
+
+function deleteOperador() {
+    if (!state.deletingOperadorId) return;
+    const opId = state.deletingOperadorId;
+    OPERADORES = OPERADORES.filter(o => o.id !== opId);
+    saveOperadores(); populateSelects(); renderOperadores();
+    hideModal('confirm-delete-modal');
+    toast('Operador excluído!', 'success');
+
+    // Notificar planilha da exclusão
+    try {
+        fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ action: 'deleteOperador', apelido: opId, unidade: 'Centro' })
+        });
+    } catch(e) {}
+
+    state.deletingOperadorId = null;
+}
+
+// Sincronizar operadores da planilha
+async function syncOperadoresFromSheet() {
+    toast('Sincronizando com a planilha...', 'info');
+    try {
+        const r = await fetch(`${SCRIPT_URL}?action=getOperadores&unidade=Centro`);
+        const j = await r.json();
+        if (j.status === 'success' && j.data && j.data.length > 0) {
+            // Merge: planilha tem prioridade, mas mantém dados locais extras
+            const sheetOps = j.data;
+            const merged = [];
+            const sheetIds = new Set();
+
+            sheetOps.forEach(sop => {
+                sheetIds.add(sop.apelido || sop.id);
+                const local = OPERADORES.find(o => o.id === (sop.apelido || sop.id));
+                merged.push({
+                    id: sop.apelido || sop.id,
+                    nome: sop.nome || local?.nome || '',
+                    cor: sop.cor || local?.cor || '#6366f1',
+                    telefone: sop.telefone || local?.telefone || '',
+                    nascimento: sop.nascimento || local?.nascimento || '',
+                    email: sop.email || local?.email || '',
+                    endereco: sop.endereco || local?.endereco || '',
+                    cargo: sop.cargo || local?.cargo || 'Operador',
+                    foto: local?.foto || ''
+                });
+            });
+
+            // Mantém operadores locais que não estão na planilha
+            OPERADORES.forEach(op => {
+                if (!sheetIds.has(op.id)) merged.push(op);
+            });
+
+            OPERADORES = merged;
+            saveOperadores(); populateSelects(); renderOperadores();
+            toast(`✅ Sincronizado! ${sheetOps.length} operadores da planilha`, 'success');
+        } else {
+            toast('Nenhum operador encontrado na planilha. Enviando dados locais...', 'warning');
+            // Enviar todos os operadores locais para a planilha
+            for (const op of OPERADORES) {
+                try {
+                    await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type':'application/json'},
+                        body: JSON.stringify({
+                            action: 'saveOperador', apelido: op.id, nome: op.nome,
+                            telefone: op.telefone || '', nascimento: op.nascimento || '',
+                            email: op.email || '', endereco: op.endereco || '',
+                            cargo: op.cargo || 'Operador', cor: op.cor || '#6366f1',
+                            horario_cadastro: new Date().toLocaleString('pt-BR'), unidade: 'Centro'
+                        })
+                    });
+                } catch(e) {}
+            }
+            toast(`✅ ${OPERADORES.length} operadores enviados para a planilha!`, 'success');
+        }
+    } catch(e) {
+        toast('Erro ao sincronizar: ' + e.message, 'error');
+    }
+}
+
+function showOperadorDetalhe(opId) {
+    const op = OPERADORES.find(o => o.id === opId);
+    if (!op) return;
+    state.editingOperador = opId;
+
+    const stats = getOperadorStats(opId);
+    const fotoHtml = op.foto
+        ? `<img src="${op.foto}" class="op-avatar mx-auto mb-4">`
+        : `<div class="op-avatar-placeholder mx-auto mb-4" style="background:${op.cor}">${op.id.charAt(0)}</div>`;
+
+    $('operador-detalhe-content').innerHTML = `
+        <div class="text-center mb-6">
+            ${fotoHtml}
+            <h3 class="text-2xl font-black text-slate-800">${op.nome}</h3>
+            <span class="badge bg-indigo-100 text-indigo-700">${op.cargo || 'Operador'}</span>
+            <span class="badge bg-slate-100 text-slate-600 ml-1">${op.id}</span>
+        </div>
+        <div class="space-y-3 mb-6">
+            ${op.telefone ? `<div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg"><i class="fas fa-phone text-indigo-500 w-5"></i><div><div class="text-xs text-slate-400">Telefone</div><div class="font-bold">${op.telefone}</div></div></div>` : ''}
+            ${op.nascimento ? `<div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg"><i class="fas fa-birthday-cake text-pink-500 w-5"></i><div><div class="text-xs text-slate-400">Nascimento</div><div class="font-bold">${op.nascimento}</div></div></div>` : ''}
+            ${op.email ? `<div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg"><i class="fas fa-envelope text-blue-500 w-5"></i><div><div class="text-xs text-slate-400">E-mail</div><div class="font-bold">${op.email}</div></div></div>` : ''}
+            ${op.endereco ? `<div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg"><i class="fas fa-map-marker-alt text-red-500 w-5"></i><div><div class="text-xs text-slate-400">Endereço</div><div class="font-bold">${op.endereco}</div></div></div>` : ''}
+        </div>
+        <h4 class="font-bold text-slate-700 mb-3 flex items-center gap-2"><i class="fas fa-chart-line text-green-500"></i> Resultado Individual (Período)</h4>
+        <div class="grid grid-cols-3 gap-3">
+            <div class="text-center p-3 bg-indigo-50 rounded-xl"><div class="text-2xl font-black text-indigo-600">${stats.total}</div><div class="text-xs font-bold text-slate-400">Total</div></div>
+            <div class="text-center p-3 bg-green-50 rounded-xl"><div class="text-2xl font-black text-green-600">${stats.confirmados}</div><div class="text-xs font-bold text-slate-400">Confirmados</div></div>
+            <div class="text-center p-3 bg-purple-50 rounded-xl"><div class="text-2xl font-black text-purple-600">${stats.taxa}%</div><div class="text-xs font-bold text-slate-400">Taxa</div></div>
+        </div>
+        <div class="grid grid-cols-3 gap-3 mt-3">
+            <div class="text-center p-3 bg-red-50 rounded-xl"><div class="text-2xl font-black text-red-600">${stats.cancelados}</div><div class="text-xs font-bold text-slate-400">Cancelados</div></div>
+            <div class="text-center p-3 bg-amber-50 rounded-xl"><div class="text-2xl font-black text-amber-600">${stats.puxadas}</div><div class="text-xs font-bold text-slate-400">Puxadas</div></div>
+            <div class="text-center p-3 bg-blue-50 rounded-xl"><div class="text-2xl font-black text-blue-600">${stats.reagendar}</div><div class="text-xs font-bold text-slate-400">Reagendar</div></div>
+        </div>`;
+    showModal('operador-detalhe-modal');
+}
+
+function getOperadorStats(opId) {
+    const d = state.adminData.filter(a => a.operador === opId);
+    const total = d.length;
+    const confirmados = d.filter(a => ['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(a.situacao)).length;
+    const cancelados = d.filter(a => ['CANCELADA','SI SEM INTERESSE'].includes(a.situacao)).length;
+    const puxadas = d.filter(a => a.situacao === 'PUXADA').length;
+    const reagendar = d.filter(a => a.situacao === 'REAGENDAR').length;
+    return { total, confirmados, cancelados, puxadas, reagendar, taxa: total > 0 ? Math.round((confirmados/total)*100) : 0 };
+}
+
+function renderOperadores() {
+    const container = $('lista-operadores');
+    container.innerHTML = '';
+    OPERADORES.forEach(op => {
+        const stats = getOperadorStats(op.id);
+        const fotoHtml = op.foto
+            ? `<img src="${op.foto}" class="op-avatar">`
+            : `<div class="op-avatar-placeholder" style="background:${op.cor}">${op.id.charAt(0)}</div>`;
+        const cargoColor = op.cargo === 'Gerente' ? 'bg-amber-100 text-amber-700' : op.cargo === 'Supervisor' ? 'bg-purple-100 text-purple-700' : op.cargo === 'Coordenação' ? 'bg-slate-200 text-slate-700' : 'bg-indigo-100 text-indigo-700';
+
+        const div = document.createElement('div');
+        div.className = 'op-card bg-white p-5 rounded-2xl shadow-sm border border-slate-200 relative';
+        div.innerHTML = `
+            <div class="absolute top-3 right-3 flex gap-1">
+                <button class="btn-edit-op w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 flex items-center justify-center text-sm transition-colors" title="Editar"><i class="fas fa-edit"></i></button>
+                <button class="btn-del-op w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center text-sm transition-colors" title="Excluir"><i class="fas fa-trash"></i></button>
+            </div>
+            <div class="flex items-center gap-4 mb-4">
+                ${fotoHtml}
+                <div>
+                    <h4 class="font-black text-slate-800 text-lg leading-tight">${op.nome}</h4>
+                    <div class="flex items-center gap-2 mt-1"><span class="badge ${cargoColor}">${op.cargo || 'Operador'}</span><span class="text-xs text-slate-400 font-bold">${op.id}</span></div>
+                </div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 text-center">
+                <div class="p-2 bg-slate-50 rounded-lg"><div class="text-lg font-black text-indigo-600">${stats.total}</div><div class="text-xs text-slate-400">Total</div></div>
+                <div class="p-2 bg-green-50 rounded-lg"><div class="text-lg font-black text-green-600">${stats.confirmados}</div><div class="text-xs text-slate-400">Confirm.</div></div>
+                <div class="p-2 bg-purple-50 rounded-lg"><div class="text-lg font-black text-purple-600">${stats.taxa}%</div><div class="text-xs text-slate-400">Taxa</div></div>
+            </div>
+            ${op.telefone ? `<div class="mt-3 text-xs text-slate-400"><i class="fas fa-phone mr-1"></i>${op.telefone}</div>` : ''}
+            ${op.email ? `<div class="text-xs text-slate-400 mt-1"><i class="fas fa-envelope mr-1"></i>${op.email}</div>` : ''}`;
+
+        div.addEventListener('click', (e) => {
+            if (!e.target.closest('.btn-edit-op') && !e.target.closest('.btn-del-op')) showOperadorDetalhe(op.id);
+        });
+        div.querySelector('.btn-edit-op').addEventListener('click', (e) => { e.stopPropagation(); openEditOperador(op.id); });
+        div.querySelector('.btn-del-op').addEventListener('click', (e) => { e.stopPropagation(); confirmDeleteOperador(op.id); });
+        container.appendChild(div);
+    });
 }
 
 // ==================== AUTH ====================
@@ -606,300 +754,153 @@ function loadSavedUser() {
         const savedSuper = localStorage.getItem('agCentroSuper') === 'true';
         const savedAuth = localStorage.getItem('agCentroAuth') === 'true';
         if (saved) {
-            state.user = saved;
-            $('select-assistente').value = saved;
-            if ((saved === 'RAIANE' || saved === 'WELKER') && savedSuper) {
-                state.isSupervisor = true;
-                applySupervisorMode(true);
-            }
-            if ((saved === 'ALANA' || saved === 'RAIANE' || saved === 'WELKER') && !savedAuth) {
-                state.user = '';
-                $('select-assistente').value = '';
-                localStorage.removeItem('agCentroUser');
-            }
+            state.user = saved; $('select-assistente').value = saved;
+            if ((saved === 'RAIANE' || saved === 'WELKER') && savedSuper) { state.isSupervisor = true; applySupervisorMode(true); }
+            if (['ALANA','RAIANE','WELKER'].includes(saved) && !savedAuth) { state.user = ''; $('select-assistente').value = ''; localStorage.removeItem('agCentroUser'); }
             updateStats();
         }
     } catch(e) {}
 }
-
-function saveUser() {
-    try {
-        localStorage.setItem('agCentroUser', state.user);
-        localStorage.setItem('agCentroSuper', state.isSupervisor.toString());
-        localStorage.setItem('agCentroAuth', 'true');
-    } catch(e) {}
-}
-
+function saveUser() { try { localStorage.setItem('agCentroUser', state.user); localStorage.setItem('agCentroSuper', state.isSupervisor.toString()); localStorage.setItem('agCentroAuth', 'true'); } catch(e) {} }
 function checkPassword() {
     const pwd = $('supervisor-password').value;
-    if (state.user === 'RAIANE' && pwd === SUPERVISOR_PASS) {
-        state.isSupervisor = true;
-        applySupervisorMode(true);
-        hideModal('password-modal');
-        toast('Bem-vinda, Gerente Raiane! 👑', 'success');
-        saveUser(); updateStats(); fetchAgendamentosAmanha();
-    } else if (state.user === 'WELKER' && pwd === WELKER_PASS) {
-        state.isSupervisor = true;
-        applySupervisorMode(true);
-        hideModal('password-modal');
-        toast('Bem-vindo, Supervisor Welker! 🛡️', 'success');
-        saveUser(); updateStats(); fetchAgendamentosAmanha();
-    } else if (state.user === 'ALANA' && pwd === ALANA_PASS) {
-        state.isSupervisor = false;
-        applySupervisorMode(false);
-        hideModal('password-modal');
-        toast('Bem-vinda, Alana! ✨', 'success');
-        saveUser(); updateStats();
-    } else {
-        toast('Senha incorreta!', 'error');
-        $('supervisor-password').value = '';
-    }
+    if (state.user === 'RAIANE' && pwd === SUPERVISOR_PASS) { state.isSupervisor = true; applySupervisorMode(true); hideModal('password-modal'); toast('Bem-vinda, Gerente Raiane! 👑', 'success'); saveUser(); updateStats(); fetchAgendamentosAmanha(); }
+    else if (state.user === 'WELKER' && pwd === WELKER_PASS) { state.isSupervisor = true; applySupervisorMode(true); hideModal('password-modal'); toast('Bem-vindo, Supervisor Welker! 🛡️', 'success'); saveUser(); updateStats(); fetchAgendamentosAmanha(); }
+    else if (state.user === 'ALANA' && pwd === ALANA_PASS) { state.isSupervisor = false; applySupervisorMode(false); hideModal('password-modal'); toast('Bem-vinda, Alana! ✨', 'success'); saveUser(); updateStats(); }
+    else { toast('Senha incorreta!', 'error'); $('supervisor-password').value = ''; }
 }
-
 function applySupervisorMode(active) {
     state.isSupervisor = active;
-    if (active) {
-        $('supervisor-badge').classList.remove('hidden');
-        $('nav-admin').style.display = 'flex';
-        if (state.user === 'WELKER') {
-            $('supervisor-badge').innerHTML = '<i class="fas fa-user-shield"></i> Modo Supervisor';
-        } else {
-            $('supervisor-badge').innerHTML = '<i class="fas fa-crown"></i> Modo Gerente';
-        }
-    } else {
-        $('supervisor-badge').classList.add('hidden');
-        $('nav-admin').style.display = 'none';
-    }
+    if (active) { $('supervisor-badge').classList.remove('hidden'); $('nav-admin').style.display = 'flex';
+        $('supervisor-badge').innerHTML = state.user === 'WELKER' ? '<i class="fas fa-user-shield"></i> Modo Supervisor' : '<i class="fas fa-crown"></i> Modo Gerente';
+    } else { $('supervisor-badge').classList.add('hidden'); $('nav-admin').style.display = 'none'; }
 }
 
 // ==================== THEME ====================
-function loadTheme() {
-    if (localStorage.getItem('agCentroTheme') === 'dark') {
-        document.body.classList.add('dark-mode');
-        const i = document.querySelector('#btn-toggle-dark i');
-        if (i) i.classList.replace('fa-moon', 'fa-sun');
-    }
-}
-
-function toggleTheme() {
-    document.body.classList.toggle('dark-mode');
-    const i = document.querySelector('#btn-toggle-dark i');
-    if (document.body.classList.contains('dark-mode')) {
-        i && i.classList.replace('fa-moon', 'fa-sun');
-        localStorage.setItem('agCentroTheme', 'dark');
-    } else {
-        i && i.classList.replace('fa-sun', 'fa-moon');
-        localStorage.setItem('agCentroTheme', 'light');
-    }
-}
+function loadTheme() { if (localStorage.getItem('agCentroTheme') === 'dark') { document.body.classList.add('dark-mode'); const i = document.querySelector('#btn-toggle-dark i'); if (i) i.classList.replace('fa-moon', 'fa-sun'); } }
+function toggleTheme() { document.body.classList.toggle('dark-mode'); const i = document.querySelector('#btn-toggle-dark i'); if (document.body.classList.contains('dark-mode')) { i&&i.classList.replace('fa-moon','fa-sun'); localStorage.setItem('agCentroTheme','dark'); } else { i&&i.classList.replace('fa-sun','fa-moon'); localStorage.setItem('agCentroTheme','light'); } }
 
 // ==================== NAVIGATION ====================
 function switchTab(target) {
     document.querySelectorAll('.page-content').forEach(el => el.classList.add('hidden'));
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-lg');
-        btn.classList.add('text-slate-600', 'hover:bg-slate-50');
-    });
-    const page = $(`page-${target}`);
-    if (page) page.classList.remove('hidden');
+    document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('bg-indigo-600','text-white','shadow-lg'); btn.classList.add('text-slate-600','hover:bg-slate-50'); });
+    const page = $(`page-${target}`); if (page) page.classList.remove('hidden');
     const btn = document.querySelector(`.nav-btn[data-target="${target}"]`);
-    if (btn) {
-        btn.classList.remove('text-slate-600', 'hover:bg-slate-50');
-        btn.classList.add('bg-indigo-600', 'text-white', 'shadow-lg');
-    }
+    if (btn) { btn.classList.remove('text-slate-600','hover:bg-slate-50'); btn.classList.add('bg-indigo-600','text-white','shadow-lg'); }
     if (target === 'agendamentos') fetchAppointmentsHoje();
     if (target === 'dashboard') updateDashboard();
-    if (target === 'admin' && state.isSupervisor) loadAdminData('hoje');
+    if (target === 'admin' && state.isSupervisor) { loadAdminData('hoje'); }
+}
+
+function switchAdminTab(tab) {
+    document.querySelectorAll('.admin-tab').forEach(x => { x.classList.remove('bg-indigo-600','text-white'); x.classList.add('bg-slate-100','text-slate-600'); });
+    const btn = document.querySelector(`.admin-tab[data-tab="${tab}"]`);
+    if (btn) { btn.classList.add('bg-indigo-600','text-white'); btn.classList.remove('bg-slate-100','text-slate-600'); }
+    $('admin-tab-visao').classList.toggle('hidden', tab !== 'visao');
+    $('admin-tab-operadores').classList.toggle('hidden', tab !== 'operadores');
+    $('admin-tab-relatorios').classList.toggle('hidden', tab !== 'relatorios');
+    if (tab === 'operadores') renderOperadores();
 }
 
 // ==================== EVENTS ====================
 function setupAllEvents() {
-    // Nav
     document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.target)));
-
-    // Theme
     $('btn-toggle-dark').addEventListener('click', toggleTheme);
+    $('btn-toggle-stats').addEventListener('click', () => { $('stats-container').classList.toggle('expanded'); $('stats-icon').classList.toggle('fa-chevron-down'); $('stats-icon').classList.toggle('fa-chevron-up'); });
 
-    // Stats toggle
-    $('btn-toggle-stats').addEventListener('click', () => {
-        $('stats-container').classList.toggle('expanded');
-        $('stats-icon').classList.toggle('fa-chevron-down');
-        $('stats-icon').classList.toggle('fa-chevron-up');
-    });
-
-    // User select
-    $('select-assistente').addEventListener('change', (e) => {
+    $('select-assistente').addEventListener('change', e => {
         state.user = e.target.value;
         if (['RAIANE','WELKER','ALANA'].includes(state.user)) {
-            if (state.user === 'RAIANE') {
-                $('auth-title').textContent = 'Acesso Gerente';
-                $('auth-desc').textContent = 'Digite a senha de gerente';
-                $('auth-icon').className = 'fas fa-crown text-2xl text-white';
-            } else if (state.user === 'WELKER') {
-                $('auth-title').textContent = 'Acesso Supervisor';
-                $('auth-desc').textContent = 'Digite a senha de supervisor';
-                $('auth-icon').className = 'fas fa-user-shield text-2xl text-white';
-            } else {
-                $('auth-title').textContent = 'Acesso Protegido';
-                $('auth-desc').textContent = 'Digite sua senha para continuar';
-                $('auth-icon').className = 'fas fa-lock text-2xl text-white';
-            }
-            $('supervisor-password').value = '';
-            showModal('password-modal');
-            setTimeout(() => $('supervisor-password').focus(), 200);
-        } else {
-            applySupervisorMode(false);
-            saveUser(); updateStats();
-        }
+            if (state.user === 'RAIANE') { $('auth-title').textContent='Acesso Gerente'; $('auth-desc').textContent='Digite a senha de gerente'; $('auth-icon').className='fas fa-crown text-2xl text-white'; }
+            else if (state.user === 'WELKER') { $('auth-title').textContent='Acesso Supervisor'; $('auth-desc').textContent='Digite a senha de supervisor'; $('auth-icon').className='fas fa-user-shield text-2xl text-white'; }
+            else { $('auth-title').textContent='Acesso Protegido'; $('auth-desc').textContent='Digite sua senha'; $('auth-icon').className='fas fa-lock text-2xl text-white'; }
+            $('supervisor-password').value=''; showModal('password-modal'); setTimeout(()=>$('supervisor-password').focus(),200);
+        } else { applySupervisorMode(false); saveUser(); updateStats(); }
     });
 
-    // Password modal
     $('btn-confirm-auth').addEventListener('click', checkPassword);
-    $('btn-cancel-auth').addEventListener('click', () => {
-        hideModal('password-modal');
-        $('select-assistente').value = '';
-        state.user = '';
-    });
-    $('supervisor-password').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkPassword(); });
+    $('btn-cancel-auth').addEventListener('click', () => { hideModal('password-modal'); $('select-assistente').value=''; state.user=''; });
+    $('supervisor-password').addEventListener('keypress', e => { if (e.key==='Enter') checkPassword(); });
 
-    // Recipients
     $('btn-add-amanha').addEventListener('click', () => addRecipient(1));
     $('btn-add-hoje').addEventListener('click', () => addRecipient(0));
-
-    // Messages modal
-    $('btn-open-mensagens').addEventListener('click', () => {
-        if (state.recipients.filter(r => r.jovem && r.data && r.horario && r.telefone_resp).length === 0) {
-            return toast('Preencha os destinatários primeiro', 'warning');
-        }
-        showModal('mensagens-modal');
-    });
+    $('btn-open-mensagens').addEventListener('click', () => { if (!state.recipients.filter(r=>r.jovem&&r.data&&r.horario&&r.telefone_resp).length) return toast('Preencha os destinatários primeiro','warning'); showModal('mensagens-modal'); });
     $('btn-close-mensagens').addEventListener('click', () => hideModal('mensagens-modal'));
     $('btn-gen-rapida').addEventListener('click', () => { hideModal('mensagens-modal'); showModal('quick-modal'); });
     $('btn-gen-projeto').addEventListener('click', () => { hideModal('mensagens-modal'); generateMessages('Projeto'); });
     $('btn-gen-instituto').addEventListener('click', () => { hideModal('mensagens-modal'); generateMessages('Instituto'); });
-    $('btn-clear-msgs').addEventListener('click', () => { $('area-mensagens').classList.add('hidden'); $('lista-mensagens').innerHTML = ''; });
-
-    // Quick message
+    $('btn-clear-msgs').addEventListener('click', () => { $('area-mensagens').classList.add('hidden'); $('lista-mensagens').innerHTML=''; });
     $('btn-cancel-quick').addEventListener('click', () => hideModal('quick-modal'));
     $('btn-send-quick').addEventListener('click', sendQuickMessage);
 
-    // View toggle
-    document.querySelectorAll('.view-toggle').forEach(b => {
-        b.addEventListener('click', () => {
-            document.querySelectorAll('.view-toggle').forEach(x => { x.classList.remove('bg-indigo-600','text-white'); x.classList.add('bg-slate-100','text-slate-600'); });
-            b.classList.add('bg-indigo-600','text-white'); b.classList.remove('bg-slate-100','text-slate-600');
-            if (b.dataset.view === 'hoje') {
-                $('view-hoje').classList.remove('hidden'); $('view-outras').classList.add('hidden');
-                fetchAppointmentsHoje();
-            } else {
-                $('view-hoje').classList.add('hidden'); $('view-outras').classList.remove('hidden');
-                const t = new Date(); $('consulta-date').value = formatDateAPI(t); fetchConsulta(t);
-            }
-        });
-    });
+    document.querySelectorAll('.view-toggle').forEach(b => b.addEventListener('click', () => {
+        document.querySelectorAll('.view-toggle').forEach(x=>{x.classList.remove('bg-indigo-600','text-white');x.classList.add('bg-slate-100','text-slate-600');});
+        b.classList.add('bg-indigo-600','text-white'); b.classList.remove('bg-slate-100','text-slate-600');
+        if (b.dataset.view==='hoje') { $('view-hoje').classList.remove('hidden'); $('view-outras').classList.add('hidden'); fetchAppointmentsHoje(); }
+        else { $('view-hoje').classList.add('hidden'); $('view-outras').classList.remove('hidden'); $('consulta-date').value=formatDateAPI(new Date()); fetchConsulta(new Date()); }
+    }));
 
-    // Search & filter
-    $('search-hoje').addEventListener('input', (e) => { state.filters.search = e.target.value.toLowerCase(); filterAndRenderHoje(); });
-    $('filter-status').addEventListener('change', (e) => { state.filters.status = e.target.value; filterAndRenderHoje(); });
-    $('search-consulta').addEventListener('input', (e) => filterConsulta(e.target.value));
+    $('btn-refresh-hoje').addEventListener('click', () => { fetchAppointmentsHoje(); toast('Atualizando...','info'); });
+    $('search-hoje').addEventListener('input', e => { state.filters.search=e.target.value.toLowerCase(); filterAndRenderHoje(); });
+    $('filter-status').addEventListener('change', e => { state.filters.status=e.target.value; filterAndRenderHoje(); });
+    $('search-consulta').addEventListener('input', e => filterConsulta(e.target.value));
+    document.querySelectorAll('.filter-chip').forEach(c => c.addEventListener('click', () => { state.filters.status=c.dataset.status; $('filter-status').value=c.dataset.status; document.querySelectorAll('.filter-chip').forEach(x=>x.classList.remove('active')); c.classList.add('active'); filterAndRenderHoje(); }));
+    $('btn-consulta-go').addEventListener('click', () => { const v=$('consulta-date').value; if(!v) return toast('Selecione uma data','warning'); fetchConsulta(new Date(v+'T12:00:00')); });
+    document.querySelectorAll('.date-preset').forEach(b => b.addEventListener('click', () => { const d=new Date(); d.setDate(d.getDate()+parseInt(b.dataset.days)); $('consulta-date').value=formatDateAPI(d); fetchConsulta(d); }));
 
-    // Filter chips
-    document.querySelectorAll('.filter-chip').forEach(c => {
-        c.addEventListener('click', () => {
-            state.filters.status = c.dataset.status;
-            $('filter-status').value = c.dataset.status;
-            document.querySelectorAll('.filter-chip').forEach(x => x.classList.remove('active'));
-            c.classList.add('active');
-            filterAndRenderHoje();
-        });
-    });
-
-    // Consulta
-    $('btn-consulta-go').addEventListener('click', () => {
-        const v = $('consulta-date').value;
-        if (!v) return toast('Selecione uma data', 'warning');
-        fetchConsulta(new Date(v + 'T12:00:00'));
-    });
-    document.querySelectorAll('.date-preset').forEach(b => {
-        b.addEventListener('click', () => {
-            const d = new Date(); d.setDate(d.getDate() + parseInt(b.dataset.days));
-            $('consulta-date').value = formatDateAPI(d); fetchConsulta(d);
-        });
-    });
-
-    // Admin tabs
-    document.querySelectorAll('.admin-tab').forEach(b => {
-        b.addEventListener('click', () => {
-            document.querySelectorAll('.admin-tab').forEach(x => { x.classList.remove('bg-indigo-600','text-white'); x.classList.add('bg-slate-100','text-slate-600'); });
-            b.classList.add('bg-indigo-600','text-white'); b.classList.remove('bg-slate-100','text-slate-600');
-            $('admin-tab-visao').classList.toggle('hidden', b.dataset.tab !== 'visao');
-            $('admin-tab-relatorios').classList.toggle('hidden', b.dataset.tab !== 'relatorios');
-        });
-    });
-
-    // Admin periods
-    document.querySelectorAll('.admin-period').forEach(b => {
-        b.addEventListener('click', () => {
-            document.querySelectorAll('.admin-period').forEach(x => { x.classList.remove('bg-indigo-600','text-white'); x.classList.add('bg-slate-100','text-slate-600'); });
-            b.classList.add('bg-indigo-600','text-white'); b.classList.remove('bg-slate-100','text-slate-600');
-            loadAdminData(b.dataset.period);
-        });
-    });
-
-    // Metas
-    $('btn-metas').addEventListener('click', () => {
-        $('meta-diaria').value = state.meta.diaria; $('meta-semanal').value = state.meta.semanal;
-        $('meta-mensal').value = state.meta.mensal; $('meta-taxa').value = state.meta.taxa;
-        showModal('metas-modal');
-    });
+    // Admin
+    document.querySelectorAll('.admin-tab').forEach(b => b.addEventListener('click', () => switchAdminTab(b.dataset.tab)));
+    document.querySelectorAll('.admin-period').forEach(b => b.addEventListener('click', () => {
+        document.querySelectorAll('.admin-period').forEach(x=>{x.classList.remove('bg-indigo-600','text-white');x.classList.add('bg-slate-100','text-slate-600');});
+        b.classList.add('bg-indigo-600','text-white'); b.classList.remove('bg-slate-100','text-slate-600'); loadAdminData(b.dataset.period);
+    }));
+    $('btn-admin-custom').addEventListener('click', () => { const s=$('admin-start').value,e=$('admin-end').value; if(!s||!e) return toast('Selecione as duas datas','warning'); if(s>e) return toast('Data inicial deve ser menor','warning'); document.querySelectorAll('.admin-period').forEach(x=>{x.classList.remove('bg-indigo-600','text-white');x.classList.add('bg-slate-100','text-slate-600');}); loadAdminData('custom',s,e); });
+    $('btn-metas').addEventListener('click', () => { $('meta-diaria').value=state.meta.diaria; $('meta-semanal').value=state.meta.semanal; $('meta-mensal').value=state.meta.mensal; $('meta-taxa').value=state.meta.taxa; showModal('metas-modal'); });
     $('btn-cancel-metas').addEventListener('click', () => hideModal('metas-modal'));
     $('btn-save-metas').addEventListener('click', saveMetas);
-
-    // Edit modal
     $('btn-cancel-edit').addEventListener('click', () => hideModal('edit-modal'));
     $('btn-save-edit').addEventListener('click', saveEdit);
-
-    // Others
     $('btn-update-ag-amanha').addEventListener('click', fetchAgendamentosAmanha);
     $('btn-export').addEventListener('click', exportAdminData);
+    $('card-ativos').addEventListener('click', () => switchAdminTab('operadores'));
 
-    // Input masks
-    document.body.addEventListener('input', (e) => {
-        if (e.target.classList.contains('date-mask')) maskDate(e.target);
-        if (e.target.classList.contains('phone-mask')) maskPhone(e.target);
-        if (e.target.classList.contains('time-mask')) maskTime(e.target);
+    // Operador modal
+    $('btn-add-operador').addEventListener('click', openAddOperador);
+    $('btn-cancel-operador').addEventListener('click', () => hideModal('operador-modal'));
+    $('btn-save-operador').addEventListener('click', saveOperadorForm);
+    $('btn-sync-operadores').addEventListener('click', syncOperadoresFromSheet);
+    $('btn-close-detalhe').addEventListener('click', () => hideModal('operador-detalhe-modal'));
+    $('btn-edit-from-detalhe').addEventListener('click', () => { hideModal('operador-detalhe-modal'); if (state.editingOperador) openEditOperador(state.editingOperador); });
+    $('btn-cancel-delete').addEventListener('click', () => hideModal('confirm-delete-modal'));
+    $('btn-confirm-delete').addEventListener('click', deleteOperador);
+
+    // Foto upload
+    $('op-foto-input').addEventListener('change', e => {
+        const file = e.target.files[0]; if (!file) return;
+        if (file.size > 500000) return toast('Imagem muito grande (máx 500KB)','warning');
+        const reader = new FileReader();
+        reader.onload = ev => { $('op-foto-preview').innerHTML = `<img src="${ev.target.result}" class="w-full h-full object-cover">`; };
+        reader.readAsDataURL(file);
     });
+
+    document.body.addEventListener('input', e => { if (e.target.classList.contains('date-mask')) maskDate(e.target); if (e.target.classList.contains('phone-mask')) maskPhone(e.target); if (e.target.classList.contains('time-mask')) maskTime(e.target); });
 }
 
 // ==================== RECIPIENTS ====================
 function addRecipient(daysOffset) {
-    const d = new Date(); d.setDate(d.getDate() + daysOffset);
-    if (daysOffset === 1 && d.getDay() === 0) d.setDate(d.getDate() + 1);
-    state.recipients.push({
-        id: Date.now(), jovem: '', data_nascimento: '', responsavel: '',
-        telefone_resp: '', telefone_jovem: '', data: formatDateBR(d),
-        horario: '', irmaos: '', tipo: daysOffset === 0 ? 'PUXADA' : 'AMANHÃ'
-    });
-    renderRecipients(); saveLocalData();
-    toast(`Destinatário adicionado`, 'success');
+    const d=new Date(); d.setDate(d.getDate()+daysOffset); if(daysOffset===1&&d.getDay()===0) d.setDate(d.getDate()+1);
+    state.recipients.push({ id:Date.now(), jovem:'', data_nascimento:'', responsavel:'', telefone_resp:'', telefone_jovem:'', data:formatDateBR(d), horario:'', irmaos:'', tipo:daysOffset===0?'PUXADA':'AMANHÃ' });
+    renderRecipients(); saveLocalData(); toast(`Destinatário adicionado (${daysOffset===0?'Puxada':'Amanhã'})`,'success');
 }
-
 function renderRecipients() {
-    const list = $('lista-destinatarios');
-    const empty = $('empty-state');
-    Array.from(list.children).forEach(c => { if (c.id !== 'empty-state') c.remove(); });
-    if (state.recipients.length === 0) { empty.classList.remove('hidden'); updateStats(); return; }
+    const list=$('lista-destinatarios'), empty=$('empty-state');
+    Array.from(list.children).forEach(c=>{if(c.id!=='empty-state')c.remove();});
+    if(!state.recipients.length){empty.classList.remove('hidden');updateStats();return;}
     empty.classList.add('hidden');
-    state.recipients.forEach((r, idx) => {
-        const div = document.createElement('div');
-        div.className = 'p-4 border-2 border-slate-200 rounded-xl bg-white relative slide-in';
-        div.dataset.id = r.id;
-        div.innerHTML = `
-            <button class="btn-rm absolute top-2 right-2 text-red-400 hover:text-red-600 p-1" data-id="${r.id}"><i class="fas fa-times"></i></button>
-            <div class="flex items-center gap-2 mb-3">
-                <span class="badge ${r.tipo==='PUXADA'?'bg-amber-100 text-amber-700':'bg-blue-100 text-blue-700'}">${r.tipo}</span>
-                <span class="font-bold text-slate-400">#${idx+1}</span>
-            </div>
+    state.recipients.forEach((r,idx)=>{
+        const div=document.createElement('div'); div.className='p-4 border-2 border-slate-200 rounded-xl bg-white relative slide-in'; div.dataset.id=r.id;
+        div.innerHTML=`<button class="btn-rm absolute top-2 right-2 text-red-400 hover:text-red-600 p-1 transition-colors" data-id="${r.id}"><i class="fas fa-times"></i></button>
+            <div class="flex items-center gap-2 mb-3"><span class="badge ${r.tipo==='PUXADA'?'bg-amber-100 text-amber-700':'bg-blue-100 text-blue-700'}">${r.tipo}</span><span class="font-bold text-slate-400">#${idx+1}</span></div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <input type="text" placeholder="Nome do Jovem *" value="${r.jovem}" data-field="jovem" class="ipt p-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none">
                 <input type="text" placeholder="Data Nasc. (DD/MM/AAAA)" value="${r.data_nascimento}" data-field="data_nascimento" class="ipt p-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none date-mask">
@@ -910,16 +911,8 @@ function renderRecipients() {
                 <input type="text" placeholder="Horário * (HH:MM)" value="${r.horario}" data-field="horario" class="ipt p-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none time-mask">
                 <input type="text" placeholder="Irmãos (opcional)" value="${r.irmaos||''}" data-field="irmaos" class="ipt p-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none">
             </div>`;
-        div.querySelectorAll('.ipt').forEach(inp => {
-            inp.addEventListener('input', (e) => {
-                const rec = state.recipients.find(x => x.id === parseInt(div.dataset.id));
-                if (rec) { rec[e.target.dataset.field] = e.target.value; saveLocalData(); updateStats(); }
-            });
-        });
-        div.querySelector('.btn-rm').addEventListener('click', () => {
-            state.recipients = state.recipients.filter(x => x.id !== parseInt(div.dataset.id));
-            renderRecipients(); saveLocalData(); toast('Removido', 'info');
-        });
+        div.querySelectorAll('.ipt').forEach(inp=>inp.addEventListener('input',e=>{const rec=state.recipients.find(x=>x.id===parseInt(div.dataset.id));if(rec){rec[e.target.dataset.field]=e.target.value;saveLocalData();updateStats();}}));
+        div.querySelector('.btn-rm').addEventListener('click',()=>{state.recipients=state.recipients.filter(x=>x.id!==parseInt(div.dataset.id));renderRecipients();saveLocalData();toast('Destinatário removido','info');});
         list.appendChild(div);
     });
     updateStats();
@@ -927,508 +920,183 @@ function renderRecipients() {
 
 // ==================== MESSAGES ====================
 function generateMessages(tipo) {
-    if (!state.user) return toast('Selecione seu nome', 'warning');
-    const validos = state.recipients.filter(r => r.jovem && r.data && r.horario && r.telefone_resp);
-    if (!validos.length) return toast('Preencha os campos obrigatórios', 'warning');
-
-    const lista = $('lista-mensagens'); lista.innerHTML = '';
-    $('area-mensagens').classList.remove('hidden');
-
-    const unidade = $('select-local').value;
-    const isCentro = unidade === 'Centro';
-    const nome = state.user === 'GABRIELA' ? (isCentro ? 'Sara Gabriela Silva' : 'Sophia Martins') : (OPERADORES.find(o=>o.id===state.user)?.nome || state.user);
-    const endereco = isCentro ? 'Rua Curitiba, 656, 11° andar - Centro, Belo Horizonte' : 'Av. João César de Oliveira, Nº 953, 2º andar – Eldorado';
-    const ref = isCentro ? '(Abaixo da Galeria do Ouvidor, em frente a Casa&Video)' : '(Em frente a Caixa Econômica Federal, ao lado da Oral Centter, próximo ao Big Shopping)';
-
-    validos.forEach(r => {
-        const cod = r.jovem.split(' ')[0].toUpperCase().substring(0,3) + Math.floor(Math.random()*900+100);
-        const org = tipo === 'Projeto' ? 'Coordenação | Projeto Conecta Jovem' : 'Instituto Conecta Jovem';
-        let dia = '';
-        if (r.data && r.data.length === 10) { const p = r.data.split('/'); const dt = new Date(p[2],p[1]-1,p[0]); dia = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'][dt.getDay()]; }
-        let idade = '';
-        if (r.data_nascimento && r.data_nascimento.length === 10) { const p = r.data_nascimento.split('/'); const n = new Date(p[2],p[1]-1,p[0]); const h = new Date(); let a = h.getFullYear()-n.getFullYear(); const m = h.getMonth()-n.getMonth(); if (m<0||(m===0&&h.getDate()<n.getDate())) a--; if (a>0&&a<100) idade = ` (${a} anos)`; }
-        let irm = r.irmaos && r.irmaos.trim() ? `\n*Irmãos:* ${r.irmaos}` : '';
-
-        const msg = `*CONVOCAÇÃO PARA TESTE VOCACIONAL E CADASTRAMENTO GRATUITO AO MERCADO DE TRABALHO*\n\n*Jovem Convocado:* ${r.jovem}${idade}\n*Responsável:* ${r.responsavel}${irm}\n\n*Dados do Agendamento:*\n*Data:* ${dia}, ${r.data}\n*Horário:* ${r.horario} (chegar 10min antes)\n\n*Local:* ${endereco}\n${ref}\n\n*Documentos Necessários:*\n• RG, CPF ou Certidão de Nascimento do jovem.\n• Comprovante de Residência.\n\n---\n*Código do Jovem:* ${cod}\n\nAtenção: A presença do responsável junto com o jovem é indispensável.\n\nAtenciosamente,\n\n*${nome}*\n${org}`;
-
-        let tel = r.telefone_resp.replace(/\D/g,'');
-        if (tel.startsWith('5555')) tel = tel.substring(2);
-        if (!tel.startsWith('55')) tel = '55' + tel;
-
-        const div = document.createElement('div');
-        div.className = 'p-4 bg-slate-50 rounded-xl border border-slate-200 slide-in';
-        div.innerHTML = `
-            <div class="mb-2 font-bold text-slate-700">${r.jovem}</div>
-            <textarea class="w-full h-40 text-xs p-2 rounded border mb-2 font-mono" readonly>${msg}</textarea>
+    if(!state.user) return toast('Selecione seu nome primeiro','warning');
+    const validos=state.recipients.filter(r=>r.jovem&&r.data&&r.horario&&r.telefone_resp); if(!validos.length) return toast('Preencha os campos obrigatórios','warning');
+    const lista=$('lista-mensagens'); lista.innerHTML=''; $('area-mensagens').classList.remove('hidden');
+    const unidade=$('select-local').value, isCentro=unidade==='Centro';
+    const nome=state.user==='GABRIELA'?(isCentro?'Sara Gabriela Silva':'Sophia Martins'):(OPERADORES.find(o=>o.id===state.user)?.nome||state.user);
+    const endereco=isCentro?'Rua Curitiba, 656, 11° andar - Centro, Belo Horizonte':'Av. João César de Oliveira, Nº 953, 2º andar – Eldorado';
+    const ref=isCentro?'(Abaixo da Galeria do Ouvidor, em frente a Casa&Video)':'(Em frente a Caixa Econômica Federal, ao lado da Oral Centter, próximo ao Big Shopping)';
+    validos.forEach(r=>{
+        const cod=r.jovem.split(' ')[0].toUpperCase().substring(0,3)+Math.floor(Math.random()*900+100);
+        const org=tipo==='Projeto'?'Coordenação | Projeto Conecta Jovem':'Instituto Conecta Jovem';
+        let dia=''; if(r.data&&r.data.length===10){const p=r.data.split('/');dia=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'][new Date(p[2],p[1]-1,p[0]).getDay()];}
+        let idade=''; if(r.data_nascimento&&r.data_nascimento.length===10){const p=r.data_nascimento.split('/');const n=new Date(p[2],p[1]-1,p[0]);const h=new Date();let a=h.getFullYear()-n.getFullYear();const m=h.getMonth()-n.getMonth();if(m<0||(m===0&&h.getDate()<n.getDate()))a--;if(a>0&&a<100)idade=` (${a} anos)`;}
+        let irm=r.irmaos&&r.irmaos.trim()?`\n*Irmãos:* ${r.irmaos}`:'';
+        const msg=`*CONVOCAÇÃO PARA TESTE VOCACIONAL E CADASTRAMENTO GRATUITO AO MERCADO DE TRABALHO*\n\n*Jovem Convocado:* ${r.jovem}${idade}\n*Responsável:* ${r.responsavel}${irm}\n\n*Dados do Agendamento:*\n*Data:* ${dia}, ${r.data}\n*Horário:* ${r.horario} (chegar 10min antes)\n\n*Local:* ${endereco}\n${ref}\n\n*Documentos Necessários:*\n• RG, CPF ou Certidão de Nascimento do jovem.\n• Comprovante de Residência.\n\n---\n*Código do Jovem:* ${cod}\n\nAtenção: A presença do responsável junto com o jovem é indispensável.\n\nAtenciosamente,\n\n*${nome}*\n${org}`;
+        let tel=r.telefone_resp.replace(/\D/g,''); if(tel.startsWith('5555'))tel=tel.substring(2); if(!tel.startsWith('55'))tel='55'+tel;
+        const div=document.createElement('div'); div.className='p-4 bg-slate-50 rounded-xl border border-slate-200 slide-in';
+        div.innerHTML=`<div class="mb-2 font-bold text-slate-700"><i class="fas fa-user text-indigo-500 mr-1"></i> ${r.jovem}</div>
+            <textarea class="w-full h-40 text-xs p-2 rounded border mb-2 font-mono bg-white" readonly>${msg}</textarea>
             <div class="flex flex-wrap gap-2">
-                <button class="btn-copy px-3 py-1 bg-slate-200 rounded text-xs font-bold hover:bg-slate-300">Copiar</button>
-                <a href="https://wa.me/${tel}?text=${encodeURIComponent(msg)}" target="_blank" class="px-3 py-1 bg-green-500 text-white rounded text-xs font-bold hover:bg-green-600">WhatsApp</a>
-                <button class="btn-save px-3 py-1 bg-blue-500 text-white rounded text-xs font-bold hover:bg-blue-600" data-info='${JSON.stringify({...r,codigo:cod,assistente:state.user,local:unidade}).replace(/'/g,"\\'")}'>Salvar Planilha</button>
+                <button class="btn-copy px-3 py-1.5 bg-slate-200 rounded-lg text-xs font-bold hover:bg-slate-300 transition-colors"><i class="fas fa-copy"></i> Copiar</button>
+                <a href="https://wa.me/${tel}?text=${encodeURIComponent(msg)}" target="_blank" class="px-3 py-1.5 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600 transition-colors"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                <button class="btn-save px-3 py-1.5 bg-blue-500 text-white rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors"><i class="fas fa-cloud-upload-alt"></i> Salvar Planilha</button>
             </div>`;
-
-        div.querySelector('.btn-copy').addEventListener('click', () => { navigator.clipboard.writeText(msg); toast('Copiado!', 'success'); });
-        div.querySelector('.btn-save').addEventListener('click', async (e) => {
-            const btn = e.target; const info = JSON.parse(btn.dataset.info);
-            btn.disabled = true; btn.textContent = 'Salvando...';
-            try {
-                await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
-                    data:info.data, assistente:info.assistente, jovem:info.jovem, data_nascimento:info.data_nascimento||'',
-                    responsavel:info.responsavel, numero_jovem:info.telefone_jovem||'', numero_responsavel:info.telefone_resp,
-                    local:info.local, horario:info.horario, codigo:info.codigo, irmaos:info.irmaos||'',
-                    isPuxada:info.tipo==='PUXADA', horario_lancamento:new Date().toLocaleString('pt-BR')
-                })});
-                btn.textContent = 'Salvo ✓'; btn.className = 'px-3 py-1 bg-green-600 text-white rounded text-xs font-bold'; toast('Salvo!', 'success');
-            } catch { btn.textContent = 'Erro'; btn.className = 'px-3 py-1 bg-red-600 text-white rounded text-xs font-bold'; toast('Erro ao salvar', 'error'); }
-        });
+        div.querySelector('.btn-copy').addEventListener('click',()=>{navigator.clipboard.writeText(msg);toast('Mensagem copiada!','success');});
+        const saveInfo={...r,codigo:cod,assistente:state.user,local:unidade};
+        div.querySelector('.btn-save').addEventListener('click',async e=>{const btn=e.currentTarget;btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Salvando...';
+            try{await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:saveInfo.data,assistente:saveInfo.assistente,jovem:saveInfo.jovem,data_nascimento:saveInfo.data_nascimento||'',responsavel:saveInfo.responsavel,numero_jovem:saveInfo.telefone_jovem||'',numero_responsavel:saveInfo.telefone_resp,local:saveInfo.local,horario:saveInfo.horario,codigo:saveInfo.codigo,irmaos:saveInfo.irmaos||'',isPuxada:saveInfo.tipo==='PUXADA',horario_lancamento:new Date().toLocaleString('pt-BR')})});btn.innerHTML='<i class="fas fa-check"></i> Salvo!';btn.className='px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-bold';toast('Salvo na planilha!','success');}
+            catch{btn.innerHTML='<i class="fas fa-times"></i> Erro';btn.className='px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs font-bold';toast('Erro ao salvar','error');}});
         lista.appendChild(div);
     });
-    toast(`${validos.length} mensagem(ns) gerada(s)`, 'success');
+    toast(`${validos.length} mensagem(ns) gerada(s)`,'success');
 }
 
 // ==================== APPOINTMENTS ====================
 async function fetchAppointmentsHoje() {
-    if (!state.user) return;
-    const list = $('lista-hoje');
-    list.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-indigo-500"></i><p class="text-slate-400 mt-2">Carregando...</p></div>';
-    try {
-        let data = [];
-        const targets = state.isSupervisor ? OPERADORES : [{id:state.user}];
-        for (const op of targets) {
-            try {
-                const r = await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${op.id}&date=${formatDateAPI(new Date())}`);
-                const j = await r.json();
-                if (j.status === 'success' && j.data) data = data.concat(j.data.map(d => ({...d, operador:op.id})));
-            } catch(e) { console.warn(`Erro ${op.id}:`, e); }
-        }
-        state.appointmentsHoje = data;
-        updateCounters(data);
-        filterAndRenderHoje();
-    } catch(e) { list.innerHTML = `<p class="text-red-500 text-center py-8">Erro: ${e.message}</p>`; }
+    if(!state.user) return;
+    const list=$('lista-hoje'); list.innerHTML='<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-indigo-500"></i><p class="text-slate-400 mt-2">Carregando...</p></div>';
+    try { let data=[]; const targets=state.isSupervisor?OPERADORES:[{id:state.user}];
+        for(const op of targets){try{const r=await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${op.id}&date=${formatDateAPI(new Date())}`);const j=await r.json();if(j.status==='success'&&j.data)data=data.concat(j.data.map(d=>({...d,operador:op.id})));}catch(e){}}
+        state.appointmentsHoje=data; updateCounters(data); filterAndRenderHoje();
+    } catch(e){list.innerHTML=`<p class="text-red-500 text-center py-8">Erro: ${e.message}</p>`;}
 }
-
 function updateCounters(data) {
-    $('count-total').textContent = data.length;
-    $('count-confirmada').textContent = data.filter(a => a.situacao==='CONFIRMADA'||a.situacao==='JÁ VEIO'||a.situacao==='MATRICULA').length;
-    $('count-pendente').textContent = data.filter(a => !a.situacao||a.situacao==='').length;
-    $('count-cancelada').textContent = data.filter(a => a.situacao==='CANCELADA'||a.situacao==='SI SEM INTERESSE').length;
-    $('count-puxada').textContent = data.filter(a => a.situacao==='PUXADA').length;
-    $('count-reagendar').textContent = data.filter(a => a.situacao==='REAGENDAR').length;
+    $('count-total').textContent=data.length;
+    $('count-confirmada').textContent=data.filter(a=>['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(a.situacao)).length;
+    $('count-pendente').textContent=data.filter(a=>!a.situacao||a.situacao==='').length;
+    $('count-cancelada').textContent=data.filter(a=>['CANCELADA','SI SEM INTERESSE'].includes(a.situacao)).length;
+    $('count-puxada').textContent=data.filter(a=>a.situacao==='PUXADA').length;
+    $('count-reagendar').textContent=data.filter(a=>a.situacao==='REAGENDAR').length;
 }
-
 function filterAndRenderHoje() {
-    let f = [...state.appointmentsHoje];
-    if (state.filters.status) {
-        if (state.filters.status === 'PENDENTE') f = f.filter(a => !a.situacao||a.situacao==='');
-        else f = f.filter(a => a.situacao === state.filters.status);
-    }
-    if (state.filters.search) f = f.filter(a => `${a.jovem} ${a.responsavel} ${a.telefone_resp} ${a.telefone_jovem}`.toLowerCase().includes(state.filters.search));
-    renderAppointments(f, $('lista-hoje'), true);
+    let f=[...state.appointmentsHoje];
+    if(state.filters.status){if(state.filters.status==='PENDENTE')f=f.filter(a=>!a.situacao||a.situacao==='');else if(state.filters.status==='CONFIRMADA')f=f.filter(a=>['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(a.situacao));else if(state.filters.status==='CANCELADA')f=f.filter(a=>['CANCELADA','SI SEM INTERESSE'].includes(a.situacao));else f=f.filter(a=>a.situacao===state.filters.status);}
+    if(state.filters.search)f=f.filter(a=>`${a.jovem} ${a.responsavel} ${a.telefone_resp} ${a.telefone_jovem} ${a.operador}`.toLowerCase().includes(state.filters.search));
+    renderAppointments(f,$('lista-hoje'),true);
 }
-
-function renderAppointments(data, container, editable) {
-    container.innerHTML = '';
-    if (!data.length) { container.innerHTML = '<p class="text-center text-slate-400 py-8">Nenhum agendamento encontrado</p>'; return; }
-    data.sort((a,b) => (a.horario||'').localeCompare(b.horario||''));
-    data.forEach(item => {
-        const div = document.createElement('div');
-        const op = state.isSupervisor ? `<span class="text-xs font-bold px-2 py-1 bg-slate-200 rounded mr-2">${item.operador}</span>` : '';
-        div.className = `appointment-card p-4 border-l-4 ${getStatusColor(item.situacao)} bg-white rounded-xl shadow-sm`;
-        div.innerHTML = `
-            <div class="flex justify-between items-start">
-                <div class="flex-1">
-                    <div class="flex items-center mb-1">${op}<span class="font-bold text-slate-800">${item.jovem||'N/D'}</span></div>
-                    <div class="text-xs text-slate-500"><i class="far fa-clock"></i> ${item.horario||'N/D'} • Resp: ${item.responsavel||'N/D'}</div>
-                    <div class="text-xs text-slate-400 mt-1">
-                        <span class="mr-3"><i class="fas fa-phone"></i> ${item.telefone_resp||'N/D'}</span>
-                        <span class="mr-3"><i class="fas fa-mobile-alt"></i> ${item.telefone_jovem||'N/D'}</span>
-                        <span><i class="fas fa-map-marker-alt"></i> ${item.local||'N/D'}</span>
-                    </div>
-                </div>
-                <div class="flex flex-col items-end gap-2">
-                    ${editable ? `<button class="btn-edit text-indigo-500 hover:text-indigo-700 text-sm" title="Editar"><i class="fas fa-edit"></i></button>` : ''}
-                    <select class="sel-status text-xs p-1 border rounded bg-slate-50 font-bold" data-row="${item.rowId}" data-sheet="${item.sheetName}">
-                        <option value="">PENDENTE</option>
-                        <option value="CONFIRMADA" ${item.situacao==='CONFIRMADA'?'selected':''}>CONFIRMADA</option>
-                        <option value="JÁ VEIO" ${item.situacao==='JÁ VEIO'?'selected':''}>JÁ VEIO</option>
-                        <option value="CANCELADA" ${item.situacao==='CANCELADA'?'selected':''}>CANCELADA</option>
-                        <option value="REAGENDAR" ${item.situacao==='REAGENDAR'?'selected':''}>REAGENDAR</option>
-                        <option value="PUXADA" ${item.situacao==='PUXADA'?'selected':''}>PUXADA</option>
-                        <option value="SI SEM INTERESSE" ${item.situacao==='SI SEM INTERESSE'?'selected':''}>SEM INTERESSE</option>
-                        <option value="MATRICULA" ${item.situacao==='MATRICULA'?'selected':''}>MATRÍCULA</option>
-                        <option value="DESCLASSIFICADA" ${item.situacao==='DESCLASSIFICADA'?'selected':''}>DESCLASSIFICADA</option>
-                    </select>
-                </div>
-            </div>`;
-
-        // Edit button
-        const editBtn = div.querySelector('.btn-edit');
-        if (editBtn) {
-            editBtn.addEventListener('click', () => {
-                state.editingItem = item;
-                $('edit-jovem').value = item.jovem || '';
-                $('edit-responsavel').value = item.responsavel || '';
-                $('edit-data').value = item.data || '';
-                $('edit-horario').value = item.horario || '';
-                $('edit-tel-resp').value = item.telefone_resp || '';
-                $('edit-tel-jovem').value = item.telefone_jovem || '';
-                $('edit-local').value = item.local || 'Centro';
-                showModal('edit-modal');
-            });
-        }
-
-        // Status change
-        div.querySelector('.sel-status').addEventListener('change', async (e) => {
-            const sel = e.target; sel.disabled = true;
-            try {
-                const fd = new FormData();
-                fd.append('action', 'updateStatus');
-                fd.append('rowId', String(sel.dataset.row).trim());
-                fd.append('sheetName', String(sel.dataset.sheet).trim());
-                fd.append('newStatus', String(sel.value).trim());
-                await fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', body:fd});
-                toast('Status atualizado!', 'success');
-                div.style.background = '#f0fdf4';
-                setTimeout(() => { div.style.background = ''; fetchAppointmentsHoje(); }, 800);
-            } catch { toast('Erro ao atualizar', 'error'); }
-            sel.disabled = false;
-        });
+function renderAppointments(data,container,editable) {
+    container.innerHTML=''; if(!data.length){container.innerHTML='<p class="text-center text-slate-400 py-8"><i class="fas fa-inbox text-3xl text-slate-300 mb-2 block"></i>Nenhum agendamento encontrado</p>';return;}
+    data.sort((a,b)=>(a.horario||'').localeCompare(b.horario||''));
+    data.forEach(item=>{
+        const div=document.createElement('div'); const op=state.isSupervisor?`<span class="text-xs font-bold px-2 py-1 bg-slate-200 rounded mr-2">${item.operador}</span>`:'';
+        div.className=`appointment-card p-4 border-l-4 ${getStatusColor(item.situacao)} bg-white rounded-xl shadow-sm`;
+        div.innerHTML=`<div class="flex justify-between items-start"><div class="flex-1"><div class="flex items-center mb-1">${op}<span class="font-bold text-slate-800">${item.jovem||'N/D'}</span></div><div class="text-xs text-slate-500"><i class="far fa-clock"></i> ${item.horario||'N/D'} • Resp: ${item.responsavel||'N/D'}</div><div class="text-xs text-slate-400 mt-1"><span class="mr-3"><i class="fas fa-phone"></i> ${item.telefone_resp||'N/D'}</span><span class="mr-3"><i class="fas fa-mobile-alt"></i> ${item.telefone_jovem||'N/D'}</span><span><i class="fas fa-map-marker-alt"></i> ${item.local||'N/D'}</span></div></div>
+            <div class="flex flex-col items-end gap-2">${editable?`<button class="btn-edit text-indigo-500 hover:text-indigo-700 text-sm"><i class="fas fa-edit"></i></button>`:''}
+                <select class="sel-status text-xs p-1 border rounded bg-slate-50 font-bold" data-row="${item.rowId}" data-sheet="${item.sheetName}"><option value="">PENDENTE</option><option value="CONFIRMADA" ${item.situacao==='CONFIRMADA'?'selected':''}>CONFIRMADA</option><option value="JÁ VEIO" ${item.situacao==='JÁ VEIO'?'selected':''}>JÁ VEIO</option><option value="CANCELADA" ${item.situacao==='CANCELADA'?'selected':''}>CANCELADA</option><option value="REAGENDAR" ${item.situacao==='REAGENDAR'?'selected':''}>REAGENDAR</option><option value="PUXADA" ${item.situacao==='PUXADA'?'selected':''}>PUXADA</option><option value="SI SEM INTERESSE" ${item.situacao==='SI SEM INTERESSE'?'selected':''}>SEM INTERESSE</option><option value="MATRICULA" ${item.situacao==='MATRICULA'?'selected':''}>MATRÍCULA</option><option value="DESCLASSIFICADA" ${item.situacao==='DESCLASSIFICADA'?'selected':''}>DESCLASSIFICADA</option></select>
+            </div></div>`;
+        const editBtn=div.querySelector('.btn-edit');
+        if(editBtn) editBtn.addEventListener('click',()=>{state.editingItem=item;$('edit-jovem').value=item.jovem||'';$('edit-responsavel').value=item.responsavel||'';$('edit-data').value=item.data||'';$('edit-horario').value=item.horario||'';$('edit-tel-resp').value=item.telefone_resp||'';$('edit-tel-jovem').value=item.telefone_jovem||'';$('edit-local').value=item.local||'Centro';showModal('edit-modal');});
+        div.querySelector('.sel-status').addEventListener('change',async e=>{const sel=e.target;sel.disabled=true;try{const fd=new FormData();fd.append('action','updateStatus');fd.append('rowId',String(sel.dataset.row).trim());fd.append('sheetName',String(sel.dataset.sheet).trim());fd.append('newStatus',String(sel.value).trim());await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',body:fd});toast('Status atualizado!','success');div.style.background='#f0fdf4';setTimeout(()=>{div.style.background='';fetchAppointmentsHoje();},800);}catch{toast('Erro ao atualizar','error');}sel.disabled=false;});
         container.appendChild(div);
     });
 }
-
 async function saveEdit() {
-    const item = state.editingItem;
-    if (!item) return;
-    const btn = $('btn-save-edit');
-    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
-    try {
-        const fd = new FormData();
-        fd.append('action', 'updateAppointment');
-        fd.append('rowId', String(item.rowId).trim());
-        fd.append('sheetName', String(item.sheetName).trim());
-        fd.append('jovem', $('edit-jovem').value);
-        fd.append('responsavel', $('edit-responsavel').value);
-        fd.append('data', $('edit-data').value);
-        fd.append('horario', $('edit-horario').value);
-        fd.append('telefone_resp', $('edit-tel-resp').value);
-        fd.append('telefone_jovem', $('edit-tel-jovem').value);
-        fd.append('local', $('edit-local').value);
-        await fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', body:fd});
-        toast('Agendamento editado!', 'success');
-        hideModal('edit-modal');
-        setTimeout(() => fetchAppointmentsHoje(), 500);
-    } catch(e) { toast('Erro ao salvar edição', 'error'); }
-    btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Salvar';
+    const item=state.editingItem; if(!item) return; const btn=$('btn-save-edit'); btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Salvando...';
+    try{
+        const payload = {
+            action: 'updateAppointment',
+            rowId: String(item.rowId).trim(),
+            sheetName: String(item.sheetName).trim(),
+            jovem: $('edit-jovem').value,
+            responsavel: $('edit-responsavel').value,
+            data: $('edit-data').value,
+            horario: $('edit-horario').value,
+            telefone_resp: $('edit-tel-resp').value,
+            telefone_jovem: $('edit-tel-jovem').value,
+            local: $('edit-local').value
+        };
+        await fetch(SCRIPT_URL, {
+            method: 'POST', mode: 'no-cors',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+        });
+        toast('Editado com sucesso!','success');hideModal('edit-modal');setTimeout(()=>fetchAppointmentsHoje(),500);
+    }
+    catch(e){toast('Erro ao salvar: '+e.message,'error');} btn.disabled=false; btn.innerHTML='<i class="fas fa-save"></i> Salvar';
 }
 
 // ==================== CONSULTA ====================
 async function fetchConsulta(date) {
-    const list = $('lista-consulta');
-    list.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-indigo-500"></i></div>';
-    const ds = formatDateAPI(date);
-    $('consulta-display-date').textContent = formatDateBR(date);
-    const isToday = formatDateAPI(new Date()) === ds;
-    $('consulta-status-badge').innerHTML = isToday ? '<span class="badge bg-green-100 text-green-700">✏️ Editável</span>' : '<span class="badge bg-orange-100 text-orange-700">🔒 Visualização</span>';
-    try {
-        let data = [];
-        const targets = state.isSupervisor ? OPERADORES : [{id:state.user}];
-        for (const op of targets) {
-            try {
-                const r = await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${op.id}&date=${ds}`);
-                const j = await r.json();
-                if (j.status==='success'&&j.data) data = data.concat(j.data.map(d=>({...d, operador:op.id})));
-            } catch(e) {}
-        }
-        state.appointmentsConsulta = data;
-        data.sort((a,b) => (a.horario||'').localeCompare(b.horario||''));
-        renderAppointments(data, list, isToday);
-    } catch(e) { list.innerHTML = `<p class="text-red-500 text-center py-8">Erro: ${e.message}</p>`; }
+    const list=$('lista-consulta'); list.innerHTML='<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-indigo-500"></i><p class="text-slate-400 mt-2">Buscando...</p></div>';
+    const ds=formatDateAPI(date); $('consulta-display-date').textContent=formatDateBR(date);
+    const isToday=formatDateAPI(new Date())===ds;
+    $('consulta-status-badge').innerHTML=isToday?'<span class="badge bg-green-100 text-green-700">✏️ Editável</span>':'<span class="badge bg-orange-100 text-orange-700">🔒 Visualização</span>';
+    try{let data=[];const targets=state.isSupervisor?OPERADORES:[{id:state.user}];for(const op of targets){try{const r=await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${op.id}&date=${ds}`);const j=await r.json();if(j.status==='success'&&j.data)data=data.concat(j.data.map(d=>({...d,operador:op.id})));}catch(e){}}state.appointmentsConsulta=data;renderAppointments(data,list,isToday);}
+    catch(e){list.innerHTML=`<p class="text-red-500 text-center py-8">Erro: ${e.message}</p>`;}
 }
-
-function filterConsulta(term) {
-    const s = term.toLowerCase();
-    let f = [...state.appointmentsConsulta];
-    if (s) f = f.filter(a => `${a.jovem} ${a.responsavel} ${a.telefone_resp}`.toLowerCase().includes(s));
-    const isToday = $('consulta-date').value && formatDateAPI(new Date()) === $('consulta-date').value;
-    renderAppointments(f, $('lista-consulta'), isToday);
-}
+function filterConsulta(term) { const s=term.toLowerCase(); let f=[...state.appointmentsConsulta]; if(s) f=f.filter(a=>`${a.jovem} ${a.responsavel} ${a.telefone_resp} ${a.operador}`.toLowerCase().includes(s)); const isToday=$('consulta-date').value&&formatDateAPI(new Date())===$('consulta-date').value; renderAppointments(f,$('lista-consulta'),isToday); }
 
 // ==================== DASHBOARD ====================
 function updateDashboard() {
-    if (!state.user) return toast('Selecione um usuário', 'warning');
-    fetchAppointmentsHoje().then(() => {
-        const d = state.appointmentsHoje;
-        const conf = d.filter(a=>['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(a.situacao)).length;
-        const canc = d.filter(a=>['CANCELADA','SI SEM INTERESSE'].includes(a.situacao)).length;
-        const pux = d.filter(a=>a.situacao==='PUXADA').length;
-        const pend = d.filter(a=>!a.situacao||a.situacao==='').length;
-        const reag = d.filter(a=>a.situacao==='REAGENDAR').length;
-        $('stats-dashboard').innerHTML = `
-            <div class="p-3 bg-slate-50 rounded-lg flex justify-between"><span>Total:</span><span class="font-bold">${d.length}</span></div>
-            <div class="p-3 bg-green-50 rounded-lg flex justify-between"><span class="text-green-800">Confirmados:</span><span class="font-bold text-green-600">${conf}</span></div>
-            <div class="p-3 bg-red-50 rounded-lg flex justify-between"><span class="text-red-800">Cancelados:</span><span class="font-bold text-red-600">${canc}</span></div>
-            <div class="p-3 bg-amber-50 rounded-lg flex justify-between"><span class="text-amber-800">Puxadas:</span><span class="font-bold text-amber-600">${pux}</span></div>
-            <div class="p-3 bg-blue-50 rounded-lg flex justify-between"><span class="text-blue-800">Reagendar:</span><span class="font-bold text-blue-600">${reag}</span></div>
-            <div class="p-3 bg-slate-100 rounded-lg flex justify-between"><span>Pendentes:</span><span class="font-bold text-slate-600">${pend}</span></div>`;
-        const ctx = $('chart-dashboard').getContext('2d');
-        if (state.charts.dashboard) state.charts.dashboard.destroy();
-        state.charts.dashboard = new Chart(ctx, {
-            type:'doughnut',
-            data:{labels:['Confirmados','Cancelados','Puxadas','Reagendar','Pendentes'],datasets:[{data:[conf,canc,pux,reag,pend],backgroundColor:['#10b981','#ef4444','#f59e0b','#3b82f6','#cbd5e1'],borderWidth:2,borderColor:'#fff'}]},
-            options:{responsive:true,plugins:{legend:{position:'bottom'}}}
-        });
+    if(!state.user) return toast('Selecione um usuário','warning');
+    fetchAppointmentsHoje().then(()=>{
+        const d=state.appointmentsHoje; const conf=d.filter(a=>['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(a.situacao)).length; const canc=d.filter(a=>['CANCELADA','SI SEM INTERESSE'].includes(a.situacao)).length; const pux=d.filter(a=>a.situacao==='PUXADA').length; const pend=d.filter(a=>!a.situacao||a.situacao==='').length; const reag=d.filter(a=>a.situacao==='REAGENDAR').length;
+        $('stats-dashboard').innerHTML=`<div class="p-3 bg-slate-50 rounded-lg flex justify-between"><span>Total:</span><span class="font-bold">${d.length}</span></div><div class="p-3 bg-green-50 rounded-lg flex justify-between"><span class="text-green-800">Confirmados:</span><span class="font-bold text-green-600">${conf}</span></div><div class="p-3 bg-red-50 rounded-lg flex justify-between"><span class="text-red-800">Cancelados:</span><span class="font-bold text-red-600">${canc}</span></div><div class="p-3 bg-amber-50 rounded-lg flex justify-between"><span class="text-amber-800">Puxadas:</span><span class="font-bold text-amber-600">${pux}</span></div><div class="p-3 bg-blue-50 rounded-lg flex justify-between"><span class="text-blue-800">Reagendar:</span><span class="font-bold text-blue-600">${reag}</span></div><div class="p-3 bg-slate-100 rounded-lg flex justify-between"><span>Pendentes:</span><span class="font-bold text-slate-600">${pend}</span></div>`;
+        const ctx=$('chart-dashboard').getContext('2d'); if(state.charts.dashboard) state.charts.dashboard.destroy();
+        state.charts.dashboard=new Chart(ctx,{type:'doughnut',data:{labels:['Confirmados','Cancelados','Puxadas','Reagendar','Pendentes'],datasets:[{data:[conf,canc,pux,reag,pend],backgroundColor:['#10b981','#ef4444','#f59e0b','#3b82f6','#cbd5e1'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
     });
 }
 
 // ==================== ADMIN ====================
-async function loadAdminData(period) {
-    console.log('=== ADMIN: Iniciando busca ===', period);
-    toast('Carregando dados do período: ' + period + '...', 'info');
-    
-    $('admin-total').innerHTML = $('admin-confirmados').innerHTML = $('admin-taxa').innerHTML = $('admin-equipe').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    $('admin-ranking').innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-indigo-500"></i><p class="text-slate-500 mt-2">Buscando dados de todos os operadores...</p><p class="text-xs text-slate-400 mt-1" id="admin-progress">Preparando...</p></div>';
-
-    const today = new Date();
-    let dates = [];
-
-    if (period === 'hoje') {
-        dates = [formatDateAPI(today)];
-    } else if (period === 'semana') {
-        for (let i = 6; i >= 0; i--) {
-            const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
-            dates.push(formatDateAPI(d));
+async function loadAdminData(period, customStart, customEnd) {
+    toast('Carregando: '+period+'...','info'); $('admin-progress-bar').classList.remove('hidden'); $('admin-progress-fill').style.width='0%';
+    $('admin-total').innerHTML=$('admin-confirmados').innerHTML=$('admin-taxa').innerHTML=$('admin-equipe').innerHTML='<i class="fas fa-spinner fa-spin"></i>';
+    $('admin-ranking').innerHTML='<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-indigo-500"></i><p class="text-slate-500 mt-2">Buscando dados...</p><p class="text-xs text-slate-400 mt-1" id="admin-progress-text">Preparando...</p></div>';
+    const today=new Date(); let dates=[];
+    if(period==='hoje') dates=[formatDateAPI(today)];
+    else if(period==='semana'){for(let i=6;i>=0;i--){const d=new Date(today.getFullYear(),today.getMonth(),today.getDate()-i);dates.push(formatDateAPI(d));}}
+    else if(period==='mes'){for(let i=29;i>=0;i--){const d=new Date(today.getFullYear(),today.getMonth(),today.getDate()-i);dates.push(formatDateAPI(d));}}
+    else if(period==='custom'&&customStart&&customEnd){const s=new Date(customStart+'T12:00:00'),e=new Date(customEnd+'T12:00:00');const diff=Math.ceil((e-s)/(86400000));if(diff>60)return toast('Máximo 60 dias','warning');for(let i=0;i<=diff;i++){const d=new Date(s.getFullYear(),s.getMonth(),s.getDate()+i);dates.push(formatDateAPI(d));}}
+    try{let allData=[]; const tasks=[]; for(const op of OPERADORES){for(const ds of dates) tasks.push({op,ds});}
+        const total=tasks.length; let done=0; const batch=6;
+        for(let i=0;i<tasks.length;i+=batch){const b=tasks.slice(i,i+batch);
+            const results=await Promise.all(b.map(async({op,ds})=>{try{const c=new AbortController();const t=setTimeout(()=>c.abort(),12000);const r=await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${op.id}&date=${ds}`,{signal:c.signal});clearTimeout(t);const j=await r.json();if(j.status==='success'&&j.data&&j.data.length>0)return j.data.map(d=>({...d,operador:op.id,operadorNome:op.nome,operadorCor:op.cor}));return[];}catch{return[];}}));
+            results.forEach(arr=>{allData=allData.concat(arr);}); done+=b.length;
+            const pct=Math.round((done/total)*100); $('admin-progress-fill').style.width=pct+'%';
+            const pt=$('admin-progress-text'); if(pt) pt.textContent=`${pct}% (${allData.length} registros)`;
         }
-    } else if (period === 'mes') {
-        for (let i = 29; i >= 0; i--) {
-            const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
-            dates.push(formatDateAPI(d));
-        }
-    }
-
-    console.log('Datas a buscar:', dates);
-
-    try {
-        let allData = [];
-        
-        // Build all request tasks
-        const tasks = [];
-        for (const op of OPERADORES) {
-            for (const dateStr of dates) {
-                tasks.push({ op, dateStr });
-            }
-        }
-
-        const totalTasks = tasks.length;
-        let completedTasks = 0;
-
-        // Process in parallel batches of 6 for speed
-        const batchSize = 6;
-        for (let i = 0; i < tasks.length; i += batchSize) {
-            const batch = tasks.slice(i, i + batchSize);
-            
-            const promises = batch.map(async ({ op, dateStr }) => {
-                try {
-                    const controller = new AbortController();
-                    const timeout = setTimeout(() => controller.abort(), 10000);
-                    
-                    const r = await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${op.id}&date=${dateStr}`, {
-                        signal: controller.signal
-                    });
-                    clearTimeout(timeout);
-                    
-                    const j = await r.json();
-                    if (j.status === 'success' && j.data && j.data.length > 0) {
-                        console.log(`✅ ${op.id} ${dateStr}: ${j.data.length} registros`);
-                        return j.data.map(d => ({...d, operador: op.id, operadorNome: op.nome, operadorCor: op.cor}));
-                    }
-                    return [];
-                } catch(e) {
-                    console.warn(`⚠️ ${op.id} ${dateStr}: timeout/erro`);
-                    return [];
-                }
-            });
-
-            const results = await Promise.all(promises);
-            results.forEach(arr => { allData = allData.concat(arr); });
-            
-            completedTasks += batch.length;
-            const pctDone = Math.round((completedTasks / totalTasks) * 100);
-            const progressEl = $('admin-progress');
-            if (progressEl) {
-                progressEl.textContent = `${pctDone}% concluído (${allData.length} registros encontrados)`;
-            }
-        }
-
-        console.log(`=== ADMIN: Total ${allData.length} registros encontrados ===`);
-
-        state.adminData = allData;
-        renderAdminResults(allData);
-
-    } catch(error) {
-        console.error('Erro admin:', error);
-        toast('Erro ao carregar: ' + error.message, 'error');
-        $('admin-total').textContent = $('admin-confirmados').textContent = '0';
-        $('admin-taxa').textContent = '0%'; $('admin-equipe').textContent = '0';
-        $('admin-ranking').innerHTML = `<div class="text-center py-8"><i class="fas fa-exclamation-triangle text-4xl text-red-300 mb-3"></i><p class="text-red-500 font-medium">Erro ao carregar dados</p><p class="text-xs text-slate-400 mt-2">${error.message}</p><button onclick="loadAdminData('hoje')" class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold"><i class="fas fa-redo"></i> Tentar Novamente</button></div>`;
-    }
+        $('admin-progress-bar').classList.add('hidden'); state.adminData=allData; renderAdminResults(allData); renderOperadores();
+    }catch(error){$('admin-progress-bar').classList.add('hidden');toast('Erro: '+error.message,'error');$('admin-total').textContent=$('admin-confirmados').textContent='0';$('admin-taxa').textContent='0%';$('admin-equipe').textContent='0';
+        $('admin-ranking').innerHTML=`<div class="text-center py-8"><i class="fas fa-exclamation-triangle text-4xl text-red-300 mb-3"></i><p class="text-red-500">Erro ao carregar</p><button onclick="loadAdminData('hoje')" class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold"><i class="fas fa-redo"></i> Tentar Novamente</button></div>`;}
 }
-
 function renderAdminResults(allData) {
-    const total = allData.length;
-    const conf = allData.filter(a => ['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(a.situacao)).length;
-    const canc = allData.filter(a => ['CANCELADA','SI SEM INTERESSE'].includes(a.situacao)).length;
-    const taxa = total > 0 ? Math.round((conf/total)*100) : 0;
-    const ativos = new Set(allData.map(a=>a.operador)).size;
-
-    $('admin-total').textContent = total;
-    $('admin-confirmados').textContent = conf;
-    $('admin-taxa').textContent = `${taxa}%`;
-    $('admin-equipe').textContent = ativos;
-
-    // Ranking
-    const rm = {};
-    OPERADORES.forEach(o => { rm[o.id] = {id:o.id, nome:o.nome, cor:o.cor, total:0, confirmados:0, cancelados:0}; });
-    allData.forEach(i => {
-        if(rm[i.operador]) {
-            rm[i.operador].total++;
-            if(['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(i.situacao)) rm[i.operador].confirmados++;
-            if(['CANCELADA','SI SEM INTERESSE'].includes(i.situacao)) rm[i.operador].cancelados++;
-        }
-    });
-    const ranking = Object.values(rm).filter(r=>r.total>0).map(r=>({...r, taxa:r.total>0?Math.round((r.confirmados/r.total)*100):0})).sort((a,b)=>b.confirmados-a.confirmados);
-
-    if (ranking.length > 0) {
-        $('admin-ranking').innerHTML = ranking.map((item, idx) => {
-            const medal = idx===0?'🥇':idx===1?'🥈':idx===2?'🥉':`${idx+1}º`;
-            const pct = item.total > 0 ? Math.round((item.confirmados/item.total)*100) : 0;
-            return `<div class="flex items-center gap-3 p-4 bg-gradient-to-r from-slate-50 to-white rounded-xl hover:shadow-md transition-all border border-slate-100">
-                <div class="text-3xl font-black w-14 text-center">${medal}</div>
-                <div class="w-3 h-12 rounded-full" style="background:${item.cor}"></div>
-                <div class="flex-1">
-                    <div class="font-bold text-slate-800 text-lg">${item.nome}</div>
-                    <div class="text-sm text-slate-500">
-                        <span class="text-green-600 font-bold">${item.confirmados}</span> confirmados •
-                        <span class="text-red-500 font-bold">${item.cancelados}</span> cancelados •
-                        <span class="font-bold">${item.total}</span> total
-                    </div>
-                    <div class="w-full bg-slate-200 rounded-full h-2 mt-1"><div class="h-2 rounded-full" style="width:${pct}%;background:${item.cor}"></div></div>
-                </div>
-                <div class="text-right"><div class="text-2xl font-black" style="color:${item.cor}">${item.taxa}%</div><div class="text-xs text-slate-400">Taxa</div></div>
-            </div>`;
-        }).join('');
-    } else {
-        $('admin-ranking').innerHTML = `<div class="text-center py-8">
-            <i class="fas fa-inbox text-4xl text-slate-300 mb-3"></i>
-            <p class="text-slate-400 font-medium">Nenhum dado encontrado neste período</p>
-            <p class="text-xs text-slate-300 mt-1">Tente outro período ou verifique se há agendamentos lançados</p>
-        </div>`;
-    }
-
+    const total=allData.length; const conf=allData.filter(a=>['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(a.situacao)).length; const taxa=total>0?Math.round((conf/total)*100):0; const ativos=new Set(allData.map(a=>a.operador)).size;
+    $('admin-total').textContent=total; $('admin-confirmados').textContent=conf; $('admin-taxa').textContent=`${taxa}%`; $('admin-equipe').textContent=ativos;
+    const rm={}; OPERADORES.forEach(o=>{rm[o.id]={id:o.id,nome:o.nome,cor:o.cor,total:0,confirmados:0,cancelados:0};});
+    allData.forEach(i=>{if(rm[i.operador]){rm[i.operador].total++;if(['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(i.situacao))rm[i.operador].confirmados++;if(['CANCELADA','SI SEM INTERESSE'].includes(i.situacao))rm[i.operador].cancelados++;}});
+    const ranking=Object.values(rm).filter(r=>r.total>0).map(r=>({...r,taxa:r.total>0?Math.round((r.confirmados/r.total)*100):0})).sort((a,b)=>b.confirmados-a.confirmados);
+    if(ranking.length>0){$('admin-ranking').innerHTML=ranking.map((item,idx)=>{const medal=idx===0?'🥇':idx===1?'🥈':idx===2?'🥉':`${idx+1}º`;const pct=item.total>0?Math.round((item.confirmados/item.total)*100):0;const ms=state.meta.diaria>0?(item.total>=state.meta.diaria?'<span class="text-green-500 text-xs ml-2">✅ Meta</span>':'<span class="text-orange-500 text-xs ml-2">⏳ Falta '+(state.meta.diaria-item.total)+'</span>'):'';
+        return `<div class="flex items-center gap-3 p-4 bg-gradient-to-r from-slate-50 to-white rounded-xl hover:shadow-md transition-all border border-slate-100 cursor-pointer" onclick="showOperadorDetalhe('${item.id}')"><div class="text-3xl font-black w-14 text-center">${medal}</div><div class="w-3 h-12 rounded-full" style="background:${item.cor}"></div><div class="flex-1"><div class="font-bold text-slate-800 text-lg">${item.nome}${ms}</div><div class="text-sm text-slate-500"><span class="text-green-600 font-bold">${item.confirmados}</span> confirmados • <span class="text-red-500 font-bold">${item.cancelados}</span> cancelados • <span class="font-bold">${item.total}</span> total</div><div class="w-full bg-slate-200 rounded-full h-2 mt-1"><div class="h-2 rounded-full" style="width:${pct}%;background:${item.cor}"></div></div></div><div class="text-right"><div class="text-2xl font-black" style="color:${item.cor}">${item.taxa}%</div><div class="text-xs text-slate-400">Taxa</div></div></div>`;}).join('');}
+    else{$('admin-ranking').innerHTML='<div class="text-center py-8"><i class="fas fa-inbox text-4xl text-slate-300 mb-3"></i><p class="text-slate-400">Nenhum dado encontrado</p></div>';}
     // Chart
-    const ctx = $('admin-chart');
-    if (ctx) {
-        if (state.charts.admin) state.charts.admin.destroy();
-        if (ranking.length > 0) {
-            state.charts.admin = new Chart(ctx.getContext('2d'), {
-                type:'bar',
-                data:{
-                    labels:ranking.map(r=>r.nome.split(' ')[0]),
-                    datasets:[
-                        {label:'Confirmados',data:ranking.map(r=>r.confirmados),backgroundColor:ranking.map(r=>r.cor),borderWidth:0,borderRadius:8},
-                        {label:'Total',data:ranking.map(r=>r.total),backgroundColor:ranking.map(r=>r.cor+'40'),borderWidth:2,borderColor:ranking.map(r=>r.cor),borderRadius:8}
-                    ]
-                },
-                options:{responsive:true,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}}
-            });
-        }
-    }
-
+    const ctx=$('admin-chart'); if(ctx){if(state.charts.admin) state.charts.admin.destroy(); if(ranking.length>0){state.charts.admin=new Chart(ctx.getContext('2d'),{type:'bar',data:{labels:ranking.map(r=>r.nome.split(' ')[0]),datasets:[{label:'Confirmados',data:ranking.map(r=>r.confirmados),backgroundColor:ranking.map(r=>r.cor),borderWidth:0,borderRadius:8},{label:'Total',data:ranking.map(r=>r.total),backgroundColor:ranking.map(r=>r.cor+'40'),borderWidth:2,borderColor:ranking.map(r=>r.cor),borderRadius:8}]},options:{responsive:true,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}}});}}
     // Table
-    if (allData.length > 0) {
-        const sorted = [...allData].sort((a,b) => (b.data||'').localeCompare(a.data||''));
-        $('admin-table-body').innerHTML = sorted.slice(0,100).map(i => `
-            <tr class="hover:bg-slate-50">
-                <td class="px-4 py-3 text-sm">${i.data||'N/D'}</td>
-                <td class="px-4 py-3"><span class="font-bold text-sm" style="color:${i.operadorCor||'#666'}">${i.operador}</span></td>
-                <td class="px-4 py-3 text-sm font-medium">${i.jovem||'N/D'}</td>
-                <td class="px-4 py-3"><span class="badge ${getStatusBadge(i.situacao)}">${i.situacao||'PENDENTE'}</span></td>
-            </tr>
-        `).join('');
-    } else {
-        $('admin-table-body').innerHTML = '<tr><td colspan="4" class="text-center py-8 text-slate-400">Nenhum registro encontrado</td></tr>';
-    }
-
-    if (total > 0) toast(`✅ ${total} registros de ${ativos} operadores carregados!`, 'success');
-    else toast('Nenhum dado encontrado neste período', 'warning');
+    const tc=$('admin-table-count');
+    if(allData.length>0){const sorted=[...allData].sort((a,b)=>(b.data||'').localeCompare(a.data||''));const showing=Math.min(sorted.length,150);if(tc)tc.textContent=`(${showing} de ${sorted.length})`;$('admin-table-body').innerHTML=sorted.slice(0,150).map(i=>`<tr class="hover:bg-slate-50"><td class="px-4 py-3 text-sm">${i.data||'N/D'}</td><td class="px-4 py-3"><span class="font-bold text-sm" style="color:${i.operadorCor||'#666'}">${i.operador}</span></td><td class="px-4 py-3 text-sm font-medium">${i.jovem||'N/D'}</td><td class="px-4 py-3 text-sm">${i.horario||'N/D'}</td><td class="px-4 py-3"><span class="badge ${getStatusBadge(i.situacao)}">${i.situacao||'PENDENTE'}</span></td></tr>`).join('');}
+    else{if(tc)tc.textContent='';$('admin-table-body').innerHTML='<tr><td colspan="5" class="text-center py-8 text-slate-400">Nenhum registro</td></tr>';}
+    if(total>0) toast(`✅ ${total} registros de ${ativos} operadores!`,'success'); else toast('Nenhum dado neste período','warning');
 }
 
 // ==================== HELPERS ====================
-function getStatusColor(s) {
-    if (['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(s)) return 'border-green-500';
-    if (['CANCELADA','SI SEM INTERESSE'].includes(s)) return 'border-red-500';
-    if (s==='PUXADA') return 'border-orange-500';
-    if (s==='REAGENDAR') return 'border-blue-500';
-    return 'border-yellow-400';
-}
-
-function getStatusBadge(s) {
-    if (['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(s)) return 'bg-green-100 text-green-700';
-    if (['CANCELADA','SI SEM INTERESSE'].includes(s)) return 'bg-red-100 text-red-700';
-    if (s==='PUXADA') return 'bg-orange-100 text-orange-700';
-    if (s==='REAGENDAR') return 'bg-blue-100 text-blue-700';
-    return 'bg-yellow-100 text-yellow-700';
-}
-
-function updateStats() {
-    const t = state.recipients.length;
-    $('stat-total').textContent = t;
-    $('stat-completo').textContent = state.recipients.filter(r=>r.jovem&&r.data&&r.horario&&r.telefone_resp).length;
-    $('stat-puxada').textContent = state.recipients.filter(r=>r.tipo==='PUXADA').length;
-}
-
-async function fetchAgendamentosAmanha() {
-    const tm = new Date(); tm.setDate(tm.getDate()+1);
-    if (tm.getDay()===0) tm.setDate(tm.getDate()+1);
-    $('stat-ag-amanha').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    try {
-        let total = 0;
-        const targets = state.isSupervisor ? OPERADORES : [{id:state.user}];
-        for (const op of targets) {
-            const r = await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${op.id}&date=${formatDateAPI(tm)}`);
-            const j = await r.json();
-            if (j.status==='success') total += j.data.length;
-        }
-        $('stat-ag-amanha').textContent = total;
-    } catch { $('stat-ag-amanha').textContent = '?'; }
-}
-
-function sendQuickMessage() {
-    const num = $('quick-telefone').value.replace(/\D/g,'');
-    if (num.length < 10) return toast('Telefone inválido', 'warning');
-    const jovem = $('quick-jovem').value, data = $('quick-data').value, hora = $('quick-horario').value;
-    const local = $('quick-local').value, assist = $('quick-assistente').value;
-    const nome = assist==='GABRIELA'?(local==='Centro'?'Sara Gabriela Silva':'Sophia Martins'):(OPERADORES.find(o=>o.id===assist)?.nome||assist);
-    const end = local==='Eldorado'?'Av. João César de Oliveira, 953 no 2° andar - Eldorado':'Rua Curitiba, 656, 11° andar - Centro, Belo Horizonte';
-    const ref = local==='Eldorado'?'(Em frente a Caixa Econômica Federal, ao lado da Oral Centter, próximo ao Big Shopping)':'(Abaixo da Galeria do Ouvidor, em frente a Casa&Video)';
-    let dia = '';
-    if (data&&data.length===10){ const p=data.split('/'); dia=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'][new Date(p[2],p[1]-1,p[0]).getDay()]; }
-    let tel = num; if(tel.startsWith('5555')) tel=tel.substring(2); if(!tel.startsWith('55')) tel='55'+tel;
-    const msg = `*${dia}, ${data}, às ${hora}*, ${jovem} e responsável devem comparecer à *${end}*, para o *Teste Vocacional e Cadastramento Gratuito* ao Mercado De Trabalho. Apresentem *RG, comprovante de residência* e procurem por *${nome}*. A presença de ambos é indispensável: o não comparecimento implica no bloqueio de futuras oportunidades no projeto.\n\n${ref}`;
-    window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`, '_blank');
-    hideModal('quick-modal'); toast('Abrindo WhatsApp...', 'success');
-}
+function getStatusColor(s){if(['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(s))return'border-green-500';if(['CANCELADA','SI SEM INTERESSE'].includes(s))return'border-red-500';if(s==='PUXADA')return'border-orange-500';if(s==='REAGENDAR')return'border-blue-500';if(s==='DESCLASSIFICADA')return'border-gray-500';return'border-yellow-400';}
+function getStatusBadge(s){if(['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(s))return'bg-green-100 text-green-700';if(['CANCELADA','SI SEM INTERESSE'].includes(s))return'bg-red-100 text-red-700';if(s==='PUXADA')return'bg-orange-100 text-orange-700';if(s==='REAGENDAR')return'bg-blue-100 text-blue-700';if(s==='DESCLASSIFICADA')return'bg-gray-100 text-gray-700';return'bg-yellow-100 text-yellow-700';}
+function updateStats(){$('stat-total').textContent=state.recipients.length;$('stat-completo').textContent=state.recipients.filter(r=>r.jovem&&r.data&&r.horario&&r.telefone_resp).length;$('stat-puxada').textContent=state.recipients.filter(r=>r.tipo==='PUXADA').length;$('stat-amanha').textContent=state.recipients.filter(r=>r.tipo==='AMANHÃ').length;}
+async function fetchAgendamentosAmanha(){const tm=new Date();tm.setDate(tm.getDate()+1);if(tm.getDay()===0)tm.setDate(tm.getDate()+1);$('stat-ag-amanha').innerHTML='<i class="fas fa-spinner fa-spin"></i>';try{let total=0;const targets=state.isSupervisor?OPERADORES:[{id:state.user}];for(const op of targets){try{const r=await fetch(`${SCRIPT_URL}?action=getAppointments&assistant=${op.id}&date=${formatDateAPI(tm)}`);const j=await r.json();if(j.status==='success')total+=j.data.length;}catch(e){}}$('stat-ag-amanha').textContent=total;}catch{$('stat-ag-amanha').textContent='?';}}
+function sendQuickMessage(){const num=$('quick-telefone').value.replace(/\D/g,'');if(num.length<10)return toast('Telefone inválido','warning');const jovem=$('quick-jovem').value,data=$('quick-data').value,hora=$('quick-horario').value,local=$('quick-local').value,assist=$('quick-assistente').value;const nome=assist==='GABRIELA'?(local==='Centro'?'Sara Gabriela Silva':'Sophia Martins'):(OPERADORES.find(o=>o.id===assist)?.nome||assist);const end=local==='Eldorado'?'Av. João César de Oliveira, 953 no 2° andar - Eldorado':'Rua Curitiba, 656, 11° andar - Centro, Belo Horizonte';const ref=local==='Eldorado'?'(Em frente a Caixa Econômica Federal, ao lado da Oral Centter, próximo ao Big Shopping)':'(Abaixo da Galeria do Ouvidor, em frente a Casa&Video)';let dia='';if(data&&data.length===10){const p=data.split('/');dia=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'][new Date(p[2],p[1]-1,p[0]).getDay()];}let tel=num;if(tel.startsWith('5555'))tel=tel.substring(2);if(!tel.startsWith('55'))tel='55'+tel;const msg=`*${dia}, ${data}, às ${hora}*, ${jovem} e responsável devem comparecer à *${end}*, para o *Teste Vocacional e Cadastramento Gratuito* ao Mercado De Trabalho. Apresentem *RG, comprovante de residência* e procurem por *${nome}*. A presença de ambos é indispensável: o não comparecimento implica no bloqueio de futuras oportunidades no projeto.\n\n${ref}`;window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`,'_blank');hideModal('quick-modal');toast('Abrindo WhatsApp...','success');}
 
 // ==================== LOCAL STORAGE ====================
-function saveLocalData() { try { localStorage.setItem('agCentro', JSON.stringify({recipients:state.recipients,ts:Date.now()})); } catch{} }
-function loadLocalData() { try { const r=localStorage.getItem('agCentro'); if(r){const d=JSON.parse(r); if(Date.now()-d.ts<86400000){state.recipients=d.recipients||[];renderRecipients();}} } catch{} }
-function loadMetas() { try { const s=localStorage.getItem('agCentroMetas'); if(s){const m=JSON.parse(s);state.meta={diaria:+m.diaria||0,semanal:+m.semanal||0,mensal:+m.mensal||0,taxa:+m.taxa||0};} } catch{} }
-function saveMetas() { state.meta={diaria:+$('meta-diaria').value||0,semanal:+$('meta-semanal').value||0,mensal:+$('meta-mensal').value||0,taxa:+$('meta-taxa').value||0}; localStorage.setItem('agCentroMetas',JSON.stringify(state.meta)); hideModal('metas-modal'); toast('Metas salvas!','success'); }
-function exportAdminData() { if(!state.adminData.length) return toast('Sem dados','warning'); const a=document.createElement('a'); a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(state.adminData,null,2)); a.download=`relatorio_${new Date().toISOString().split('T')[0]}.json`; a.click(); toast('Exportado!','success'); }
+function saveLocalData(){try{localStorage.setItem('agCentro',JSON.stringify({recipients:state.recipients,ts:Date.now()}));}catch(e){}}
+function loadLocalData(){try{const r=localStorage.getItem('agCentro');if(r){const d=JSON.parse(r);if(Date.now()-d.ts<86400000){state.recipients=d.recipients||[];renderRecipients();}}}catch(e){}}
+function loadMetas(){try{const s=localStorage.getItem('agCentroMetas');if(s){const m=JSON.parse(s);state.meta={diaria:+m.diaria||0,semanal:+m.semanal||0,mensal:+m.mensal||0,taxa:+m.taxa||0};}}catch(e){}}
+function saveMetas(){state.meta={diaria:+$('meta-diaria').value||0,semanal:+$('meta-semanal').value||0,mensal:+$('meta-mensal').value||0,taxa:+$('meta-taxa').value||0};localStorage.setItem('agCentroMetas',JSON.stringify(state.meta));hideModal('metas-modal');toast('Metas salvas!','success');}
+function exportAdminData(){if(!state.adminData.length)return toast('Sem dados','warning');const a=document.createElement('a');a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(state.adminData,null,2));a.download=`relatorio_centro_${new Date().toISOString().split('T')[0]}.json`;a.click();toast('Exportado!','success');}
 
-// ==================== MASKS ====================
-function maskDate(el) { let v=el.value.replace(/\D/g,''); if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2); if(v.length>5)v=v.slice(0,5)+'/'+v.slice(5,9); el.value=v.slice(0,10); }
-function maskPhone(el) { let v=el.value.replace(/\D/g,''); if(v.startsWith('5555'))v=v.substring(2); if(v.length>0&&!v.startsWith('55'))v='55'+v; el.value=v.slice(0,13); }
-function maskTime(el) { let v=el.value.replace(/\D/g,''); if(v.length>2)v=v.slice(0,2)+':'+v.slice(2,4); el.value=v.slice(0,5); }
+// ==================== INPUT MASKS ====================
+function maskDate(el){let v=el.value.replace(/\D/g,'');if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2);if(v.length>5)v=v.slice(0,5)+'/'+v.slice(5,9);el.value=v.slice(0,10);}
+function maskPhone(el){let v=el.value.replace(/\D/g,'');if(v.startsWith('5555'))v=v.substring(2);if(v.length>0&&!v.startsWith('55'))v='55'+v;el.value=v.slice(0,13);}
+function maskTime(el){let v=el.value.replace(/\D/g,'');if(v.length>2)v=v.slice(0,2)+':'+v.slice(2,4);el.value=v.slice(0,5);}
 </script>
 </body>
 </html>

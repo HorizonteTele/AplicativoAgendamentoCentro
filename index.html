@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agendador PRO 3.2 - Unidade Centro</title>
+    <title>Agendador PRO 3.3 - Unidade Centro</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -243,7 +243,7 @@
         <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <div class="flex items-center gap-4">
                 <div class="w-14 h-14 bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200"><i class="fas fa-calendar-check text-2xl text-white"></i></div>
-                <div><h1 class="text-2xl md:text-3xl font-black text-slate-800">Agendador PRO</h1><p class="text-slate-500 font-medium">Unidade Centro • v3.2</p></div>
+                <div><h1 class="text-2xl md:text-3xl font-black text-slate-800">Agendador PRO</h1><p class="text-slate-500 font-medium">Unidade Centro • v3.3</p></div>
             </div>
             <div class="flex items-center gap-3 flex-wrap justify-center">
                 <button id="btn-toggle-dark" class="px-3 py-2 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors" title="Alternar tema"><i class="fas fa-moon"></i></button>
@@ -485,12 +485,10 @@ async function autoSyncOperadores() {
         if (j.status === 'success' && j.data && j.data.length > 0) {
             const sheetOps = j.data;
             const merged = [];
-            const sheetIds = new Set();
 
             sheetOps.forEach(sop => {
                 const opId = (sop.apelido || sop.id || '').toString().trim().toUpperCase();
                 if (!opId) return;
-                sheetIds.add(opId);
                 const local = OPERADORES.find(o => o.id === opId);
                 merged.push({
                     id: opId,
@@ -505,11 +503,7 @@ async function autoSyncOperadores() {
                 });
             });
 
-            // Mantém operadores locais que não estão na planilha
-            OPERADORES.forEach(op => {
-                if (!sheetIds.has(op.id)) merged.push(op);
-            });
-
+            // PLANILHA É A FONTE DA VERDADE - NÃO readiciona locais excluídos
             OPERADORES = merged;
             saveOperadores(); populateSelects();
             // Atualiza cores no adminData se tiver dados carregados
@@ -714,12 +708,10 @@ async function syncOperadoresFromSheet() {
         if (j.status === 'success' && j.data && j.data.length > 0) {
             const sheetOps = j.data;
             const merged = [];
-            const sheetIds = new Set();
 
             sheetOps.forEach(sop => {
                 const opId = (sop.apelido || sop.id || '').toString().trim().toUpperCase();
                 if (!opId) return;
-                sheetIds.add(opId);
                 const local = OPERADORES.find(o => o.id === opId);
                 merged.push({
                     id: opId,
@@ -734,11 +726,7 @@ async function syncOperadoresFromSheet() {
                 });
             });
 
-            // Mantém operadores locais que não estão na planilha
-            OPERADORES.forEach(op => {
-                if (!sheetIds.has(op.id)) merged.push(op);
-            });
-
+            // PLANILHA É A FONTE DA VERDADE - operadores excluídos (INATIVOS) NÃO voltam
             OPERADORES = merged;
             saveOperadores(); populateSelects(); renderOperadores();
             // Atualiza ranking/tabela com as novas cores se admin estiver aberto

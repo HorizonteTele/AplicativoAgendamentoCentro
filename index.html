@@ -469,15 +469,18 @@ document.addEventListener('DOMContentLoaded', () => {
     updateClock(); setInterval(updateClock, 1000);
     loadTheme(); loadMetas(); loadLocalData(); loadSavedUser();
     setupAllEvents(); switchTab('agendar');
-    // Auto-sync operadores da planilha se for admin
-    setTimeout(() => { if (state.isSupervisor) autoSyncOperadores(); }, 1500);
+    // Auto-sync operadores da planilha para TODOS os usuários (não só admins)
+    setTimeout(() => autoSyncOperadores(), 1500);
 });
 
-// Auto-sincronizar operadores da planilha (silencioso)
+// Auto-sincronizar operadores da planilha (roda para TODOS os usuários)
 async function autoSyncOperadores() {
     try {
         console.log('🔄 Auto-sincronizando operadores da planilha...');
-        const r = await fetch(`${SCRIPT_URL}?action=getOperadores&unidade=Centro`);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        const r = await fetch(`${SCRIPT_URL}?action=getOperadores&unidade=Centro`, { signal: controller.signal });
+        clearTimeout(timeout);
         const j = await r.json();
         if (j.status === 'success' && j.data && j.data.length > 0) {
             const sheetOps = j.data;
@@ -509,10 +512,18 @@ async function autoSyncOperadores() {
 
             OPERADORES = merged;
             saveOperadores(); populateSelects();
+            // Atualiza cores no adminData se tiver dados carregados
+            if (state.adminData.length > 0) {
+                state.adminData.forEach(item => {
+                    const op = OPERADORES.find(o => o.id === item.operador);
+                    if (op) { item.operadorNome = op.nome; item.operadorCor = op.cor; }
+                });
+            }
             console.log(`✅ Auto-sync: ${sheetOps.length} operadores da planilha`);
         } else {
-            console.log('⚠️ Planilha sem dados de operadores, enviando locais...');
-            await pushAllOperadoresToSheet();
+            console.log('⚠️ Planilha sem dados de operadores, usando locais...');
+            // Só admin envia para planilha (evita conflitos)
+            if (state.isSupervisor) await pushAllOperadoresToSheet();
         }
     } catch(e) {
         console.log('⚠️ Auto-sync falhou (usando dados locais): ' + e.message);
@@ -626,6 +637,17 @@ function saveOperadorForm() {
 
     saveOperadores(); populateSelects(); renderOperadores(); hideModal('operador-modal');
 
+    // Atualizar cores no adminData já carregado (sem precisar recarregar tudo)
+    if (state.adminData.length > 0) {
+        state.adminData.forEach(item => {
+            if (item.operador === data.id) {
+                item.operadorNome = data.nome;
+                item.operadorCor = data.cor;
+            }
+        });
+        renderAdminResults(state.adminData);
+    }
+
     // Salvar na planilha (para persistência global entre dispositivos)
     const payload = {
         action: 'saveOperador',
@@ -641,7 +663,6 @@ function saveOperadorForm() {
         unidade: 'Centro'
     };
     console.log('📤 Enviando operador para planilha:', payload);
-    // Tenta enviar com resposta primeiro, fallback para no-cors
     fetch(SCRIPT_URL, { method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify(payload) })
         .then(r => { console.log('✅ Operador enviado para planilha!'); toast('✅ Salvo na planilha! Todos os admins verão.', 'success'); })
         .catch(err => {
@@ -720,6 +741,14 @@ async function syncOperadoresFromSheet() {
 
             OPERADORES = merged;
             saveOperadores(); populateSelects(); renderOperadores();
+            // Atualiza ranking/tabela com as novas cores se admin estiver aberto
+            if (state.adminData.length > 0) {
+                state.adminData.forEach(item => {
+                    const op = OPERADORES.find(o => o.id === item.operador);
+                    if (op) { item.operadorNome = op.nome; item.operadorCor = op.cor; }
+                });
+                renderAdminResults(state.adminData);
+            }
             toast(`✅ Sincronizado! ${sheetOps.length} operadores da planilha`, 'success');
         } else {
             toast('📤 Planilha vazia! Enviando todos os operadores...', 'warning');
@@ -917,7 +946,7 @@ function switchTab(target) {
     if (btn) { btn.classList.remove('text-slate-600','hover:bg-slate-50'); btn.classList.add('bg-indigo-600','text-white','shadow-lg'); }
     if (target === 'agendamentos') fetchAppointmentsHoje();
     if (target === 'dashboard') updateDashboard();
-    if (target === 'admin' && state.isSupervisor) { autoSyncOperadores().then(() => { populateSelects(); loadAdminData('hoje'); }); }
+    if (target === 'admin' && state.isSupervisor) { loadAdminData('hoje'); }
 }
 
 function switchAdminTab(tab) {
@@ -943,7 +972,7 @@ function setupAllEvents() {
             else if (state.user === 'WELKER') { $('auth-title').textContent='Acesso Supervisor'; $('auth-desc').textContent='Digite a senha de supervisor'; $('auth-icon').className='fas fa-user-shield text-2xl text-white'; }
             else { $('auth-title').textContent='Acesso Protegido'; $('auth-desc').textContent='Digite sua senha'; $('auth-icon').className='fas fa-lock text-2xl text-white'; }
             $('supervisor-password').value=''; showModal('password-modal'); setTimeout(()=>$('supervisor-password').focus(),200);
-        } else { applySupervisorMode(false); saveUser(); updateStats(); }
+        } else { applySupervisorMode(false); saveUser(); updateStats(); autoSyncOperadores(); }
     });
 
     $('btn-confirm-auth').addEventListener('click', checkPassword);
@@ -1191,9 +1220,14 @@ async function loadAdminData(period, customStart, customEnd) {
 }
 function renderAdminResults(allData) {
     const total=allData.length; const conf=allData.filter(a=>['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(a.situacao)).length; const taxa=total>0?Math.round((conf/total)*100):0; const ativos=new Set(allData.map(a=>a.operador)).size;
-    $('admin-total').textContent=total; $('admin-confirmados').textContent=conf; $('admin-taxa').textContent=`${taxa}%`; $('admin-equipe').textContent=ativos;
+    $('admin-total').textContent=total; $('admin-confirmados').textContent=conf; $('admin-taxa').textContent=`${taxa}%`; $('admin-equipe').textContent=OPERADORES.length;
+    // Sempre usa cores ATUAIS do array OPERADORES (não do cache)
     const rm={}; OPERADORES.forEach(o=>{rm[o.id]={id:o.id,nome:o.nome,cor:o.cor,total:0,confirmados:0,cancelados:0};});
-    allData.forEach(i=>{if(rm[i.operador]){rm[i.operador].total++;if(['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(i.situacao))rm[i.operador].confirmados++;if(['CANCELADA','SI SEM INTERESSE'].includes(i.situacao))rm[i.operador].cancelados++;}});
+    allData.forEach(i=>{
+        // Se operador não está no rm, cria com dados do cache
+        if(!rm[i.operador]){const op=OPERADORES.find(o=>o.id===i.operador);rm[i.operador]={id:i.operador,nome:op?.nome||i.operadorNome||i.operador,cor:op?.cor||i.operadorCor||'#6366f1',total:0,confirmados:0,cancelados:0};}
+        rm[i.operador].total++;if(['CONFIRMADA','JÁ VEIO','MATRICULA'].includes(i.situacao))rm[i.operador].confirmados++;if(['CANCELADA','SI SEM INTERESSE'].includes(i.situacao))rm[i.operador].cancelados++;
+    });
     const ranking=Object.values(rm).filter(r=>r.total>0).map(r=>({...r,taxa:r.total>0?Math.round((r.confirmados/r.total)*100):0})).sort((a,b)=>b.confirmados-a.confirmados);
     if(ranking.length>0){$('admin-ranking').innerHTML=ranking.map((item,idx)=>{const medal=idx===0?'🥇':idx===1?'🥈':idx===2?'🥉':`${idx+1}º`;const pct=item.total>0?Math.round((item.confirmados/item.total)*100):0;const ms=state.meta.diaria>0?(item.total>=state.meta.diaria?'<span class="text-green-500 text-xs ml-2">✅ Meta</span>':'<span class="text-orange-500 text-xs ml-2">⏳ Falta '+(state.meta.diaria-item.total)+'</span>'):'';
         return `<div class="flex items-center gap-3 p-4 bg-gradient-to-r from-slate-50 to-white rounded-xl hover:shadow-md transition-all border border-slate-100 cursor-pointer" onclick="showOperadorDetalhe('${item.id}')"><div class="text-3xl font-black w-14 text-center">${medal}</div><div class="w-3 h-12 rounded-full" style="background:${item.cor}"></div><div class="flex-1"><div class="font-bold text-slate-800 text-lg">${item.nome}${ms}</div><div class="text-sm text-slate-500"><span class="text-green-600 font-bold">${item.confirmados}</span> confirmados • <span class="text-red-500 font-bold">${item.cancelados}</span> cancelados • <span class="font-bold">${item.total}</span> total</div><div class="w-full bg-slate-200 rounded-full h-2 mt-1"><div class="h-2 rounded-full" style="width:${pct}%;background:${item.cor}"></div></div></div><div class="text-right"><div class="text-2xl font-black" style="color:${item.cor}">${item.taxa}%</div><div class="text-xs text-slate-400">Taxa</div></div></div>`;}).join('');}
@@ -1202,7 +1236,7 @@ function renderAdminResults(allData) {
     const ctx=$('admin-chart'); if(ctx){if(state.charts.admin) state.charts.admin.destroy(); if(ranking.length>0){state.charts.admin=new Chart(ctx.getContext('2d'),{type:'bar',data:{labels:ranking.map(r=>r.nome.split(' ')[0]),datasets:[{label:'Confirmados',data:ranking.map(r=>r.confirmados),backgroundColor:ranking.map(r=>r.cor),borderWidth:0,borderRadius:8},{label:'Total',data:ranking.map(r=>r.total),backgroundColor:ranking.map(r=>r.cor+'40'),borderWidth:2,borderColor:ranking.map(r=>r.cor),borderRadius:8}]},options:{responsive:true,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}}});}}
     // Table
     const tc=$('admin-table-count');
-    if(allData.length>0){const sorted=[...allData].sort((a,b)=>(b.data||'').localeCompare(a.data||''));const showing=Math.min(sorted.length,150);if(tc)tc.textContent=`(${showing} de ${sorted.length})`;$('admin-table-body').innerHTML=sorted.slice(0,150).map(i=>`<tr class="hover:bg-slate-50"><td class="px-4 py-3 text-sm">${i.data||'N/D'}</td><td class="px-4 py-3"><span class="font-bold text-sm" style="color:${i.operadorCor||'#666'}">${i.operador}</span></td><td class="px-4 py-3 text-sm font-medium">${i.jovem||'N/D'}</td><td class="px-4 py-3 text-sm">${i.horario||'N/D'}</td><td class="px-4 py-3"><span class="badge ${getStatusBadge(i.situacao)}">${i.situacao||'PENDENTE'}</span></td></tr>`).join('');}
+    if(allData.length>0){const sorted=[...allData].sort((a,b)=>(b.data||'').localeCompare(a.data||''));const showing=Math.min(sorted.length,150);if(tc)tc.textContent=`(${showing} de ${sorted.length})`;$('admin-table-body').innerHTML=sorted.slice(0,150).map(i=>{const opAtual=OPERADORES.find(o=>o.id===i.operador);const corAtual=opAtual?.cor||i.operadorCor||'#666';return `<tr class="hover:bg-slate-50"><td class="px-4 py-3 text-sm">${i.data||'N/D'}</td><td class="px-4 py-3"><span class="font-bold text-sm" style="color:${corAtual}">${i.operador}</span></td><td class="px-4 py-3 text-sm font-medium">${i.jovem||'N/D'}</td><td class="px-4 py-3 text-sm">${i.horario||'N/D'}</td><td class="px-4 py-3"><span class="badge ${getStatusBadge(i.situacao)}">${i.situacao||'PENDENTE'}</span></td></tr>`;}).join('');}
     else{if(tc)tc.textContent='';$('admin-table-body').innerHTML='<tr><td colspan="5" class="text-center py-8 text-slate-400">Nenhum registro</td></tr>';}
     if(total>0) toast(`✅ ${total} registros de ${ativos} operadores!`,'success'); else toast('Nenhum dado neste período','warning');
 }

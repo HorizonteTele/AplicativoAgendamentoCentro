@@ -1653,30 +1653,29 @@ async function confirmAiAppointment() {
     const horario = $('ai-horario').value.trim();
     const data = $('ai-data').value.trim();
     const local = $('ai-local').value;
-    const obs = ''; // Não enviar observação para a coluna do jovem
     if (!jovem || !responsavel || !horario || !data) return toast('Confira: jovem, responsável, data e horário são obrigatórios.', 'warning');
     const btn = $('btn-ai-confirmar');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Lançando...';
+
+    // Payload limpo: somente campos que o Apps Script original já entendia.
+    // Não envia idade, irmaos, tipo, obs nem código para não sujar a coluna do jovem.
     const payload = {
         action: 'saveAppointment',
         jovem: jovem,
         responsavel: responsavel,
-        numero_responsavel: telefone,
+        numero_responsavel: telefone || '',
         numero_jovem: '',
         horario: horario,
         local: local,
         data: data,
         assistente: state.user,
         isPuxada: data === formatDateBR(new Date()),
-        idade: '',
-        irmaos: '',
-        tipo: 'IA TEXTO',
         horario_lancamento: new Date().toLocaleString('pt-BR')
     };
+
     try {
-        const response = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-        const result = await response.json();
+        const result = await postAppointmentSafe(payload);
         if (result.status === 'success') {
             toast(`Agendamento IA salvo para ${data}!`, 'success');
             clearAiAppointmentFields();
@@ -1687,8 +1686,8 @@ async function confirmAiAppointment() {
             console.error(result);
         }
     } catch (e) {
-        toast('Erro de rede/servidor ao salvar IA.', 'error');
-        console.error(e);
+        toast(e.name === 'AbortError' ? 'Tempo esgotado ao lançar. Verifique se salvou na planilha antes de tentar de novo.' : 'Erro ao salvar IA. Veja o console.', 'error');
+        console.error('Erro ao salvar IA:', e);
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-check-circle"></i> Confirmar e lançar';
@@ -1721,12 +1720,12 @@ async function launchFastAppointment() {
     } else {
         const d = new Date();
         d.setDate(d.getDate() + 1);
-        if (d.getDay() === 0) d.setDate(d.getDate() + 1); // Pula domingo
+        if (d.getDay() === 0) d.setDate(d.getDate() + 1);
         dataAgendamento = formatDateBR(d);
     }
 
     if (!jovem || !responsavel || !horario) {
-        toast('Preencha Jovem, Responsável e Horário para lançar ultra rápido.', 'warning');
+        toast('Preencha Jovem, Responsável e Horário.', 'warning');
         return;
     }
 
@@ -1734,29 +1733,24 @@ async function launchFastAppointment() {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Lançando...';
 
+    // Payload igual ao modelo original que funcionava, só permitindo telefone vazio.
+    // Não envia idade/irmaos/tipo/codigo para evitar texto grudado no nome.
     const payload = {
         action: 'saveAppointment',
         jovem: jovem,
         responsavel: responsavel,
-        numero_responsavel: telefone,
+        numero_responsavel: telefone || '',
+        numero_jovem: '',
         horario: horario,
         local: local,
         data: dataAgendamento,
         assistente: state.user,
         isPuxada: isPuxada,
-        idade: '',
-        irmaos: '',
-        tipo: telefone ? 'RÁPIDO' : 'ULTRA RÁPIDO',
         horario_lancamento: new Date().toLocaleString('pt-BR')
     };
 
     try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload)
-        });
-        const result = await response.json();
+        const result = await postAppointmentSafe(payload);
         if (result.status === 'success') {
             toast(`Agendamento salvo para ${dataAgendamento}!`, 'success');
             clearFastAppointmentFields();
@@ -1766,8 +1760,8 @@ async function launchFastAppointment() {
             console.error('Erro ao salvar agendamento:', result);
         }
     } catch (e) {
-        toast('Erro de rede/servidor ao salvar.', 'error');
-        console.error('Erro de rede/servidor ao salvar agendamento:', e);
+        toast(e.name === 'AbortError' ? 'Tempo esgotado ao lançar. Verifique se salvou na planilha antes de tentar de novo.' : 'Erro ao salvar. Veja o console.', 'error');
+        console.error('Erro ao salvar agendamento:', e);
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-bolt"></i> Lançar Ultra Rápido';

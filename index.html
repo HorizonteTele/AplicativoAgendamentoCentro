@@ -832,6 +832,17 @@
     </div>
 
 <script>
+
+window.addEventListener('error', function(e) {
+    try {
+        console.error('Erro JS detectado:', e.message, e.filename, e.lineno);
+        if (typeof toast === 'function') toast('Erro interno: ' + e.message, 'error');
+        ['btn-fast-agendar','btn-ai-confirmar'].forEach(function(id){
+            var b = document.getElementById(id);
+            if (b) b.disabled = false;
+        });
+    } catch (_) {}
+});
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzWNLTiRrsQ2ViW1amUtY5krKjVJ6L9gMCnD1Cjrm2M_EzfMZKEbzJxEu8g7GCYoq-S/exec';
 const SUPERVISOR_PASS = 'horizonte123';
 const WELKER_PASS = 'vilavelha';
@@ -1634,23 +1645,6 @@ function analyzeAiAppointment() {
     toast('Mensagem analisada. Confira a prévia antes de lançar.', parsed.score >= 4 ? 'success' : 'warning');
 }
 
-async function postAppointmentSafe(payload) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 20000);
-    try {
-        await fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload),
-            signal: controller.signal
-        });
-        return { status: 'success' };
-    } finally {
-        clearTimeout(timeout);
-    }
-}
-
 async function confirmAiAppointment() {
     if (!state.user) return toast('Selecione seu nome primeiro!', 'warning');
     const jovem = $('ai-jovem').value.trim();
@@ -1675,20 +1669,25 @@ async function confirmAiAppointment() {
         data: data,
         assistente: state.user,
         isPuxada: data === formatDateBR(new Date()),
-        codigo: genCode(),
         idade: '',
         irmaos: '',
         tipo: 'IA TEXTO',
         horario_lancamento: new Date().toLocaleString('pt-BR')
     };
     try {
-        await postAppointmentSafe(payload);
-        toast(`Agendamento IA enviado para ${data}! Confira na planilha.`, 'success');
-        clearAiAppointmentFields();
-        updateStats();
-        if (!$('page-agendamentos').classList.contains('hidden')) fetchAppointmentsHoje();
+        const response = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+        const result = await response.json();
+        if (result.status === 'success') {
+            toast(`Agendamento IA salvo para ${data}!`, 'success');
+            clearAiAppointmentFields();
+            updateStats();
+            if (!$('page-agendamentos').classList.contains('hidden')) fetchAppointmentsHoje();
+        } else {
+            toast(result.message || 'Erro ao salvar agendamento IA.', 'error');
+            console.error(result);
+        }
     } catch (e) {
-        toast('Erro ao enviar. Verifique internet ou implantação do Apps Script.', 'error');
+        toast('Erro de rede/servidor ao salvar IA.', 'error');
         console.error(e);
     } finally {
         btn.disabled = false;
@@ -1740,14 +1739,11 @@ async function launchFastAppointment() {
         jovem: jovem,
         responsavel: responsavel,
         numero_responsavel: telefone,
-        numero_jovem: '',
-        data_nascimento: '',
         horario: horario,
         local: local,
         data: dataAgendamento,
         assistente: state.user,
         isPuxada: isPuxada,
-        codigo: genCode(),
         idade: '',
         irmaos: '',
         tipo: telefone ? 'RÁPIDO' : 'ULTRA RÁPIDO',
@@ -1755,13 +1751,23 @@ async function launchFastAppointment() {
     };
 
     try {
-        await postAppointmentSafe(payload);
-        toast(`Agendamento enviado para ${dataAgendamento}! Confira na planilha.`, 'success');
-        clearFastAppointmentFields();
-        if (!$('page-agendamentos').classList.contains('hidden')) fetchAppointmentsHoje();
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (result.status === 'success') {
+            toast(`Agendamento salvo para ${dataAgendamento}!`, 'success');
+            clearFastAppointmentFields();
+            if (!$('page-agendamentos').classList.contains('hidden')) fetchAppointmentsHoje();
+        } else {
+            toast(result.message || 'Erro ao salvar agendamento.', 'error');
+            console.error('Erro ao salvar agendamento:', result);
+        }
     } catch (e) {
-        toast('Erro ao enviar. Verifique internet ou implantação do Apps Script.', 'error');
-        console.error('Erro ao enviar agendamento:', e);
+        toast('Erro de rede/servidor ao salvar.', 'error');
+        console.error('Erro de rede/servidor ao salvar agendamento:', e);
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-bolt"></i> Lançar Ultra Rápido';
